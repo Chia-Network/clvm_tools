@@ -1,7 +1,7 @@
 from clvm.make_eval import EvalError
 
 from .Node import Node
-from .reader import read_tokens
+from opacity.reader import read_tokens
 
 
 BUILT_IN_KEYWORDS = [

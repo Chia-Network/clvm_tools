@@ -2,16 +2,16 @@ import argparse
 import hashlib
 import sys
 
-from opacity.writer import write_tokens
 
 from clvm import core_ops, more_ops
 from clvm.make_eval import make_eval_f, EvalError
 from clvm.op_utils import operators_for_module, operators_for_dict
 
+from opacity import binutils
+
 from .compile import op_compile_op
 from .expand import op_expand_op, op_expand_sexp
 from .prog import op_prog_op
-from .reader import read_tokens
 
 
 def has_unquote(sexp):
@@ -124,6 +124,49 @@ def arguments(s):
     return read_tokens(s)
 
 
+def do_compile(sexp):
+    if sexp.nullp():
+        return binutils.assemble("(q ())")
+    if not sexp.listp():
+        return sexp.to([binutils.assemble("#q"), sexp])
+
+    breakpoint()
+    operator = sexp.first()
+    # handle "quote" special
+    if operator == b"quote":
+        return binutils.assemble("#q").cons(sexp.rest())
+
+    compiled_args = [do_compile(_) for _ in sexp.rest().as_iter()]
+    # handle pass through operators
+    # handle QUOTE, ARGS and EVAL separately
+
+    # look at the operator and figure out how to rewrite it
+    raise ValueError("can't compile %s" % binutils.disassemble(sexp))
+    pass
+
+
+def com(args=sys.argv):
+    parser = argparse.ArgumentParser(
+        description='Compile an opacity script.'
+    )
+    parser.add_argument(
+        "path_or_code", type=path_or_code, help="path to opacity script, or literal script")
+    parser.add_argument("-r", "--reduce", help="Run compiled code")
+
+    args = parser.parse_args(args=args[1:])
+
+    prog = args.path_or_code
+    sexp = binutils.assemble(prog)
+    try:
+        result = do_compile(sexp)
+    except EvalError as ex:
+        print("FAILURE: %s" % ex)
+        result = ex._sexp
+        # raise
+    finally:
+        print(binutils.disassemble(result))
+
+
 def run(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Reduce an opacity script.'
@@ -137,6 +180,7 @@ def run(args=sys.argv):
     args = parser.parse_args(args=args[1:])
 
     prog = args.path_or_code
+    breakpoint()
     sexp = read_tokens(prog)
     try:
         result = do_eval(sexp, args.args)
@@ -145,7 +189,7 @@ def run(args=sys.argv):
         result = ex._sexp
         # raise
     finally:
-        print(write_tokens(result))
+        print(disassemble(result))
 
 
 """

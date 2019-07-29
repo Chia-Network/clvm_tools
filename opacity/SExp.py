@@ -4,8 +4,6 @@ from clvm.casts import int_to_bytes, int_from_bytes
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.subclass_sexp import subclass_sexp
 
-from .Var import Var
-
 
 class mixin:
     @classmethod
@@ -22,24 +20,15 @@ class mixin:
         sexp_to_stream(self, f)
         return f.getvalue()
 
-    def is_var(self):
-        return isinstance(self.v, Var)
-
     def is_bytes(self):
         return isinstance(self.v, bytes)
-
-    def var_index(self):
-        if self.is_var():
-            return self.v.index
 
     def as_bytes(self):
         if self.is_bytes():
             return self.as_atom()
 
     def type_index(self):
-        # ATOM_TYPES = enum.IntEnum("ATOM_TYPES", "VAR BLOB PAIR")
-        if self.is_var():
-            return 0
+        # ATOM_TYPES = enum.IntEnum("ATOM_TYPES", " BLOB PAIR")
         if self.is_bytes():
             return 1
         return 2
@@ -75,7 +64,7 @@ class mixin:
         return class_.from_stream(io.BytesIO(blob))
 
 
-to_sexp_f = subclass_sexp(mixin, (bytes, Var))
+to_sexp_f = subclass_sexp(mixin, (bytes, ))
 
 # HACK
 

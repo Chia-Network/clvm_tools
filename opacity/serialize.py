@@ -1,5 +1,3 @@
-from opacity.Var import Var
-
 
 def encode_size(f, size, step_size, base_byte_int):
     step_count, remainder = divmod(size, step_size)
@@ -51,10 +49,6 @@ def sexp_to_stream(v, f):
         f.write(blob)
         return
 
-    if isinstance(as_atom, Var):
-        encode_size(f, as_atom.index, 32, 0x40)
-        return
-
     assert 0
 
 
@@ -92,10 +86,6 @@ def sexp_from_stream(f, to_sexp):
         size = v - 0x20 + steps * 0x20
         items = [sexp_from_stream(f, to_sexp) for _ in range(size)]
         return to_sexp(items)
-
-    if v < 0x60:
-        index = v - 0x40 + steps * 0x20
-        return to_sexp(Var(index))
 
     size = v - 0x60 + steps * 160
     blob = f.read(size)

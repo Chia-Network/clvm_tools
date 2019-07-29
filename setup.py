@@ -21,6 +21,7 @@ setup(
                 'opd = opacity.cmds:opd',
                 'reduce = opacity.cmds:reduce',
                 'rewrite = opacity.cmds:rewrite',
+                'com = compiler.cmds:com',
                 'run = compiler.cmds:run',
                 'brun = opacity.cmds:brun',
             ]

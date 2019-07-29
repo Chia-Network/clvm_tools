@@ -4,7 +4,6 @@ import binascii
 
 from clvm.casts import int_from_bytes
 
-from .Var import Var
 from .reader import tokenize
 
 
@@ -35,14 +34,6 @@ def parse_as_hex(s, offset):
             raise SyntaxError("invalid hex at %s: %s" % (offset, s))
 
 
-def parse_as_var(s, offset):
-    if s[:1].upper() == "X":
-        try:
-            return Var(int(s[1:]))
-        except Exception:
-            raise SyntaxError("invalid variable at %s: %s" % (offset, s))
-
-
 def compile_atom(token, keyword_to_int):
     s = token.as_atom()
     c = s[0]
@@ -57,7 +48,7 @@ def compile_atom(token, keyword_to_int):
             raise SyntaxError("unknown keyword: %s" % keyword)
         return keyword_id
 
-    for f in [parse_as_int, parse_as_var, parse_as_hex]:
+    for f in [parse_as_int, parse_as_hex]:
         v = f(s, token._offset)
         if v is not None:
             return v
@@ -82,6 +73,7 @@ def compile_list(tokens, keyword_to_int):
 
 
 def from_int_keyword_tokens(token, keyword_to_int):
+    breakpoint()
     if token.listp():
         return compile_list(token, keyword_to_int)
     return compile_atom(token, keyword_to_int)
@@ -94,13 +86,11 @@ def to_int_keyword_tokens(form, keywords=[], is_first_element=False):
         return to_sexp_f([to_int_keyword_tokens(f, keywords, _ == 0) for _, f in enumerate(form.as_iter())])
 
     as_atom = form.as_atom()
-    if isinstance(as_atom, Var):
-        return to_sexp_f(("x%d" % as_atom.index))
-
     if is_first_element:
         v = keywords.get(as_atom)
         if v is not None and v != '.':
             return v
+        return as_atom
 
     if len(as_atom) > 4:
         return to_sexp_f(("0x%s" % binascii.hexlify(as_atom).decode("utf8")))

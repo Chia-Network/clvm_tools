@@ -1,54 +1,10 @@
 import binascii
 
-from clvm.subclass_sexp import subclass_sexp, EvalError
-
-from .Node import Node
-
-
-class mixin:
-    @classmethod
-    def to_castable(class_, v):
-        if isinstance(v, Node):
-            return v.path()
-        return v
-
-    @classmethod
-    def to_atom(class_, v):
-        if isinstance(v, bytes):
-            v = "0x%s" % binascii.hexlify(v).decode("utf8")
-        if isinstance(v, int):
-            return str(v)
-        return v
-
-    def as_int(self):
-        return int(self.v)
-
-    def as_bytes(self):
-        if not self.listp():
-            as_atom = self.as_atom()
-            if len(as_atom) > 1:
-                try:
-                    if as_atom[0] == as_atom[-1] == '"':
-                        return as_atom[1:-1].encode("utf8")
-                    if as_atom.upper().startswith("0X"):
-                        return binascii.unhexlify(as_atom[2:])
-                except Exception:
-                    pass
-        raise EvalError("not bytes", self)
-
-    def __repr__(self):
-        if self.nullp():
-            return "()"
-        if isinstance(self.v, str):
-            return self.v
-        return "(%s)" % (" ".join(repr(_) for _ in self.as_iter()))
-
-
-to_sexp = subclass_sexp(mixin, (str, None.__class__), true="true", false=None)
+from clvm import to_sexp_f
 
 
 def Token(s, offset):
-    t = to_sexp(s)
+    t = to_sexp_f(s)
     t._offset = offset
     return t
 
