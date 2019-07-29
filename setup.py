@@ -9,6 +9,7 @@ setup(
     version=version,
     packages=[
         "clvm",
+        "ir",
         "opacity",
         "schemas",
     ],
