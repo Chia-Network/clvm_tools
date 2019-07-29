@@ -44,19 +44,19 @@ def tokenize_cons(stream, offset):
         for token, offset in stream:
             break
         else:
-            raise SyntaxError("the ( at %d is missing a )" % offset)
+            raise SyntaxError("the ( at %s is missing a )" % offset)
 
         if token == ")":
             if dot_offset is not None:
                 if len(r) != 2:
-                    raise SyntaxError("illegal dot expression at %d" % dot_offset)
+                    raise SyntaxError("illegal dot expression at %s" % dot_offset)
                 return (r[0], r[1])
             return r
 
         if token == ".":
             dot_offset = offset
             if len(r) != 1:
-                raise SyntaxError("illegal dot expression at %d" % dot_offset)
+                raise SyntaxError("illegal dot expression at %s" % dot_offset)
             continue
 
         r.append(tokenize_sexp(token, offset, stream))
@@ -88,7 +88,7 @@ def tokenize_quotes(token, offset):
         return None
 
     if token[-1] != c:
-        raise SyntaxError("unterminated string starting at %d: %s" % (offset, token))
+        raise SyntaxError("unterminated string starting at %s: %s" % (offset, token))
 
     return token.encode("utf8")
 
@@ -139,7 +139,7 @@ def token_stream(s: str):
                 offset += 1
                 continue
             else:
-                raise SyntaxError("unterminated string starting at %d: %s" % (start, s[start:]))
+                raise SyntaxError("unterminated string starting at %s: %s" % (start, s[start:]))
         token, end_offset = consume_until_whitespace(s, offset)
         yield token, offset
         offset = end_offset
