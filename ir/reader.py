@@ -1,17 +1,11 @@
 # read strings into Token
 
 import binascii
-import enum
 
 from clvm import to_sexp_f
 
 
-class Type(enum.IntEnum):
-    CONS = 1
-    INT = 2
-    HEX = 3
-    QUOTES = 4
-    SYMBOL = 5
+from .Type import Type
 
 
 def consume_whitespace(s: str, offset):
@@ -35,31 +29,39 @@ def consume_until_whitespace(s: str, offset):
     return s[start:offset], offset
 
 
-def tokenize_cons(stream, offset):
-    r = []
+def next_cons_token(stream, offset):
+    for token, offset in stream:
+        break
+    else:
+        raise SyntaxError("the ( at %s is missing a )" % offset)
+    return token, offset
 
-    dot_offset = None
 
-    while True:
+def tokenize_cons(token, offset, stream):
+    if token == ")":
+        return []
+
+    first_sexp = tokenize_sexp(token, offset, stream)
+
+    token, offset = next_cons_token(stream, offset)
+    if token == ".":
+        dot_offset = offset
+        # grab the last item
         for token, offset in stream:
             break
         else:
             raise SyntaxError("the ( at %s is missing a )" % offset)
+        rest_sexp = tokenize_sexp(token, offset, stream)
+        for token, offset in stream:
+            break
+        else:
+            raise SyntaxError("the ( at %s is missing a )" % offset)
+        if token != ")":
+            raise SyntaxError("illegal dot expression at %s" % dot_offset)
+        return first_sexp.cons(rest_sexp)
 
-        if token == ")":
-            if dot_offset is not None:
-                if len(r) != 2:
-                    raise SyntaxError("illegal dot expression at %s" % dot_offset)
-                return (r[0], r[1])
-            return r
-
-        if token == ".":
-            dot_offset = offset
-            if len(r) != 1:
-                raise SyntaxError("illegal dot expression at %s" % dot_offset)
-            continue
-
-        r.append(tokenize_sexp(token, offset, stream))
+    rest_sexp = tokenize_list_items(token, offset, stream)
+    return first_sexp.cons(rest_sexp)
 
 
 def tokenize_int(token, offset):
@@ -90,33 +92,37 @@ def tokenize_quotes(token, offset):
     if token[-1] != c:
         raise SyntaxError("unterminated string starting at %s: %s" % (offset, token))
 
-    return token.encode("utf8")
+    return token[1:-1].encode("utf8")
 
 
 def tokenize_symbol(token, offset):
     return token.encode("utf8")
 
 
+def tokenize_list_items(token, offset, stream):
+    r = tokenize_cons(token, offset, stream)
+    sexp = to_sexp_f((Type.CONS, r))
+    sexp._offset = offset
+    return sexp
+
+
 def tokenize_sexp(token, offset, stream):
 
     if token == "(":
-        type = Type.CONS
-        r = tokenize_cons(stream, offset)
+        token, offset = next_cons_token(stream, offset)
+        return tokenize_list_items(token, offset, stream)
 
-    else:
-        for type, f in [
-            (Type.INT, tokenize_int),
-            (Type.HEX, tokenize_hex),
-            (Type.QUOTES, tokenize_quotes),
-            (Type.SYMBOL, tokenize_symbol),
-        ]:
-            r = f(token, offset)
-            if r is not None:
-                break
-
-    sexp = to_sexp_f([type, r])
-    sexp._offset = offset
-    return sexp
+    for type, f in [
+        (Type.INT, tokenize_int),
+        (Type.HEX, tokenize_hex),
+        (Type.QUOTES, tokenize_quotes),
+        (Type.SYMBOL, tokenize_symbol),
+    ]:
+        r = f(token, offset)
+        if r is not None:
+            sexp = to_sexp_f((type, r))
+            sexp._offset = offset
+            return sexp
 
 
 def token_stream(s: str):
