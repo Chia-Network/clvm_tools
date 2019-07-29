@@ -35,11 +35,10 @@ def consume_until_whitespace(s: str, offset):
     return s[start:offset], offset
 
 
-DOT_SYMBOL = to_sexp_f([Type.SYMBOL, b"."]).as_python()
-
-
 def tokenize_cons(stream, offset):
     r = []
+
+    dot_offset = None
 
     while True:
         for token, offset in stream:
@@ -48,26 +47,19 @@ def tokenize_cons(stream, offset):
             raise SyntaxError("the ( at %d is missing a )" % offset)
 
         if token == ")":
+            if dot_offset is not None:
+                if len(r) != 2:
+                    raise SyntaxError("illegal dot expression at %d" % dot_offset)
+                return (r[0], r[1])
             return r
 
-        sexp = tokenize_sexp(token, offset, stream)
-        if sexp.as_python() == DOT_SYMBOL:
-            # handle the cons box case here
-            if len(r) == 1:
-                for token, offset in stream:
-                    break
-                else:
-                    raise SyntaxError("unexpected end of stream at %d" % offset)
-                sexp = tokenize_sexp(token, offset, stream)
-                for token, offset in stream:
-                    break
-                else:
-                    raise SyntaxError("unexpected end of stream at %d" % offset)
-                if token == ")":
-                    return to_sexp_f((r[0], sexp))
-                raise SyntaxError("illegal expression in cons box at %d" % offset)
+        if token == ".":
+            dot_offset = offset
+            if len(r) != 1:
+                raise SyntaxError("illegal dot expression at %d" % dot_offset)
+            continue
 
-        r.append(sexp)
+        r.append(tokenize_sexp(token, offset, stream))
 
 
 def tokenize_int(token, offset):
