@@ -15,7 +15,7 @@ def transform(sexp):
 
 
 def to_tokens(sexp):
-    return disassemble_to_symbols(sexp)
+    return disassemble_to_symbols(sexp, allow_keyword=sexp.listp())
 
 
 def from_tokens(sexp):

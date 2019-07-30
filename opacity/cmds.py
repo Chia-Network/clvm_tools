@@ -7,13 +7,12 @@ import sys
 
 from clvm.EvalError import EvalError
 
-from . import writer
-from compiler import reader
+from ir import reader, writer
 
 from .debug import trace_to_html, trace_to_text
 
 
-DEFAULT_SCHEMA = "schemas.compiler_001"
+DEFAULT_SCHEMA = "schemas.runtime_001"
 
 
 def path_or_code(arg):
@@ -40,7 +39,8 @@ def opc(args=sys.argv):
 
     for text in args.path_or_code:
         try:
-            sexp = mod.from_tokens(reader.read_tokens(text))
+            ir_sexp = reader.read_tokens(text)
+            sexp = mod.from_tokens(ir_sexp)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue

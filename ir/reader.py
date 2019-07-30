@@ -29,11 +29,11 @@ def consume_until_whitespace(s: str, offset):
     return s[start:offset], offset
 
 
-def next_cons_token(stream, offset):
+def next_cons_token(stream):
     for token, offset in stream:
         break
     else:
-        raise SyntaxError("the ( at %s is missing a )" % offset)
+        raise SyntaxError("missing )")
     return token, offset
 
 
@@ -43,19 +43,13 @@ def tokenize_cons(token, offset, stream):
 
     first_sexp = tokenize_sexp(token, offset, stream)
 
-    token, offset = next_cons_token(stream, offset)
+    token, offset = next_cons_token(stream)
     if token == ".":
         dot_offset = offset
         # grab the last item
-        for token, offset in stream:
-            break
-        else:
-            raise SyntaxError("the ( at %s is missing a )" % offset)
+        token, offset = next_cons_token(stream)
         rest_sexp = tokenize_sexp(token, offset, stream)
-        for token, offset in stream:
-            break
-        else:
-            raise SyntaxError("the ( at %s is missing a )" % offset)
+        token, offset = next_cons_token(stream)
         if token != ")":
             raise SyntaxError("illegal dot expression at %s" % dot_offset)
         return first_sexp.cons(rest_sexp)
@@ -79,7 +73,7 @@ def tokenize_hex(token, offset):
                 token = "0%s" % token
             return binascii.unhexlify(token)
         except Exception:
-            raise SyntaxError("invalid hex at %s: %s" % (offset, token))
+            raise SyntaxError("invalid hex at %s: 0x%s" % (offset, token))
 
 
 def tokenize_quotes(token, offset):
@@ -109,7 +103,7 @@ def tokenize_list_items(token, offset, stream):
 def tokenize_sexp(token, offset, stream):
 
     if token == "(":
-        token, offset = next_cons_token(stream, offset)
+        token, offset = next_cons_token(stream)
         return tokenize_list_items(token, offset, stream)
 
     for type, f in [

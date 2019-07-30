@@ -73,7 +73,6 @@ def compile_list(tokens, keyword_to_int):
 
 
 def from_int_keyword_tokens(token, keyword_to_int):
-    breakpoint()
     if token.listp():
         return compile_list(token, keyword_to_int)
     return compile_atom(token, keyword_to_int)
