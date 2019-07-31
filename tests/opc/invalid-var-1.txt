@@ -1,2 +1,2 @@
-opc "(equal x0 xa)"
-invalid variable at 10: xa
+opc "(= x0 xa)"
+can't parse x0 at 3

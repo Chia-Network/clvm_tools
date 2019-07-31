@@ -18,7 +18,7 @@ def assemble_from_symbols(ir_sexp):
         atom = KEYWORD_TO_ATOM.get(keyword)
         if atom:
             return to_sexp_f(atom)
-        raise SyntaxError("unknown keyword %s" % keyword)
+        raise SyntaxError("can't parse %s at %s" % (keyword, ir_sexp._offset))
 
     assert type == Type.CONS
 

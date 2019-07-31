@@ -1,2 +1,2 @@
-opc "(equal x0 0x1009f)"
-invalid hex at 10: 0x1009f
+opc "(= 0x01009f 0x1009f)"
+ff0aff8301009fff8301009ffe
