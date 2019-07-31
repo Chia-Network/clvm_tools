@@ -30,12 +30,12 @@ def assemble_from_symbols(ir_sexp):
     return sexp_1.cons(sexp_2)
 
 
-def disassemble_to_symbols(sexp, allow_keyword=True):
+def disassemble_to_symbols(sexp, allow_keyword=None):
     if sexp.nullp():
         return to_sexp_f((Type.CONS, []))
 
     if sexp.listp():
-        if sexp.first().listp():
+        if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
         v0 = disassemble_to_symbols(sexp.first(), allow_keyword=allow_keyword)
         v1 = disassemble_to_symbols(sexp.rest(), allow_keyword=False)
@@ -54,7 +54,7 @@ def disassemble_to_symbols(sexp, allow_keyword=True):
 
 
 def disassemble(sexp):
-    symbols = disassemble_to_symbols(sexp, allow_keyword=False)
+    symbols = disassemble_to_symbols(sexp)
     return write_tokens(symbols)
 
 

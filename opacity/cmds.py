@@ -138,11 +138,9 @@ def do_reduction(args, mod, sexp, solution):
 
     try:
         reductions = eval_f(eval_f, sexp, solution)
-        result = mod.to_tokens(reductions)
-        output = writer.write_tokens(result)
+        output = mod.disassemble(reductions)
     except EvalError as e:
-        result = mod.to_tokens(e._sexp)
-        output = "FAIL: %s %s" % (e, writer.write_tokens(result))
+        output = "FAIL: %s %s" % (e, mod.disassemble(e._sexp))
         result = e._sexp
         return -1
     except Exception as e:
