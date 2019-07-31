@@ -180,6 +180,10 @@ def ir_iter(ir_sexp):
             ir_sexp = ir_rest(ir_sexp)
 
 
+def check_arg_count(args, count):
+    if len(args.as_python()) != count:
+        raise SyntaxError("bad argument count %d instead of %d" % (actual_count, count))
+
 
 def compile_test_operator(args):
     return binutils.assemble("(30 (+ (q 100) (q 10)))")
@@ -189,12 +193,28 @@ def compile_add_operator(args):
     pass
 
 
+def quote_arg(arg):
+    return to_sexp_f([binutils.assemble("q"), arg])
+
+
+def compile_if_operator(args):
+    # (if A B C) => (e (i A (q B) (q C)) (a))
+    check_arg_count(args, 3)
+    b = args.rest().first()
+    c = args.rest().rest().first()
+    abc = to_sexp_f([args.first(), quote_arg(b), quote_arg(c)])
+    r = binutils.assemble("e").cons(
+        binutils.assemble("i").cons(abc).cons(binutils.assemble("((a))")))
+    return r
+
+
 COMPILE_OPERATOR_LOOKUP = dict(
     test=compile_test_operator,
 )
 
 COMPILE_OPERATOR_LOOKUP.update({
     "+": compile_add_operator,
+    "if": compile_if_operator,
 })
 
 
@@ -221,7 +241,7 @@ def op_compile_ir_sexp(ir_sexp):
     # TODO: handle ARGS and EVAL separately
 
     # handle pass through operators
-    compiled_args = [op_compile_ir_sexp(_) for _ in ir_iter(ir_rest(ir_sexp))]
+    compiled_args = to_sexp_f([op_compile_ir_sexp(_) for _ in ir_iter(ir_rest(ir_sexp))])
 
     #
     f = COMPILE_OPERATOR_LOOKUP.get(operator)
