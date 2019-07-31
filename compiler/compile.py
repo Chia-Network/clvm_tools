@@ -68,31 +68,6 @@ def compile_function_op(op_compile_op, sexp):
     return sexp.to(["q", op_compile_op(new_sexp)])
 
 
-def make_compile_rewriters():
-    REMAP_LIST = {
-        "+": "+",
-        "-": "-",
-        "*": "*",
-        "cons": "c",
-        "first": "f",
-        "rest": "r",
-        "args": "a",
-        "equal": "=",
-        "call": "e",
-        "if_op": "i",
-        "listp": "l",
-        "sha256": "sha256",
-        "wrap": "wrap",
-    }
-    remapped = {k: make_compile_remap(k, v) for k, v in REMAP_LIST.items()}
-    remapped["function_op"] = compile_function_op
-    remapped["eval"] = compile_eval
-    return remapped
-
-
-COMPILE_REWRITERS = make_compile_rewriters()
-
-
 def compile_atom(sexp):
     token = sexp.as_atom()
     c = token[0]
@@ -189,8 +164,10 @@ def compile_test_operator(args):
     return binutils.assemble("(30 (+ (q 100) (q 10)))")
 
 
-def compile_add_operator(args):
-    return binutils.assemble("+").cons(args)
+def make_compile_remap(compiled_keyword):
+    def do_compile(args):
+        return binutils.assemble(compiled_keyword).cons(args)
+    return do_compile
 
 
 def quote_arg(arg):
@@ -208,14 +185,45 @@ def compile_if_operator(args):
     return r
 
 
+def compile_if_op_operator(args):
+    # (if_op A B C) => (e (i A B C) (a))
+    check_arg_count(args, 3)
+    r = binutils.assemble("e").cons(
+        binutils.assemble("i").cons(args).cons(binutils.assemble("((a))")))
+    return r
+
+
 COMPILE_OPERATOR_LOOKUP = dict(
     test=compile_test_operator,
 )
 
+
 COMPILE_OPERATOR_LOOKUP.update({
-    "+": compile_add_operator,
     "if": compile_if_operator,
+    "if_op": compile_if_op_operator,
+    "function_op": compile_function_op,
 })
+
+
+REMAP_LIST = {
+    "+": "+",
+    "-": "-",
+    "*": "*",
+    "cons": "c",
+    "first": "f",
+    "rest": "r",
+    "args": "a",
+    "equal": "=",
+    "call": "e",
+    "if_op": "i",
+    "listp": "l",
+    "sha256": "sha256",
+    "wrap": "wrap",
+}
+
+
+for k, v in REMAP_LIST.items():
+    COMPILE_OPERATOR_LOOKUP[k] = make_compile_remap(v)
 
 
 def op_compile_ir_sexp(ir_sexp):
