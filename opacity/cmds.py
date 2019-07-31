@@ -5,7 +5,7 @@ import importlib
 import io
 import sys
 
-from clvm import eval_f
+from clvm import eval_f, to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream
 
@@ -57,6 +57,7 @@ def opd(args=sys.argv):
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
+        sexp = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
         print(disassemble(sexp))
 
 

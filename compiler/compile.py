@@ -1,8 +1,15 @@
 import binascii
 
+from clvm import to_sexp_f
+
 from clvm.make_eval import EvalError
 
+from opacity import binutils
+
 from .expand import op_expand_op
+
+
+from ir.Type import Type
 
 
 class bytes_as_hex(bytes):
@@ -129,6 +136,99 @@ def op_compile_op(sexp):
         return op_compile_sexp(sexp)
 
     raise EvalError("compile_op requires exactly 1 parameter", sexp)
+
+
+def ir_type(ir_sexp):
+    return ir_sexp.first()
+
+
+def ir_nullp(ir_sexp):
+    return ir_type(ir_sexp) == Type.CONS and ir_sexp.rest().nullp()
+
+
+def ir_as_sexp(ir_sexp):
+    if ir_nullp(ir_sexp):
+        return to_sexp_f([])
+    if ir_type(ir_sexp) == Type.CONS:
+        return ir_as_sexp(ir_first(ir_sexp)).cons(ir_as_sexp(ir_rest(ir_sexp)))
+    return ir_sexp.rest()
+
+
+def ir_is_atom(ir_sexp):
+    return ir_type(ir_sexp) != Type.CONS
+
+
+def ir_first(ir_sexp):
+    return ir_sexp.rest().first()
+
+
+def ir_rest(ir_sexp):
+    return ir_sexp.rest().rest()
+
+
+def ir_symbol(ir_sexp):
+    if ir_type(ir_sexp) == Type.SYMBOL:
+        return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
+
+
+def ir_iter(ir_sexp):
+    while True:
+        if ir_type(ir_sexp) == Type.CONS:
+            if ir_nullp(ir_sexp):
+                break
+            yield ir_first(ir_sexp)
+            ir_sexp = ir_rest(ir_sexp)
+
+
+
+def compile_test_operator(args):
+    return binutils.assemble("(30 (+ (q 100) (q 10)))")
+
+
+def compile_add_operator(args):
+    pass
+
+
+COMPILE_OPERATOR_LOOKUP = dict(
+    test=compile_test_operator,
+)
+
+COMPILE_OPERATOR_LOOKUP.update({
+    "+": compile_add_operator,
+})
+
+
+def op_compile_ir_sexp(ir_sexp):
+    if ir_nullp(ir_sexp):
+        return binutils.assemble("(q ())")
+
+    if ir_is_atom(ir_sexp):
+        return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
+
+    operator = ir_symbol(ir_first(ir_sexp))
+
+    if operator is None:
+        #breakpoint()
+        raise SyntaxError("expected operator but got %s" % ir_sexp)
+
+    # handle "quote" special
+    if operator == "quote":
+        sexp = ir_as_sexp(ir_sexp)
+        return binutils.assemble("#q").cons(sexp.rest())
+
+    #breakpoint()
+
+    # TODO: handle ARGS and EVAL separately
+
+    # handle pass through operators
+    compiled_args = [op_compile_ir_sexp(_) for _ in ir_iter(ir_rest(ir_sexp))]
+
+    #
+    f = COMPILE_OPERATOR_LOOKUP.get(operator)
+    if f:
+        return f(compiled_args)
+
+    raise ValueError("can't compile %s" % operator)
 
 
 """
