@@ -92,7 +92,8 @@ inject("opc", "v0_0_2")
 
 inject("runtime_001")
 
-inject("compiler_001")
+# all pass
+inject("clvm")
 
 inject("puzzles")
 

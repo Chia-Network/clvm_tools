@@ -15,6 +15,8 @@ def assemble_from_symbols(ir_sexp):
 
     if type == Type.SYMBOL:
         keyword = sexp.as_atom().decode("utf8")
+        if keyword[:1] == "#":
+            keyword = keyword[1:]
         atom = KEYWORD_TO_ATOM.get(keyword)
         if atom:
             return to_sexp_f(atom)

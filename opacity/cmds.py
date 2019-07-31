@@ -5,14 +5,16 @@ import importlib
 import io
 import sys
 
+from clvm import eval_f
 from clvm.EvalError import EvalError
+from clvm.serialize import sexp_from_stream
 
-from ir import reader, writer
+from opacity.binutils import assemble_from_symbols, disassemble
+
+from ir import reader
 
 from .debug import trace_to_html, trace_to_text
 
-
-DEFAULT_SCHEMA = "schemas.runtime_001"
 
 
 def path_or_code(arg):
@@ -27,20 +29,16 @@ def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Compile an opacity script.'
     )
-    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
-                        help="Python module imported with rewrite")
     parser.add_argument("-H", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
         "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
 
     args = parser.parse_args(args=args[1:])
 
-    mod = importlib.import_module(args.schema)
-
     for text in args.path_or_code:
         try:
             ir_sexp = reader.read_tokens(text)
-            sexp = mod.from_tokens(ir_sexp)
+            sexp = assemble_from_symbols(ir_sexp)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -54,18 +52,12 @@ def opd(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Disassemble a compiled opacity script.'
     )
-    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
-                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
-    mod = importlib.import_module(args.schema)
-
     for blob in args.script:
-        sexp = mod.from_stream(io.BytesIO(blob))
-        output = mod.to_tokens(sexp)
-        print(writer.write_tokens(output))
+        print(disassemble(sexp))
 
 
 def brun(args=sys.argv):
@@ -83,64 +75,35 @@ def brun(args=sys.argv):
     args = parser.parse_args(args=args[1:])
     args.debug = 0
 
-    import schemas.runtime_001 as mod
     read_sexp = reader.read_tokens(args.script)
-    sexp = mod.from_tokens(read_sexp)
+    sexp = assemble_from_symbols(read_sexp)
 
     solution = sexp.null()
     if args.solution:
         tokens = reader.read_tokens(args.solution)
-        solution = mod.from_tokens(tokens)
-    do_reduction(args, mod, sexp, solution)
+        solution = assemble_from_symbols(tokens)
+    do_reduction(args, sexp, solution)
 
 
-def reduce(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Reduce an opacity script.'
-    )
-
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Display resolve of all reductions, for debugging")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Dump debug information to html")
-    parser.add_argument("-s", "--schema", default=DEFAULT_SCHEMA,
-                        help="Python module imported with rewrite")
-    parser.add_argument(
-        "script", help="script in hex or uncompiled text")
-    parser.add_argument(
-        "solution", nargs="?", help="solution in hex or uncompiled text")
-
-    args = parser.parse_args(args=args[1:])
-
-    mod = importlib.import_module(args.schema)
-
-    read_sexp = reader.read_tokens(args.script)
-    sexp = mod.from_tokens(read_sexp)
-
-    solution = sexp.null()
-    if args.solution:
-        tokens = reader.read_tokens(args.solution)
-        solution = mod.from_tokens(tokens)
-    do_reduction(args, mod, sexp, solution)
-
-
-def do_reduction(args, mod, sexp, solution):
-    eval_f = mod.eval_f
+def do_reduction(args, sexp, solution):
     the_log = []
+    local_eval_f = eval_f
 
     if args.verbose:
-        def eval_f(eval_f, sexp, args):
+        original_eval_f = eval_f
+        def debug_eval_f(eval_f, sexp, args):
             row = [(sexp, args), sexp.null()]
             the_log.append(row)
-            r = mod.eval_f(eval_f, sexp, args)
+            r = original_eval_f(eval_f, sexp, args)
             row[-1] = r
             return r
+        local_eval_f = debug_eval_f
 
     try:
-        reductions = eval_f(eval_f, sexp, solution)
-        output = mod.disassemble(reductions)
+        reductions = local_eval_f(local_eval_f, sexp, solution)
+        output = disassemble(reductions)
     except EvalError as e:
-        output = "FAIL: %s %s" % (e, mod.disassemble(e._sexp))
+        output = "FAIL: %s %s" % (e, disassemble(e._sexp))
         result = e._sexp
         return -1
     except Exception as e:
@@ -152,9 +115,9 @@ def do_reduction(args, mod, sexp, solution):
 
         # TODO solve the debugging problem
         if args.debug:
-            trace_to_html(the_log, mod.disassemble)
+            trace_to_html(the_log, disassemble)
         elif args.verbose:
-            trace_to_text(the_log, mod.disassemble)
+            trace_to_text(the_log, disassemble)
 
 
 def rewrite(args=sys.argv):
@@ -166,18 +129,14 @@ def rewrite(args=sys.argv):
                         help="Display resolve of all reductions, for debugging")
     parser.add_argument("-d", "--debug", action="store_true",
                         help="Dump debug information to html")
-    parser.add_argument("-s", "--schema", default="schemas.compiler_002",
-                        help="Python module imported with rewrite")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
-    mod = importlib.import_module(args.schema)
-
-    sexp = mod.from_tokens(reader.read_tokens("(expand %s)" % args.script))
+    sexp = assemble_from_symbols(reader.read_tokens("(expand %s)" % args.script))
     solution = sexp.null()
-    do_reduction(args, mod, sexp, solution)
+    do_reduction(args, sexp, solution)
 
 
 """
