@@ -1,5 +1,5 @@
-from opacity.reader import read_tokens
-from opacity.writer import write_tokens
+from ir.reader import read_tokens
+from ir.writer import write_tokens
 
 
 def test_tokenize_comments():
