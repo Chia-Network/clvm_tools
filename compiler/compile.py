@@ -190,7 +190,7 @@ def compile_test_operator(args):
 
 
 def compile_add_operator(args):
-    pass
+    return binutils.assemble("+").cons(args)
 
 
 def quote_arg(arg):
