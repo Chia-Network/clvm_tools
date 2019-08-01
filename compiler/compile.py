@@ -23,30 +23,6 @@ class bytes_as_hex(bytes):
         return "0x%s" % self.as_hex()
 
 
-def parse_as_int(sexp):
-    try:
-        int(sexp.as_atom())
-        return sexp.to(["q", sexp])
-    except (ValueError, TypeError):
-        pass
-
-
-def parse_as_hex(sexp):
-    token = sexp.as_atom()
-    if token[:2].upper() == "0X":
-        try:
-            return sexp.to(bytes_as_hex(binascii.unhexlify(token[2:])))
-        except Exception:
-            raise EvalError("invalid hex", sexp)
-
-
-def make_compile_remap(keyword, compiled_keyword):
-    def remap(op_compile_op, sexp):
-        new_args = [op_compile_op(sexp.to([_])) for _ in sexp.as_iter()]
-        return sexp.to([compiled_keyword] + new_args)
-    return remap
-
-
 def static_eval(sexp):
     # TODO: improve, and do deep eval if possible
     operator = sexp.first()
@@ -56,61 +32,6 @@ def static_eval(sexp):
             if as_atom == "quote":
                 return sexp.rest().first()
     raise EvalError("non static value", sexp)
-
-
-def compile_eval(op_compile_op, sexp):
-    new_sexp = sexp.to([static_eval(sexp.first())])
-    return sexp.to(["q", op_compile_op(new_sexp)])
-
-
-def compile_function_op(op_compile_op, sexp):
-    new_sexp = sexp.to([static_eval(sexp.first())])
-    return sexp.to(["q", op_compile_op(new_sexp)])
-
-
-def compile_atom(sexp):
-    token = sexp.as_atom()
-    c = token[0]
-    if c in "\'\"":
-        assert c == token[-1] and len(token) >= 2
-        return sexp.to(["q", token])
-
-    for f in [parse_as_int, parse_as_hex]:
-        v = f(sexp)
-        if v is not None:
-            return v
-    raise EvalError("can't compile token", sexp)
-
-
-def op_compile_sexp(sexp):
-    if not sexp.listp():
-        return compile_atom(sexp)
-
-    if sexp.nullp():
-        return sexp.to(["q", sexp])
-
-    opcode = sexp.first().as_atom()
-    if opcode == "quote":
-        args = sexp.rest()
-        if not args.nullp() and args.rest().nullp():
-            return args.to(["q", args.first()])
-        raise EvalError("quote requires 1 argument", sexp)
-
-    if opcode in COMPILE_REWRITERS:
-        return COMPILE_REWRITERS[opcode](op_compile_op, sexp.rest())
-    raise EvalError("can't compile opcode", sexp)
-
-
-def op_compile_op(sexp):
-    """
-    Turn high level lisp into clvm runtime lisp.
-    """
-    # first, expand everything
-    if not sexp.nullp() and sexp.rest().nullp():
-        sexp = op_expand_op(sexp)
-        return op_compile_sexp(sexp)
-
-    raise EvalError("compile_op requires exactly 1 parameter", sexp)
 
 
 def ir_type(ir_sexp):
@@ -191,6 +112,10 @@ def compile_if_op_operator(args):
     r = binutils.assemble("e").cons(
         binutils.assemble("i").cons(args).cons(binutils.assemble("((a))")))
     return r
+
+
+def compile_function_op(args):
+    return binutils.assemble("q").cons(args)
 
 
 COMPILE_OPERATOR_LOOKUP = dict(
