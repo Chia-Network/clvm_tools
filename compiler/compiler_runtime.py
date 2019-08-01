@@ -1,13 +1,16 @@
 from clvm import casts
 from clvm import eval_f, to_sexp_f
 
+from .compile import op_compile_op
 
-def do_test(args):
+
+def do_test(args, eval_f):
     return to_sexp_f(args.first())
 
 
 EXTRA_KEYWORDS = {
     30: do_test,
+    32: op_compile_op,
 }
 
 
@@ -17,9 +20,10 @@ def make_patched_eval_f(old_eval_f, keyword_operator_dict):
             operator = casts.int_from_bytes(sexp.first().as_atom())
             f = keyword_operator_dict.get(operator)
             if f:
-                args = sexp.to(
-                    [eval_f(eval_f, _, env) for _ in sexp.rest().as_iter()])
-                return f(args)
+                args_list = [
+                    eval_f(eval_f, _, env) for _ in sexp.rest().as_iter()]
+                args = to_sexp_f(args_list)
+                return f(args, eval_f)
 
         return old_eval_f(eval_f, sexp, env)
     return new_eval_f

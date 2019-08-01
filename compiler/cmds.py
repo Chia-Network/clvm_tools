@@ -4,7 +4,7 @@ import sys
 
 
 from clvm import eval_f, to_sexp_f
-from clvm import casts, core_ops, more_ops
+from clvm import core_ops, more_ops
 from clvm.make_eval import make_eval_f, EvalError
 from clvm.op_utils import operators_for_module, operators_for_dict
 
@@ -139,10 +139,12 @@ def com(args=sys.argv):
 
     args = parser.parse_args(args=args[1:])
 
-    prog = args.path_or_code
-    sexp = binutils.assemble(prog)
+    source = args.path_or_code
+    src_sexp = reader.read_tokens(source)
     try:
-        result = op_compile_ir_sexp(to_sexp_f([sexp]))
+        new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
+        null = to_sexp_f([])
+        result = COMPILER_EVAL_F(COMPILER_EVAL_F, new_src_sexp, null)
     except EvalError as ex:
         print("FAILURE: %s" % ex)
         result = ex._sexp

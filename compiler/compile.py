@@ -96,6 +96,7 @@ def quote_arg(arg):
 
 
 def compile_if_operator(args):
+    # TODO: make this a macro
     # (if A B C) => (e (i A (q B) (q C)) (a))
     check_arg_count(args, 3)
     b = args.rest().first()
@@ -103,14 +104,6 @@ def compile_if_operator(args):
     abc = to_sexp_f([args.first(), quote_arg(b), quote_arg(c)])
     r = binutils.assemble("e").cons(
         binutils.assemble("i").cons(abc).cons(binutils.assemble("((a))")))
-    return r
-
-
-def compile_if_op_operator(args):
-    # (if_op A B C) => (e (i A B C) (a))
-    check_arg_count(args, 3)
-    r = binutils.assemble("e").cons(
-        binutils.assemble("i").cons(args).cons(binutils.assemble("((a))")))
     return r
 
 
@@ -125,7 +118,6 @@ COMPILE_OPERATOR_LOOKUP = dict(
 
 COMPILE_OPERATOR_LOOKUP.update({
     "if": compile_if_operator,
-    "if_op": compile_if_op_operator,
     "function_op": compile_function_op,
 })
 
@@ -180,6 +172,61 @@ def op_compile_ir_sexp(ir_sexp):
     f = COMPILE_OPERATOR_LOOKUP.get(operator)
     if f:
         return f(compiled_args)
+
+    raise ValueError("can't compile %s" % operator)
+
+
+def make_simple_replacement(src_opcode, obj_opcode=None):
+    if obj_opcode is None:
+        obj_opcode = src_opcode
+    return [src_opcode.encode("utf8"), binutils.assemble("(c (q #%s) (a))" % obj_opcode)]
+    
+
+
+DEFAULT_REWRITE_RULES = to_sexp_f([
+    make_simple_replacement("+"),
+    make_simple_replacement("-"),
+    make_simple_replacement("*"),
+    make_simple_replacement("cons", "c"),
+    make_simple_replacement("first", "f"),
+    make_simple_replacement("rest", "r"),
+    make_simple_replacement("args", "a"),
+    make_simple_replacement("equal", "="),
+    make_simple_replacement("="),
+    make_simple_replacement("sha256"),
+    make_simple_replacement("wrap"),
+    (b"test", binutils.assemble("(q '(30 (+ (q 100) (q 10)))')")),
+])
+
+
+def op_compile_op(args, eval_f):
+    if len(args.as_python()) not in (1, 2):
+        raise SyntaxError("compile_op needs 1 or 2 arguments")
+
+    ir_sexp = args.first()
+    if args.rest().nullp():
+        rewrite_rules = DEFAULT_REWRITE_RULES
+    else:
+        rewrite_rules = args.rest().first()
+
+    if ir_nullp(ir_sexp):
+        return binutils.assemble("(q ())")
+
+    if ir_is_atom(ir_sexp):
+        return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
+
+    operator = ir_symbol(ir_first(ir_sexp))
+
+    compiled_args = []
+    for _ in ir_iter(ir_rest(ir_sexp)):
+        r = op_compile_op(to_sexp_f([_]), eval_f)
+        compiled_args.append(r)
+
+    for pair in rewrite_rules.as_iter():
+        if operator == pair.first().as_atom().decode("utf8"):
+            code = pair.rest().first()
+            r = eval_f(eval_f, code, compiled_args)
+            return r
 
     raise ValueError("can't compile %s" % operator)
 

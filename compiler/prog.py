@@ -1,7 +1,6 @@
 from clvm.make_eval import EvalError
 
 from .Node import Node
-from .reader import read_tokens
 
 
 def list_to_cons(sexp):
