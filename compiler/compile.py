@@ -122,60 +122,6 @@ COMPILE_OPERATOR_LOOKUP.update({
 })
 
 
-REMAP_LIST = {
-    "+": "+",
-    "-": "-",
-    "*": "*",
-    "cons": "c",
-    "first": "f",
-    "rest": "r",
-    "args": "a",
-    "equal": "=",
-    "call": "e",
-    "if_op": "i",
-    "listp": "l",
-    "sha256": "sha256",
-    "wrap": "wrap",
-}
-
-
-for k, v in REMAP_LIST.items():
-    COMPILE_OPERATOR_LOOKUP[k] = make_compile_remap(v)
-
-
-def op_compile_ir_sexp(ir_sexp):
-    if ir_nullp(ir_sexp):
-        return binutils.assemble("(q ())")
-
-    if ir_is_atom(ir_sexp):
-        return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
-
-    operator = ir_symbol(ir_first(ir_sexp))
-
-    if operator is None:
-        #breakpoint()
-        raise SyntaxError("expected operator but got %s" % ir_sexp)
-
-    # handle "quote" special
-    if operator == "quote":
-        sexp = ir_as_sexp(ir_sexp)
-        return binutils.assemble("#q").cons(sexp.rest())
-
-    #breakpoint()
-
-    # TODO: handle ARGS and EVAL separately
-
-    # handle pass through operators
-    compiled_args = to_sexp_f([op_compile_ir_sexp(_) for _ in ir_iter(ir_rest(ir_sexp))])
-
-    #
-    f = COMPILE_OPERATOR_LOOKUP.get(operator)
-    if f:
-        return f(compiled_args)
-
-    raise ValueError("can't compile %s" % operator)
-
-
 def make_simple_replacement(src_opcode, obj_opcode=None):
     if obj_opcode is None:
         obj_opcode = src_opcode
@@ -216,6 +162,11 @@ def op_compile_op(args, eval_f):
         return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
 
     operator = ir_symbol(ir_first(ir_sexp))
+
+    # handle "quote" special
+    if operator == "quote":
+        sexp = ir_as_sexp(ir_sexp)
+        return binutils.assemble("#q").cons(sexp.rest())
 
     compiled_args = []
     for _ in ir_iter(ir_rest(ir_sexp)):

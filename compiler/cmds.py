@@ -11,7 +11,6 @@ from clvm.op_utils import operators_for_module, operators_for_dict
 from ir import reader
 from opacity import binutils
 
-from .compile import op_compile_ir_sexp
 from .compiler_runtime import COMPILER_EVAL_F
 from .expand import op_expand_op, op_expand_sexp
 from .prog import op_prog_op
