@@ -81,10 +81,6 @@ def check_arg_count(args, count):
         raise SyntaxError("bad argument count %d instead of %d" % (actual_count, count))
 
 
-def compile_test_operator(args):
-    return binutils.assemble("(30 (+ (q 100) (q 10)))")
-
-
 def make_compile_remap(compiled_keyword):
     def do_compile(args):
         return binutils.assemble(compiled_keyword).cons(args)
@@ -105,21 +101,6 @@ def compile_if_operator(args):
     r = binutils.assemble("e").cons(
         binutils.assemble("i").cons(abc).cons(binutils.assemble("((a))")))
     return r
-
-
-def compile_function_op(args):
-    return binutils.assemble("q").cons(args)
-
-
-COMPILE_OPERATOR_LOOKUP = dict(
-    test=compile_test_operator,
-)
-
-
-COMPILE_OPERATOR_LOOKUP.update({
-    "if": compile_if_operator,
-    "function_op": compile_function_op,
-})
 
 
 def make_simple_replacement(src_opcode, obj_opcode=None):
