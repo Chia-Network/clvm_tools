@@ -3,6 +3,7 @@ from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
 
 from ir.reader import read_ir
 from ir.writer import write_ir
+from ir.utils import ir_cons, ir_nullp, is_ir
 from ir.Type import Type
 
 
@@ -44,6 +45,14 @@ def disassemble_to_ir(sexp, allow_keyword=None):
     if sexp.listp():
         if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
+        if allow_keyword:
+            opcode = sexp.first()
+            if not opcode.listp() and KEYWORD_FROM_ATOM.get(
+                    opcode.as_atom()) == "q":
+                r = sexp.rest()
+                if r.listp() and is_ir(r.first()) and r.rest().nullp():
+                    return ir_cons(to_sexp_f((Type.SYMBOL, b"quote")), r.first())
+
         v0 = disassemble_to_ir(sexp.first(), allow_keyword=allow_keyword)
         v1 = disassemble_to_ir(sexp.rest(), allow_keyword=False)
         return to_sexp_f((Type.CONS, (v0, v1)))

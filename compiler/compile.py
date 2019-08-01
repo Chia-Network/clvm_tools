@@ -4,12 +4,12 @@ from clvm import to_sexp_f
 
 from clvm.make_eval import EvalError
 
+from ir.utils import (
+    ir_nullp, ir_as_sexp, ir_is_atom,
+    ir_first, ir_rest, ir_symbol, ir_iter
+)
+
 from opacity import binutils
-
-from .expand import op_expand_op
-
-
-from ir.Type import Type
 
 
 class bytes_as_hex(bytes):
@@ -34,50 +34,9 @@ def static_eval(sexp):
     raise EvalError("non static value", sexp)
 
 
-def ir_type(ir_sexp):
-    return ir_sexp.first()
-
-
-def ir_nullp(ir_sexp):
-    return ir_type(ir_sexp) == Type.CONS and ir_sexp.rest().nullp()
-
-
-def ir_as_sexp(ir_sexp):
-    if ir_nullp(ir_sexp):
-        return to_sexp_f([])
-    if ir_type(ir_sexp) == Type.CONS:
-        return ir_as_sexp(ir_first(ir_sexp)).cons(ir_as_sexp(ir_rest(ir_sexp)))
-    return ir_sexp.rest()
-
-
-def ir_is_atom(ir_sexp):
-    return ir_type(ir_sexp) != Type.CONS
-
-
-def ir_first(ir_sexp):
-    return ir_sexp.rest().first()
-
-
-def ir_rest(ir_sexp):
-    return ir_sexp.rest().rest()
-
-
-def ir_symbol(ir_sexp):
-    if ir_type(ir_sexp) == Type.SYMBOL:
-        return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
-
-
-def ir_iter(ir_sexp):
-    while True:
-        if ir_type(ir_sexp) == Type.CONS:
-            if ir_nullp(ir_sexp):
-                break
-            yield ir_first(ir_sexp)
-            ir_sexp = ir_rest(ir_sexp)
-
-
 def check_arg_count(args, count):
-    if len(args.as_python()) != count:
+    actual_count = len(args.as_python())
+    if actual_count != count:
         raise SyntaxError("bad argument count %d instead of %d" % (actual_count, count))
 
 
@@ -107,7 +66,6 @@ def make_simple_replacement(src_opcode, obj_opcode=None):
     if obj_opcode is None:
         obj_opcode = src_opcode
     return [src_opcode.encode("utf8"), binutils.assemble("(c (q #%s) (a))" % obj_opcode)]
-    
 
 
 DEFAULT_REWRITE_RULES = to_sexp_f([

@@ -84,7 +84,8 @@ def tokenize_quotes(token, offset):
         return None
 
     if token[-1] != c:
-        raise SyntaxError("unterminated string starting at %s: %s" % (offset, token))
+        raise SyntaxError(
+            "unterminated string starting at %s: %s" % (offset, token))
 
     return token[1:-1].encode("utf8")
 
@@ -139,7 +140,9 @@ def token_stream(s: str):
                 offset += 1
                 continue
             else:
-                raise SyntaxError("unterminated string starting at %s: %s" % (start, s[start:]))
+                raise SyntaxError(
+                    "unterminated string starting at %s: %s" % (
+                        start, s[start:]))
         token, end_offset = consume_until_whitespace(s, offset)
         yield token, offset
         offset = end_offset
