@@ -168,8 +168,10 @@ def run(args=sys.argv):
     source = args.path_or_code
     src_sexp = reader.read_tokens(source)
     try:
-        obj_sexp = op_compile_ir_sexp(src_sexp)
-        result = COMPILER_EVAL_F(COMPILER_EVAL_F, obj_sexp, args.args)
+        new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
+        null = to_sexp_f([])
+        obj_code = COMPILER_EVAL_F(COMPILER_EVAL_F, new_src_sexp, null)
+        result = COMPILER_EVAL_F(COMPILER_EVAL_F, obj_code, args)
     except EvalError as ex:
         print("FAILURE: %s" % ex)
         result = ex._sexp

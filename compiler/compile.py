@@ -195,7 +195,7 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
     make_simple_replacement("="),
     make_simple_replacement("sha256"),
     make_simple_replacement("wrap"),
-    (b"test", binutils.assemble("(q '(30 (+ (q 100) (q 10)))')")),
+    [b"test", binutils.assemble("(q (30 (+ (q 100) (q 10))))")],
 ])
 
 
