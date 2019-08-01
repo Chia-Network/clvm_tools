@@ -83,7 +83,7 @@ def parse_defmacro(dec, operator_lookup):
 def parse_import(dec, operator_lookup, function_imps):
     with open(dec.rest().first().as_atom(), "r") as f:
         header = f.read()
-        imports = read_tokens(header)
+        imports = read_ir(header)
         for sexp in imports.as_iter():
             parse_declaration(sexp, operator_lookup, function_imps)
 

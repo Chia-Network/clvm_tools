@@ -125,7 +125,7 @@ def path_or_code(arg):
 
 
 def arguments(s):
-    return reader.read_tokens(s)
+    return reader.read_ir(s)
 
 
 def com(args=sys.argv):
@@ -139,7 +139,7 @@ def com(args=sys.argv):
     args = parser.parse_args(args=args[1:])
 
     source = args.path_or_code
-    src_sexp = reader.read_tokens(source)
+    src_sexp = reader.read_ir(source)
     try:
         new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
         null = to_sexp_f([])
@@ -159,13 +159,13 @@ def run(args=sys.argv):
     parser.add_argument(
         "path_or_code", type=path_or_code, help="path to opacity script, or literal script")
     parser.add_argument(
-        "args", type=arguments, help="arguments", nargs="?", default=reader.read_tokens("()"))
+        "args", type=arguments, help="arguments", nargs="?", default=reader.read_ir("()"))
     parser.add_argument("-r", "--reduce", help="Run compiled code")
 
     args = parser.parse_args(args=args[1:])
 
     source = args.path_or_code
-    src_sexp = reader.read_tokens(source)
+    src_sexp = reader.read_ir(source)
     try:
         new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
         null = to_sexp_f([])

@@ -9,7 +9,7 @@ from clvm import eval_f, to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream
 
-from opacity.binutils import assemble_from_symbols, disassemble
+from opacity.binutils import assemble_from_ir, disassemble
 
 from ir import reader
 
@@ -37,8 +37,8 @@ def opc(args=sys.argv):
 
     for text in args.path_or_code:
         try:
-            ir_sexp = reader.read_tokens(text)
-            sexp = assemble_from_symbols(ir_sexp)
+            ir_sexp = reader.read_ir(text)
+            sexp = assemble_from_ir(ir_sexp)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -76,13 +76,13 @@ def brun(args=sys.argv):
     args = parser.parse_args(args=args[1:])
     args.debug = 0
 
-    read_sexp = reader.read_tokens(args.script)
-    sexp = assemble_from_symbols(read_sexp)
+    read_sexp = reader.read_ir(args.script)
+    sexp = assemble_from_ir(read_sexp)
 
     solution = sexp.null()
     if args.solution:
-        tokens = reader.read_tokens(args.solution)
-        solution = assemble_from_symbols(tokens)
+        tokens = reader.read_ir(args.solution)
+        solution = assemble_from_ir(tokens)
     do_reduction(args, sexp, solution)
 
 
@@ -135,7 +135,7 @@ def rewrite(args=sys.argv):
 
     args = parser.parse_args(args=args[1:])
 
-    sexp = assemble_from_symbols(reader.read_tokens("(expand %s)" % args.script))
+    sexp = assemble_from_ir(reader.read_ir("(expand %s)" % args.script))
     solution = sexp.null()
     do_reduction(args, sexp, solution)
 

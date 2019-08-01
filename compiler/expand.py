@@ -1,7 +1,7 @@
 from clvm.make_eval import EvalError
 
 from .Node import Node
-from ir.reader import read_tokens
+from ir.reader import read_ir
 
 
 BUILT_IN_KEYWORDS = [
@@ -39,7 +39,7 @@ BUILT_IN_KEYWORDS = [
 ]
 
 
-MACRO_KEYWORDS = {k: read_tokens(v) for k, v in BUILT_IN_KEYWORDS}
+MACRO_KEYWORDS = {k: read_ir(v) for k, v in BUILT_IN_KEYWORDS}
 
 
 def make_unexpanded_operator(operator):

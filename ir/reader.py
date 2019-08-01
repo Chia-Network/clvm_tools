@@ -145,7 +145,7 @@ def token_stream(s: str):
         offset = end_offset
 
 
-def read_tokens(s: str):
+def read_ir(s: str):
     stream = token_stream(s)
 
     for token, offset in stream:

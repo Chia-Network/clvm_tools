@@ -49,12 +49,12 @@ def iter_ir_format(ir_sexp):
         raise SyntaxError("bad ir format: %s" % ir_sexp)
 
 
-def write_tokens_to_stream(ir_sexp, f):
+def write_ir_to_stream(ir_sexp, f):
     for _ in iter_ir_format(ir_sexp):
         f.write(_)
 
 
-def write_tokens(ir_sexp):
+def write_ir(ir_sexp):
     s = io.StringIO()
-    write_tokens_to_stream(ir_sexp, s)
+    write_ir_to_stream(ir_sexp, s)
     return s.getvalue()
