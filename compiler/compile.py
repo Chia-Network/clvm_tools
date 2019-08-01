@@ -86,6 +86,10 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
 ])
 
 
+def quoted(arg):
+    return to_sexp_f([binutils.assemble("#q"), arg])
+
+
 def op_compile_op(args, eval_f):
     if len(args.as_python()) not in (1, 2):
         raise SyntaxError("compile_op needs 1 or 2 arguments")
@@ -100,11 +104,10 @@ def op_compile_op(args, eval_f):
         return binutils.assemble("(q ())")
 
     if ir_is_atom(ir_sexp):
-        return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
+        return quoted(ir_as_sexp(ir_sexp))
 
     operator = ir_as_symbol(ir_first(ir_sexp))
     if operator is None:
-        breakpoint()
         raise ValueError("symbol expected")
 
     # handle "quote" special
@@ -114,7 +117,8 @@ def op_compile_op(args, eval_f):
 
     compiled_args = []
     for _ in ir_iter(ir_rest(ir_sexp)):
-        r = op_compile_op(to_sexp_f([_]), eval_f)
+        subexp = to_sexp_f([_, rewrite_rules])
+        r = op_compile_op(subexp, eval_f)
         compiled_args.append(r)
 
     for pair in rewrite_rules.as_iter():
