@@ -16,8 +16,6 @@ from .expand import op_expand_op, op_expand_sexp
 from .prog import op_prog_op
 
 
-
-
 def has_unquote(sexp):
     if sexp.listp():
         if not sexp.rest().nullp():
@@ -105,15 +103,6 @@ operators["call"] = op_call
 
 
 eval_list_f = make_eval_f(operators, "quote", "eval", "args")
-
-
-def eval_f(self, sexp, args):
-    sexp = op_expand_sexp(sexp)
-    return eval_list_f(eval_f, sexp, args)
-
-
-def do_eval(sexp, args):
-    return eval_f(eval_f, sexp, args)
 
 
 def path_or_code(arg):

@@ -3,19 +3,16 @@ from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
 
 from ir.reader import read_ir
 from ir.writer import write_ir
-from ir.utils import ir_cons, ir_nullp, is_ir
+from ir.utils import (
+    ir_as_symbol, ir_cons, ir_first, ir_listp, ir_null,
+    ir_nullp, ir_rest, ir_symbol, ir_type, ir_val, is_ir
+)
 from ir.Type import Type
 
 
 def assemble_from_ir(ir_sexp):
-    type = casts.int_from_bytes(ir_sexp.first().as_atom())
-    sexp = ir_sexp.rest()
-
-    if type in (Type.INT, Type.HEX, Type.QUOTES):
-        return sexp
-
-    if type == Type.SYMBOL:
-        keyword = sexp.as_atom().decode("utf8")
+    keyword = ir_as_symbol(ir_sexp)
+    if keyword:
         if keyword[:1] == "#":
             keyword = keyword[1:]
         atom = KEYWORD_TO_ATOM.get(keyword)
@@ -23,36 +20,32 @@ def assemble_from_ir(ir_sexp):
             return to_sexp_f(atom)
         raise SyntaxError("can't parse %s at %s" % (keyword, ir_sexp._offset))
 
-    assert type == Type.CONS
+    if not ir_listp(ir_sexp):
+        return ir_val(ir_sexp)
 
-    if sexp.nullp():
-        return sexp
+    if ir_nullp(ir_sexp):
+        return to_sexp_f([])
 
-    # handle "quote" separately
-    first_ir_sexp = sexp.first()
-    if first_ir_sexp.first() == Type.SYMBOL and first_ir_sexp.rest() == b"quote":
-        return to_sexp_f([KEYWORD_TO_ATOM["q"], sexp.rest()])
+    # handle "ir" macro
+    first = ir_first(ir_sexp)
+    keyword = ir_as_symbol(first)
+    if keyword == "ir":
+        return ir_val(ir_sexp.rest())
 
-    sexp_1 = to_sexp_f(assemble_from_ir(sexp.first()))
-    sexp_2 = assemble_from_ir(sexp.rest())
+    sexp_1 = assemble_from_ir(first)
+    sexp_2 = assemble_from_ir(ir_rest(ir_sexp))
     return sexp_1.cons(sexp_2)
 
 
 def disassemble_to_ir(sexp, allow_keyword=None):
     if sexp.nullp():
-        return to_sexp_f((Type.CONS, []))
+        return ir_null()
 
     if sexp.listp():
+        if is_ir(sexp):
+            return ir_cons(ir_symbol("ir"), sexp)
         if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
-        if allow_keyword:
-            opcode = sexp.first()
-            if not opcode.listp() and KEYWORD_FROM_ATOM.get(
-                    opcode.as_atom()) == "q":
-                r = sexp.rest()
-                if r.listp() and is_ir(r.first()) and r.rest().nullp():
-                    return ir_cons(to_sexp_f((Type.SYMBOL, b"quote")), r.first())
-
         v0 = disassemble_to_ir(sexp.first(), allow_keyword=allow_keyword)
         v1 = disassemble_to_ir(sexp.rest(), allow_keyword=False)
         return to_sexp_f((Type.CONS, (v0, v1)))
@@ -61,7 +54,7 @@ def disassemble_to_ir(sexp, allow_keyword=None):
     if allow_keyword:
         v = KEYWORD_FROM_ATOM.get(as_atom)
         if v is not None and v != '.':
-            return to_sexp_f((Type.SYMBOL, v.encode("utf8")))
+            return ir_symbol(v)
 
     type = Type.INT
     if len(as_atom) > 4:

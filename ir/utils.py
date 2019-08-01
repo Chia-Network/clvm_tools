@@ -8,12 +8,24 @@ def ir_cons(first, rest):
     return first.to((Type.CONS, (first, rest)))
 
 
+def ir_null():
+    return to_sexp_f((Type.CONS, []))
+
+
 def ir_type(ir_sexp):
-    return ir_sexp.first()
+    return Type(casts.int_from_bytes(ir_sexp.first().as_atom()))
+
+
+def ir_val(ir_sexp):
+    return ir_sexp.rest()
 
 
 def ir_nullp(ir_sexp):
     return ir_type(ir_sexp) == Type.CONS and ir_sexp.rest().nullp()
+
+
+def ir_listp(ir_sexp):
+    return ir_type(ir_sexp) == Type.CONS
 
 
 def ir_as_sexp(ir_sexp):
@@ -36,7 +48,11 @@ def ir_rest(ir_sexp):
     return ir_sexp.rest().rest()
 
 
-def ir_symbol(ir_sexp):
+def ir_symbol(symbol):
+    return to_sexp_f((Type.SYMBOL, symbol.encode("utf8")))
+
+
+def ir_as_symbol(ir_sexp):
     if ir_type(ir_sexp) == Type.SYMBOL:
         return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
 

@@ -5,8 +5,8 @@ from clvm import to_sexp_f
 from clvm.make_eval import EvalError
 
 from ir.utils import (
-    ir_nullp, ir_as_sexp, ir_is_atom,
-    ir_first, ir_rest, ir_symbol, ir_iter
+    ir_nullp, ir_as_sexp, ir_is_atom, ir_listp,
+    ir_first, ir_rest, ir_as_symbol, ir_iter
 )
 
 from opacity import binutils
@@ -77,6 +77,8 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
     make_simple_replacement("rest", "r"),
     make_simple_replacement("args", "a"),
     make_simple_replacement("equal", "="),
+    make_simple_replacement("eval", "e"),
+    make_simple_replacement("if_op", "i"),
     make_simple_replacement("="),
     make_simple_replacement("sha256"),
     make_simple_replacement("wrap"),
@@ -100,7 +102,10 @@ def op_compile_op(args, eval_f):
     if ir_is_atom(ir_sexp):
         return to_sexp_f([binutils.assemble("#q"), ir_as_sexp(ir_sexp)])
 
-    operator = ir_symbol(ir_first(ir_sexp))
+    operator = ir_as_symbol(ir_first(ir_sexp))
+    if operator is None:
+        breakpoint()
+        raise ValueError("symbol expected")
 
     # handle "quote" special
     if operator == "quote":
