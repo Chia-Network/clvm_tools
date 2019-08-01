@@ -84,7 +84,12 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
     make_simple_replacement("wrap"),
     [b"test", binutils.assemble("(q (30 (+ (q 100) (q 10))))")],
     [b"list", binutils.assemble("(33 (a))")],
+    [b"if", binutils.assemble("(34 (a))")],
 ])
+
+
+def quoted(arg):
+    return to_sexp_f([binutils.assemble("#q"), arg])
 
 
 def do_compile_list(args, eval_f):
@@ -96,8 +101,14 @@ def do_compile_list(args, eval_f):
     return to_sexp_f([binutils.assemble("#c"), first, rest])
 
 
-def quoted(arg):
-    return to_sexp_f([binutils.assemble("#q"), arg])
+def do_compile_if(args, eval_f):
+    args = args.first()
+    # (if A B C) where A B C are programs
+    #   => (e (i A B C) (a))
+    prog_a = args.first()
+    prog_b = quoted(args.rest().first())
+    prog_c = quoted(args.rest().rest().first())
+    return to_sexp_f([binutils.assemble("e"), [binutils.assemble("i"), prog_a, prog_b, prog_c], binutils.assemble("(a)")])
 
 
 def inner_op_compile_op(args, eval_f):
