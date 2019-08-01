@@ -83,23 +83,33 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
     make_simple_replacement("sha256"),
     make_simple_replacement("wrap"),
     [b"test", binutils.assemble("(q (30 (+ (q 100) (q 10))))")],
+    [b"list", binutils.assemble("(33 (a))")],
 ])
+
+
+def do_compile_list(args, eval_f):
+    args = args.first()
+    if args.nullp():
+        return binutils.assemble("(q ())")
+    first = args.first()
+    rest = do_compile_list(to_sexp_f([args.rest()]), eval_f)
+    return to_sexp_f([binutils.assemble("#c"), first, rest])
 
 
 def quoted(arg):
     return to_sexp_f([binutils.assemble("#q"), arg])
 
 
-def op_compile_op(args, eval_f):
+def inner_op_compile_op(args, eval_f):
     if len(args.as_python()) not in (1, 2):
         raise SyntaxError("compile_op needs 1 or 2 arguments")
 
-    ir_sexp = args.first()
     if args.rest().nullp():
         rewrite_rules = DEFAULT_REWRITE_RULES
     else:
         rewrite_rules = args.rest().first()
 
+    ir_sexp = args.first()
     if ir_nullp(ir_sexp):
         return binutils.assemble("(q ())")
 
@@ -120,14 +130,29 @@ def op_compile_op(args, eval_f):
         subexp = to_sexp_f([_, rewrite_rules])
         r = op_compile_op(subexp, eval_f)
         compiled_args.append(r)
+    new_args = to_sexp_f(compiled_args)
 
     for pair in rewrite_rules.as_iter():
         if operator == pair.first().as_atom().decode("utf8"):
             code = pair.rest().first()
-            r = eval_f(eval_f, code, compiled_args)
+            from opacity.binutils import disassemble
+            print("%s [%s]" % (disassemble(code), disassemble(new_args)))
+            r = eval_f(eval_f, code, new_args)
+            print("%s [%s] => %s" % (disassemble(code), disassemble(new_args), disassemble(r)))
             return r
 
     raise ValueError("can't compile %s" % operator)
+
+
+def op_compile_op(args, eval_f):
+    from ir import writer
+    ir_sexp = args.first()
+    print("about to compile %s" % writer.write_ir(ir_sexp))
+
+    r = inner_op_compile_op(args, eval_f)
+    from opacity.binutils import disassemble
+    print("compiled %s => %s" % (writer.write_ir(ir_sexp), disassemble(r)))
+    return r
 
 
 """

@@ -5,7 +5,7 @@ import importlib
 import io
 import sys
 
-from clvm import eval_f, to_sexp_f
+from clvm import to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream
 
@@ -88,10 +88,12 @@ def brun(args=sys.argv):
 
 def do_reduction(args, sexp, solution):
     the_log = []
-    local_eval_f = eval_f
+    from compiler.compiler_runtime import COMPILER_EVAL_F
+
+    local_eval_f = COMPILER_EVAL_F
 
     if args.verbose:
-        original_eval_f = eval_f
+        original_eval_f = local_eval_f
         def debug_eval_f(eval_f, sexp, args):
             row = [(sexp, args), sexp.null()]
             the_log.append(row)

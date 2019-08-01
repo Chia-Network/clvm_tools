@@ -159,7 +159,7 @@ def run(args=sys.argv):
         new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
         null = to_sexp_f([])
         obj_code = COMPILER_EVAL_F(COMPILER_EVAL_F, new_src_sexp, null)
-        result = COMPILER_EVAL_F(COMPILER_EVAL_F, obj_code, args)
+        result = COMPILER_EVAL_F(COMPILER_EVAL_F, obj_code, args.args)
     except EvalError as ex:
         print("FAILURE: %s" % ex)
         result = ex._sexp

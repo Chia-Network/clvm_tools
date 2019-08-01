@@ -1,7 +1,7 @@
 from clvm import casts
 from clvm import eval_f, to_sexp_f
 
-from .compile import op_compile_op
+from .compile import op_compile_op, do_compile_list
 
 
 def do_test(args, eval_f):
@@ -11,6 +11,7 @@ def do_test(args, eval_f):
 EXTRA_KEYWORDS = {
     30: do_test,
     32: op_compile_op,
+    33: do_compile_list,
 }
 
 
