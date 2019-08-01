@@ -2,8 +2,8 @@ import enum
 
 
 class Type(enum.IntEnum):
-    CONS = 1
-    INT = 2
-    HEX = 3
-    QUOTES = 4
-    SYMBOL = 5
+    CONS = 21
+    INT = 22
+    HEX = 23
+    QUOTES = 24
+    SYMBOL = 25
