@@ -5,7 +5,7 @@ from clvm import to_sexp_f
 from clvm.make_eval import EvalError
 
 from ir.utils import (
-    ir_nullp, ir_as_sexp, ir_is_atom, ir_listp,
+    ir_nullp, ir_as_sexp, ir_is_atom,
     ir_first, ir_rest, ir_as_symbol, ir_iter,
     is_ir
 )
@@ -103,8 +103,9 @@ def do_compile_ir_cons(args, eval_f):
     #   => (c 21 (c A B))
     prog_a = args.first()
     prog_b = args.rest().first()
-    return to_sexp_f([binutils.assemble("c"), binutils.assemble("(q 21)"), 
-        [binutils.assemble("c"), prog_a, prog_b]])
+    return to_sexp_f(
+        [binutils.assemble("c"), binutils.assemble("(q 21)"),
+            [binutils.assemble("c"), prog_a, prog_b]])
 
 
 def do_compile_ir_list(args, eval_f):
@@ -154,7 +155,7 @@ def inner_op_compile_op(args, eval_f):
     # handle "quote" special
     if operator == "quote":
         ir_sexp = ir_rest(ir_sexp)
-        return binutils.assemble("#q").cons(ir_sexp)
+        return quoted(ir_sexp)
 
     compiled_args = []
     for _ in ir_iter(ir_rest(ir_sexp)):
