@@ -20,7 +20,7 @@ setup(
             [
                 'opc = opacity.cmds:opc',
                 'opd = opacity.cmds:opd',
-                'rewrite = opacity.cmds:rewrite',
+                'read_ir = opacity.cmds:read_ir',
                 'com = compiler.cmds:com',
                 'run = compiler.cmds:run',
                 'brun = opacity.cmds:brun',

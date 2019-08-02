@@ -7,7 +7,7 @@ import sys
 
 from clvm import to_sexp_f
 from clvm.EvalError import EvalError
-from clvm.serialize import sexp_from_stream
+from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from opacity.binutils import assemble_from_ir, disassemble
 
@@ -23,6 +23,12 @@ def path_or_code(arg):
             return f.read()
     except IOError:
         return arg
+
+
+def stream_to_bin(write_f):
+    b = io.BytesIO()
+    write_f(b)
+    return b.getvalue()
 
 
 def opc(args=sys.argv):
@@ -123,23 +129,18 @@ def do_reduction(args, sexp, solution):
             trace_to_text(the_log, disassemble)
 
 
-def rewrite(args=sys.argv):
+def read_ir(args=sys.argv):
     parser = argparse.ArgumentParser(
-        description='Rewrite an opacity program in terms of the core language.'
+        description='Read script and tokenize to IR.'
     )
-
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Display resolve of all reductions, for debugging")
-    parser.add_argument("-d", "--debug", action="store_true",
-                        help="Dump debug information to html")
     parser.add_argument(
         "script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
-    sexp = assemble_from_ir(reader.read_ir("(expand %s)" % args.script))
-    solution = sexp.null()
-    do_reduction(args, sexp, solution)
+    sexp = reader.read_ir(args.script)
+    blob = stream_to_bin(lambda f: sexp_to_stream(sexp, f))
+    print(binascii.hexlify(blob).decode())
 
 
 """
