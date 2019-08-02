@@ -53,7 +53,7 @@ def ir_symbol(symbol):
 
 
 def ir_as_symbol(ir_sexp):
-    if ir_type(ir_sexp) == Type.SYMBOL:
+    if ir_sexp.listp() and ir_type(ir_sexp) == Type.SYMBOL:
         return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
 
 

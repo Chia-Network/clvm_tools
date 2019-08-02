@@ -1,16 +1,15 @@
-from clvm import casts
 from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
 
 from ir.reader import read_ir
 from ir.writer import write_ir
 from ir.utils import (
     ir_as_symbol, ir_cons, ir_first, ir_listp, ir_null,
-    ir_nullp, ir_rest, ir_symbol, ir_type, ir_val, is_ir
+    ir_nullp, ir_rest, ir_symbol, ir_val, is_ir
 )
 from ir.Type import Type
 
 
-def assemble_from_ir(ir_sexp):
+def assemble_from_ir(ir_sexp, additional_symbols=[]):
     keyword = ir_as_symbol(ir_sexp)
     if keyword:
         if keyword[:1] == "#":
@@ -18,7 +17,9 @@ def assemble_from_ir(ir_sexp):
         atom = KEYWORD_TO_ATOM.get(keyword)
         if atom:
             return to_sexp_f(atom)
-        raise SyntaxError("can't parse %s at %s" % (keyword, ir_sexp._offset))
+        if keyword not in additional_symbols:
+            raise SyntaxError("can't parse %s at %s" % (keyword, ir_sexp._offset))
+        return ir_sexp
 
     if not ir_listp(ir_sexp):
         return ir_val(ir_sexp)
@@ -32,8 +33,8 @@ def assemble_from_ir(ir_sexp):
     if keyword == "ir":
         return ir_val(ir_sexp.rest())
 
-    sexp_1 = assemble_from_ir(first)
-    sexp_2 = assemble_from_ir(ir_rest(ir_sexp))
+    sexp_1 = assemble_from_ir(first, additional_symbols)
+    sexp_2 = assemble_from_ir(ir_rest(ir_sexp), additional_symbols)
     return sexp_1.cons(sexp_2)
 
 
@@ -68,6 +69,6 @@ def disassemble(sexp):
     return write_ir(symbols)
 
 
-def assemble(s):
+def assemble(s, addition_symbols=[]):
     symbols = read_ir(s)
-    return assemble_from_ir(symbols)
+    return assemble_from_ir(symbols, addition_symbols)
