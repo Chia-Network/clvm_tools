@@ -22,7 +22,7 @@ setup(
                 'opd = opacity.cmds:opd',
                 'read_ir = opacity.cmds:read_ir',
                 'com = compiler.cmds:com',
-                'run = compiler.cmds:run',
+                'run = opacity.cmds:run',
                 'brun = opacity.cmds:brun',
             ]
         },

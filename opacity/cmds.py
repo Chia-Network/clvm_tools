@@ -9,12 +9,11 @@ from clvm import to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
-from opacity.binutils import assemble_from_ir, disassemble
+from opacity import binutils
 
 from ir import reader
 
-from .debug import trace_to_html, trace_to_text
-
+from .debug import make_tracing_f, trace_to_text
 
 
 def path_or_code(arg):
@@ -35,16 +34,19 @@ def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
         description='Compile an opacity script.'
     )
-    parser.add_argument("-H", "--script_hash", action="store_true", help="Show sha256 script hash")
     parser.add_argument(
-        "path_or_code", nargs="*", type=path_or_code, help="path to opacity script, or literal script")
+        "-H", "--script_hash", action="store_true",
+        help="Show sha256 script hash")
+    parser.add_argument(
+        "path_or_code", nargs="*", type=path_or_code,
+        help="path to opacity script, or literal script")
 
     args = parser.parse_args(args=args[1:])
 
     for text in args.path_or_code:
         try:
             ir_sexp = reader.read_ir(text)
-            sexp = assemble_from_ir(ir_sexp)
+            sexp = binutils.assemble_from_ir(ir_sexp)
         except SyntaxError as ex:
             print("%s" % ex.msg)
             continue
@@ -59,74 +61,93 @@ def opd(args=sys.argv):
         description='Disassemble a compiled opacity script.'
     )
     parser.add_argument(
-        "script", nargs="+", type=binascii.unhexlify, help="hex version of opacity script")
+        "script", nargs="+", type=binascii.unhexlify,
+        help="hex version of opacity script")
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
         sexp = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
-        print(disassemble(sexp))
+        print(binutils.disassemble(sexp))
+
+
+def stage_import(stage):
+    stage_path = "bindings.stage_%s" % stage
+    try:
+        return importlib.import_module(stage_path)
+    except ImportError:
+        raise ValueError("bad stage: %s" % stage)
+
+
+def as_bin(streamer_f):
+    f = io.BytesIO()
+    streamer_f(f)
+    return f.getvalue()
+
+
+def run(args=sys.argv):
+    return brun_or_run(args, allow_stage=True)
 
 
 def brun(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Run a clvm script.'
-    )
+    return brun_or_run(args)
 
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="Display resolve of all reductions, for debugging")
+
+def brun_or_run(args, allow_stage=False):
+    parser = argparse.ArgumentParser(
+        description='Execute a clvm script.'
+    )
     parser.add_argument(
-        "script", help="script in hex or uncompiled text")
+        "-s", "--stage", type=stage_import,
+        help="stage number to include", default=stage_import(0))
     parser.add_argument(
-        "solution", nargs="?", help="solution in hex or uncompiled text")
+        "-v", "--verbose", action="store_true",
+        help="Display resolve of all reductions, for debugging")
+    parser.add_argument(
+        "-d", "--dump", action="store_true",
+        help="dump hex version of final output")
+    parser.add_argument(
+        "path_or_code", type=path_or_code,
+        help="path to clvm script, or literal script")
+    parser.add_argument(
+        "args", type=reader.read_ir, help="arguments", nargs="?",
+        default=reader.read_ir("()"))
 
     args = parser.parse_args(args=args[1:])
-    args.debug = 0
 
-    read_sexp = reader.read_ir(args.script)
-    sexp = assemble_from_ir(read_sexp)
+    eval_f = args.stage.EVAL_F
 
-    solution = sexp.null()
-    if args.solution:
-        tokens = reader.read_ir(args.solution)
-        solution = assemble_from_ir(tokens)
-    do_reduction(args, sexp, solution)
-
-
-def do_reduction(args, sexp, solution):
-    the_log = []
-    from compiler.compiler_runtime import COMPILER_EVAL_F
-
-    local_eval_f = COMPILER_EVAL_F
+    src_text = args.path_or_code
+    src_sexp = reader.read_ir(src_text)
+    clvm_sexp = binutils.assemble_from_ir(src_sexp, args.stage.NEW_KEYWORDS)
 
     if args.verbose:
-        original_eval_f = local_eval_f
-        def debug_eval_f(eval_f, sexp, args):
-            row = [(sexp, args), sexp.null()]
-            the_log.append(row)
-            r = original_eval_f(eval_f, sexp, args)
-            row[-1] = r
-            return r
-        local_eval_f = debug_eval_f
+
+        def transform_exception(ex):
+            return to_sexp_f(("FAIL: %s" % str(ex)).encode("utf8"))
+
+        eval_f, log_entries = make_tracing_f(eval_f, transform_exception)
 
     try:
-        reductions = local_eval_f(local_eval_f, sexp, solution)
-        output = disassemble(reductions)
-    except EvalError as e:
-        output = "FAIL: %s %s" % (e, disassemble(e._sexp))
-        result = e._sexp
+        env = binutils.assemble_from_ir(args.args)
+        result = eval_f(eval_f, clvm_sexp, env)
+        if args.dump:
+            blob = as_bin(lambda f: sexp_to_stream(result, f))
+            output = binascii.hexlify(blob).decode("utf8")
+        else:
+            output = binutils.disassemble(result)
+    except EvalError as ex:
+        output = "FAIL: %s %s" % (ex, binutils.disassemble(ex._sexp))
+        result = ex._sexp
         return -1
-    except Exception as e:
-        output = "EXCEPTION: %r" % e
+    except Exception as ex:
+        result = src_sexp
+        output = str(ex)
         raise
     finally:
-        if not args.debug:
+        if args.verbose:
+            trace_to_text(log_entries, binutils.disassemble)
+        else:
             print(output)
-
-        # TODO solve the debugging problem
-        if args.debug:
-            trace_to_html(the_log, disassemble)
-        elif args.verbose:
-            trace_to_text(the_log, disassemble)
 
 
 def read_ir(args=sys.argv):

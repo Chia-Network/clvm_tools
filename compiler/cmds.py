@@ -11,7 +11,7 @@ from clvm.op_utils import operators_for_module, operators_for_dict
 from ir import reader
 from opacity import binutils
 
-from .compiler_runtime import COMPILER_EVAL_F
+from .bindings import BINDING_TABLE, BINDING_TABLE_EVAL_F
 from .expand import op_expand_op, op_expand_sexp
 from .prog import op_prog_op
 
@@ -137,38 +137,6 @@ def com(args=sys.argv):
         print("FAILURE: %s" % ex)
         result = ex._sexp
         # raise
-    finally:
-        print(binutils.disassemble(result))
-
-
-def run(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Reduce an opacity script.'
-    )
-    parser.add_argument(
-        "path_or_code", type=path_or_code, help="path to opacity script, or literal script")
-    parser.add_argument(
-        "args", type=arguments, help="arguments", nargs="?", default=reader.read_ir("()"))
-    parser.add_argument("-r", "--reduce", help="Run compiled code")
-
-    args = parser.parse_args(args=args[1:])
-
-    source = args.path_or_code
-    src_sexp = reader.read_ir(source)
-    try:
-        new_src_sexp = to_sexp_f([binutils.assemble("32"), to_sexp_f([binutils.assemble("q"), src_sexp])])
-        null = to_sexp_f([])
-        obj_code = COMPILER_EVAL_F(COMPILER_EVAL_F, new_src_sexp, null)
-        result = COMPILER_EVAL_F(COMPILER_EVAL_F, obj_code, args.args)
-    except EvalError as ex:
-        print("FAILURE: %s" % ex)
-        result = ex._sexp
-        # raise
-    except Exception as ex:
-        #breakpoint( )
-        result = src_sexp
-        print(ex)
-        raise
     finally:
         print(binutils.disassemble(result))
 

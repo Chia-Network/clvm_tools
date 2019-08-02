@@ -1,3 +1,5 @@
+import string
+
 from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
 
 from ir.reader import read_ir
@@ -18,8 +20,9 @@ def assemble_from_ir(ir_sexp, additional_symbols=[]):
         if atom:
             return to_sexp_f(atom)
         if keyword not in additional_symbols:
-            raise SyntaxError("can't parse %s at %s" % (keyword, ir_sexp._offset))
-        return ir_sexp
+            raise SyntaxError(
+                "can't parse %s at %s" % (keyword, ir_sexp._offset))
+        return ir_val(ir_sexp)
 
     if not ir_listp(ir_sexp):
         return ir_val(ir_sexp)
@@ -36,6 +39,18 @@ def assemble_from_ir(ir_sexp, additional_symbols=[]):
     sexp_1 = assemble_from_ir(first, additional_symbols)
     sexp_2 = assemble_from_ir(ir_rest(ir_sexp), additional_symbols)
     return sexp_1.cons(sexp_2)
+
+
+def type_for_atom(atom):
+    if len(atom) > 4:
+        try:
+            v = atom.decode("utf8")
+            if all(c in string.printable for c in v):
+                return Type.QUOTES
+        except UnicodeDecodeError:
+            pass
+        return Type.HEX
+    return Type.INT
 
 
 def disassemble_to_ir(sexp, allow_keyword=None):
@@ -58,10 +73,7 @@ def disassemble_to_ir(sexp, allow_keyword=None):
         if v is not None and v != '.':
             return ir_symbol(v)
 
-    type = Type.INT
-    if len(as_atom) > 4:
-        type = Type.HEX
-    return to_sexp_f((type, as_atom))
+    return to_sexp_f((type_for_atom(as_atom), as_atom))
 
 
 def disassemble(sexp):

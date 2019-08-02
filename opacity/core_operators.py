@@ -30,7 +30,8 @@ def op_type(args):
 def op_var(args):
     if len(args) == 1 and args[0].is_var():
         return args[0].to(args[0].var_index())
-    raise EvalError("type takes exactly one parameter, which must be a var", args)
+    raise EvalError(
+        "type takes exactly one parameter, which must be a var", args)
 
 
 def op_is_null(args):
