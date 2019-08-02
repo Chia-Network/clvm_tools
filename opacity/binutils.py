@@ -38,12 +38,13 @@ def assemble_from_ir(ir_sexp):
 
 
 def disassemble_to_ir(sexp, allow_keyword=None):
+    if is_ir(sexp) and allow_keyword is not False:
+        return ir_cons(ir_symbol("ir"), sexp)
+
     if sexp.nullp():
         return ir_null()
 
     if sexp.listp():
-        if is_ir(sexp):
-            return ir_cons(ir_symbol("ir"), sexp)
         if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
         v0 = disassemble_to_ir(sexp.first(), allow_keyword=allow_keyword)

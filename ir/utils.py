@@ -59,11 +59,12 @@ def ir_as_symbol(ir_sexp):
 
 def ir_iter(ir_sexp):
     while True:
-        if ir_type(ir_sexp) == Type.CONS:
-            if ir_nullp(ir_sexp):
-                break
-            yield ir_first(ir_sexp)
-            ir_sexp = ir_rest(ir_sexp)
+        if ir_type(ir_sexp) != Type.CONS:
+            break
+        if ir_nullp(ir_sexp):
+            break
+        yield ir_first(ir_sexp)
+        ir_sexp = ir_rest(ir_sexp)
 
 
 def is_ir(sexp):

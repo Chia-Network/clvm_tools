@@ -6,7 +6,8 @@ from clvm.make_eval import EvalError
 
 from ir.utils import (
     ir_nullp, ir_as_sexp, ir_is_atom, ir_listp,
-    ir_first, ir_rest, ir_as_symbol, ir_iter
+    ir_first, ir_rest, ir_as_symbol, ir_iter,
+    is_ir
 )
 
 from opacity import binutils
@@ -50,18 +51,6 @@ def quote_arg(arg):
     return to_sexp_f([binutils.assemble("q"), arg])
 
 
-def compile_if_operator(args):
-    # TODO: make this a macro
-    # (if A B C) => (e (i A (q B) (q C)) (a))
-    check_arg_count(args, 3)
-    b = args.rest().first()
-    c = args.rest().rest().first()
-    abc = to_sexp_f([args.first(), quote_arg(b), quote_arg(c)])
-    r = binutils.assemble("e").cons(
-        binutils.assemble("i").cons(abc).cons(binutils.assemble("((a))")))
-    return r
-
-
 def make_simple_replacement(src_opcode, obj_opcode=None):
     if obj_opcode is None:
         obj_opcode = src_opcode
@@ -83,8 +72,15 @@ DEFAULT_REWRITE_RULES = to_sexp_f([
     make_simple_replacement("sha256"),
     make_simple_replacement("wrap"),
     [b"test", binutils.assemble("(q (30 (+ (q 100) (q 10))))")],
+    [b"compile_op", binutils.assemble("(c (q 32) (c (f (a)) (q ())))")],
     [b"list", binutils.assemble("(33 (a))")],
     [b"if", binutils.assemble("(34 (a))")],
+    [b"ir_cons", binutils.assemble("(35 (a))")],
+    [b"ir_int", binutils.assemble("(c (q #c) (c (c (q #q) (c (q 22) (q ()))) (c (f (a)) (q ()))))")],
+    [b"ir_hex", binutils.assemble("(c (q #c) (c (c (q #q) (c (q 23) (q ()))) (c (f (a)) (q ()))))")],
+    [b"ir_quotes", binutils.assemble("(c (q #c) (c (c (q #q) (c (q 24) (q ()))) (c (f (a)) (q ()))))")],
+    [b"ir_symbol", binutils.assemble("(c (q #c) (c (c (q #q) (c (q 25) (q ()))) (c (f (a)) (q ()))))")],
+    [b"ir_list", binutils.assemble("(36 (a))")],
 ])
 
 
@@ -94,6 +90,27 @@ def quoted(arg):
 
 def do_compile_list(args, eval_f):
     args = args.first()
+    if args.nullp():
+        return binutils.assemble("(q ())")
+    first = args.first()
+    rest = do_compile_list(to_sexp_f([args.rest()]), eval_f)
+    return to_sexp_f([binutils.assemble("#c"), first, rest])
+
+
+def do_compile_ir_cons(args, eval_f):
+    args = args.first()
+    # (ir_cons A B) where A B are programs
+    #   => (c 21 (c A B))
+    prog_a = args.first()
+    prog_b = args.rest().first()
+    return to_sexp_f([binutils.assemble("c"), binutils.assemble("(q 21)"), 
+        [binutils.assemble("c"), prog_a, prog_b]])
+
+
+def do_compile_ir_list(args, eval_f):
+    args = args.first()
+    # (ir_cons A B) where A B are programs
+    #   => (c 21 (c A B))
     if args.nullp():
         return binutils.assemble("(q ())")
     first = args.first()
@@ -121,6 +138,9 @@ def inner_op_compile_op(args, eval_f):
         rewrite_rules = args.rest().first()
 
     ir_sexp = args.first()
+    if not is_ir(ir_sexp):
+        raise SyntaxError("trying to compile %s which is not an ir_sexp" % ir_sexp)
+
     if ir_nullp(ir_sexp):
         return binutils.assemble("(q ())")
 
@@ -133,8 +153,8 @@ def inner_op_compile_op(args, eval_f):
 
     # handle "quote" special
     if operator == "quote":
-        sexp = ir_as_sexp(ir_sexp)
-        return binutils.assemble("#q").cons(sexp.rest())
+        ir_sexp = ir_rest(ir_sexp)
+        return binutils.assemble("#q").cons(ir_sexp)
 
     compiled_args = []
     for _ in ir_iter(ir_rest(ir_sexp)):

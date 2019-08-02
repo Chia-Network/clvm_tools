@@ -44,7 +44,11 @@ def iter_ir_format(ir_sexp):
     elif type == Type.QUOTES:
         yield '"%s"' % atom.decode("utf8")
     elif type == Type.SYMBOL:
-        yield atom.decode("utf8")
+        try:
+            yield atom.decode("utf8")
+        except UnicodeDecodeError:
+            yield "(undecypherable symbol: %s)" % binascii.hexlify(
+                atom).decode("utf8")
     else:
         raise SyntaxError("bad ir format: %s" % ir_sexp)
 
