@@ -1,5 +1,5 @@
 
-def patch_eval_f(old_eval_f, binding_table):
+def bind_eval_f(old_eval_f, binding_table):
     def new_eval_f(eval_f, sexp, env):
         if sexp.listp() and not sexp.nullp():
             operator = sexp.first().as_atom()
@@ -14,6 +14,13 @@ def patch_eval_f(old_eval_f, binding_table):
                 args = sexp.to(args_list)
                 return f(args, eval_f)
 
+        return old_eval_f(eval_f, sexp, env)
+    return new_eval_f
+
+
+def wrap_eval_f(old_eval_f, transformer):
+    def new_eval_f(eval_f, sexp, env):
+        sexp, env = transformer(sexp, env, eval_f)
         return old_eval_f(eval_f, sexp, env)
     return new_eval_f
 

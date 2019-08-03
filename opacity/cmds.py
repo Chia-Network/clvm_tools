@@ -118,7 +118,7 @@ def brun_or_run(args, allow_stage=False):
 
     src_text = args.path_or_code
     src_sexp = reader.read_ir(src_text)
-    clvm_sexp = binutils.assemble_from_ir(src_sexp, args.stage.NEW_KEYWORDS)
+    clvm_sexp = binutils.assemble_from_ir(src_sexp)
 
     if args.verbose:
 

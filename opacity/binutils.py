@@ -11,7 +11,7 @@ from ir.utils import (
 from ir.Type import Type
 
 
-def assemble_from_ir(ir_sexp, additional_symbols=[]):
+def assemble_from_ir(ir_sexp):
     keyword = ir_as_symbol(ir_sexp)
     if keyword:
         if keyword[:1] == "#":
@@ -19,10 +19,10 @@ def assemble_from_ir(ir_sexp, additional_symbols=[]):
         atom = KEYWORD_TO_ATOM.get(keyword)
         if atom:
             return to_sexp_f(atom)
-        if keyword not in additional_symbols:
-            raise SyntaxError(
-                "can't parse %s at %s" % (keyword, ir_sexp._offset))
-        return ir_val(ir_sexp)
+        if True:
+            return ir_val(ir_sexp)
+        raise SyntaxError(
+            "can't parse %s at %s" % (keyword, ir_sexp._offset))
 
     if not ir_listp(ir_sexp):
         return ir_val(ir_sexp)
@@ -30,19 +30,20 @@ def assemble_from_ir(ir_sexp, additional_symbols=[]):
     if ir_nullp(ir_sexp):
         return to_sexp_f([])
 
-    # handle "ir" macro
+    # handle "q"
     first = ir_first(ir_sexp)
     keyword = ir_as_symbol(first)
-    if keyword == "ir":
-        return ir_val(ir_sexp.rest())
+    if keyword == "q":
+        pass
+        # TODO: note that any symbol is legal after this point
 
-    sexp_1 = assemble_from_ir(first, additional_symbols)
-    sexp_2 = assemble_from_ir(ir_rest(ir_sexp), additional_symbols)
+    sexp_1 = assemble_from_ir(first)
+    sexp_2 = assemble_from_ir(ir_rest(ir_sexp))
     return sexp_1.cons(sexp_2)
 
 
 def type_for_atom(atom):
-    if len(atom) > 4:
+    if len(atom) > 2:
         try:
             v = atom.decode("utf8")
             if all(c in string.printable for c in v):
@@ -81,6 +82,6 @@ def disassemble(sexp):
     return write_ir(symbols)
 
 
-def assemble(s, addition_symbols=[]):
+def assemble(s):
     symbols = read_ir(s)
-    return assemble_from_ir(symbols, addition_symbols)
+    return assemble_from_ir(symbols)

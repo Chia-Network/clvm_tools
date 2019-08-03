@@ -88,7 +88,9 @@ def inject(*paths):
             setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
 
 
-inject("opc", "v0_0_2")
+inject("opc")
+
+inject("v0_0_2")
 
 inject("runtime_001")
 

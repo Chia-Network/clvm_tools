@@ -1,7 +1,6 @@
 from clvm import eval_f
 
 EVAL_F = eval_f
-NEW_KEYWORDS = set()
 
 
 """

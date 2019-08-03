@@ -1,11 +1,4 @@
-from clvm import eval_f
-
-from ..patch_eval_f import patch_eval_f
-from .bindings import BINDINGS
-
-
-EVAL_F = patch_eval_f(eval_f, BINDINGS)
-NEW_KEYWORDS = set(BINDINGS.keys())
+from .bindings import BINDINGS, EVAL_F  # noqa
 
 
 """

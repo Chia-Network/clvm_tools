@@ -1,2 +1,2 @@
 opc "(foo bar)"
-can't parse foo at 1
+ff83666f6fff83626172fe
