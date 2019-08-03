@@ -90,6 +90,8 @@ def inject(*paths):
 
 inject("opc")
 
+inject("stage_1")
+
 inject("v0_0_2")
 
 inject("runtime_001")
