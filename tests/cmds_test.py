@@ -92,6 +92,8 @@ inject("opc")
 
 inject("stage_1")
 
+inject("stage_prog")
+
 inject("v0_0_2")
 
 inject("runtime_001")

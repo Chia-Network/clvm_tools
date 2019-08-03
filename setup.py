@@ -11,7 +11,7 @@ setup(
         "clvm",
         "ir",
         "opacity",
-        "schemas",
+        "bindings",
     ],
     author="Chia Network, Inc.",
 
