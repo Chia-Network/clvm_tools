@@ -1,0 +1,2 @@
+run -s 1 "(bind (q ((fact (e (i (= (f (a)) (q 1)) (q (q 1)) (q (* (f (a)) (fact (- (f (a)) (q 1)))))) (a)) ))) (q (fact (q 10))) (a))"
+0x375f00

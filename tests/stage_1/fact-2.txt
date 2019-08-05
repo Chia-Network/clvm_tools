@@ -1,0 +1,2 @@
+run -s 1 "(bind (q ((fact (e (i (= (f (a)) (q 1)) (q (q 1)) (q (* (f (a)) (fact (- (f (a)) (q 1)))))) (a)) ))) (q (fact (a))) (a))" "12"
+0x1c8cfc00
