@@ -37,7 +37,7 @@ def do_map(args, eval_f):
         raise SyntaxError("require 2 arguments to map")
     r = []
     for sexp in args.rest().first().as_iter():
-        r.append(eval_f(eval_f, args.first(), to_sexp_f([sexp])))
+        r.append(eval_f(eval_f, args.first(), to_sexp_f(sexp)))
     return to_sexp_f(r)
 
 
