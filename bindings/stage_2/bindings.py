@@ -3,6 +3,7 @@ from clvm import eval_f, to_sexp_f
 from ..patch_eval_f import bind_eval_f, wrap_eval_f
 
 from .expand import expand_sexp, DEFAULT_MACRO_LOOKUP
+from .lambda_ import do_lambda_op, symbol_replace, symbol_table_sexp
 from .qa import qa_sexp
 from .qq import compile_qq_sexp
 
@@ -41,6 +42,14 @@ def do_map(args, eval_f):
     return to_sexp_f(r)
 
 
+def do_symbol_table(args, eval_f):
+    return symbol_table_sexp(args.first())
+
+
+def do_symbol_replace(args, eval_f):
+    return symbol_replace(args.first(), args.rest().first())
+
+
 def qa_transformer(sexp, env, eval_f):
     return qa_sexp(expand_sexp(sexp, DEFAULT_MACRO_LOOKUP, eval_f)), env
 
@@ -51,6 +60,9 @@ BINDINGS = {
     "qa_op": do_qa_op,
     "compile_qq_op": do_compile_qq_op,
     "map": do_map,
+    "symbol_table": do_symbol_table,
+    "symbol_replace" : do_symbol_replace,
+    "lambda_op": do_lambda_op,
 }
 
 
