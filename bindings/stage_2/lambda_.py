@@ -9,6 +9,7 @@ from clvm import KEYWORD_TO_ATOM
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
+CONS_KW = KEYWORD_TO_ATOM["c"]
 
 
 def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
@@ -19,11 +20,11 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
         return sexp.to([[sexp, so_far]])
 
     r = []
-    for pair in symbol_table_sexp(sexp.first(), [FIRST_KW, so_far]).as_iter():
+    for pair in symbol_table_sexp(sexp.first(), [CONS_KW, FIRST_KW, [CONS_KW, so_far, []]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
-    for pair in symbol_table_sexp(sexp.rest(), [REST_KW, so_far]).as_iter():
+    for pair in symbol_table_sexp(sexp.rest(), [CONS_KW, REST_KW, [CONS_KW, so_far, []]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
@@ -31,7 +32,7 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
     return sexp.to(r)
 
 
-def symbol_replace(sexp, symbol_table):
+def symbol_replace(sexp, symbol_table, eval_f, root_node):
     if sexp.nullp():
         return sexp
 
@@ -39,16 +40,21 @@ def symbol_replace(sexp, symbol_table):
         for pair in symbol_table.as_iter():
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
-                return pair.rest().first()
+                prog = pair.rest().first()
+                r = eval_f(eval_f, prog, root_node)
+                return r
         return sexp
 
     return sexp.to([sexp.first()] + [
-        symbol_replace(_, symbol_table) for _ in sexp.rest().as_iter()])
+        symbol_replace(_, symbol_table, eval_f, root_node)
+            for _ in sexp.rest().as_iter()])
 
 
 def do_lambda_op(args, eval_f):
     symbol_table = symbol_table_sexp(args.first())
-    expansion = symbol_replace(args.rest().first(), symbol_table)
+    root_node = args.to([ARGS_KW])
+    expansion = symbol_replace(
+        args.rest().first(), symbol_table, eval_f, root_node)
     return expansion
 
 
