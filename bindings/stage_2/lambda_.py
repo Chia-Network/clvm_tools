@@ -50,3 +50,17 @@ def do_lambda_op(args, eval_f):
     symbol_table = symbol_table_sexp(args.first())
     expansion = symbol_replace(args.rest().first(), symbol_table)
     return expansion
+
+
+"""
+(expand_op
+    (q (not 1))
+    (list
+        (defmacro_op (q not) (q (A)) (q (list #i A () 1)))
+))
+"""
+
+
+def do_defmacro_op(args, eval_f):
+    macro_name = args.first()
+    return args.to([macro_name, do_lambda_op(args.rest(), eval_f)])

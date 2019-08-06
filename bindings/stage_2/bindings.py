@@ -3,7 +3,10 @@ from clvm import eval_f, to_sexp_f
 from ..patch_eval_f import bind_eval_f, wrap_eval_f
 
 from .expand import expand_sexp, DEFAULT_MACRO_LOOKUP
-from .lambda_ import do_lambda_op, symbol_replace, symbol_table_sexp
+from .lambda_ import (
+    do_defmacro_op, do_lambda_op,
+    symbol_replace, symbol_table_sexp
+)
 from .qa import qa_sexp
 from .qq import compile_qq_sexp
 
@@ -14,6 +17,8 @@ def do_expand_op(args, eval_f):
     macro_lookup = args.rest()
     if macro_lookup.nullp():
         macro_lookup = DEFAULT_MACRO_LOOKUP
+    else:
+        macro_lookup = macro_lookup.first()
     return expand_sexp(args.first(), macro_lookup, eval_f)
 
 
@@ -63,6 +68,7 @@ BINDINGS = {
     "symbol_table": do_symbol_table,
     "symbol_replace" : do_symbol_replace,
     "lambda_op": do_lambda_op,
+    "defmacro_op": do_defmacro_op,
 }
 
 
