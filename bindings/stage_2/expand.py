@@ -56,8 +56,7 @@ def expand_sexp(sexp, macro_lookup, eval_f):
 
         macro_code = macro_pair.rest().first()
 
-        expanded_sexp = eval_f(eval_f, macro_code, sexp.rest())
-        sexp = eval_f(eval_f, expanded_sexp, sexp.null())
+        sexp = eval_f(eval_f, macro_code, sexp.rest())
 
 
 """
