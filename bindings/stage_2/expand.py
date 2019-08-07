@@ -1,34 +1,17 @@
-from clvm import to_sexp_f
 from clvm import KEYWORD_TO_ATOM
-
-from opacity import binutils
-
-from .qq import compile_qq_sexp
 
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
-IF_MACRO = binutils.disassemble(compile_qq_sexp(binutils.assemble(
-    '(e (i (unquote (f (a))) (q (unquote (f (r (a))))) '
-    '(q (unquote (f (r (r (a))))))) (a))')))
-
-
-DEFAULT_MACROS = [
-    ("bool",
-        "(list #i (f (a)) 1 ())"),
-    ("not",
-        "(list #i (f (a)) () 1)"),
-    ("if", IF_MACRO),
-    ("qq",
-        "(list #q (compile_qq_op (list #q (f (a)))))"),
+DEFAULT_MACROS_DEFINITIONS = [
+    ("(q (defmacro (list defmacro_op (list q (f (a))) "
+     "(list q (f (r (a)))) (list q (f (r (r (a))))))))"),
+    ("(defmacro lambda (ARGS BODY) (list lambda_op "
+     "(list q ARGS) (list q BODY)))"),
+    ("(q (compile_qq (list #q (compile_qq_op "
+     "(list #q (f (a)))))))"),
 ]
-
-
-DEFAULT_MACRO_LOOKUP = to_sexp_f([
-    [op.encode("utf8"), binutils.assemble(code)]
-    for op, code in DEFAULT_MACROS
-])
 
 
 def expand_sexp(sexp, macro_lookup, eval_f):

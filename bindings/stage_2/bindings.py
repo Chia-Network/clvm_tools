@@ -1,8 +1,10 @@
 from clvm import eval_f, to_sexp_f
+from opacity import binutils
 
 from ..patch_eval_f import bind_eval_f, wrap_eval_f
 
-from .expand import expand_sexp, DEFAULT_MACRO_LOOKUP
+from .expand import expand_sexp, DEFAULT_MACROS_DEFINITIONS
+
 from .lambda_ import (
     do_defmacro_op, do_lambda_op, do_mod_op,
     symbol_replace, symbol_table_sexp
@@ -15,9 +17,7 @@ def do_expand_op(args, eval_f):
     if len(args.as_python()) not in (1, 2):
         raise SyntaxError("require 1 or 2 arguments to expand")
     macro_lookup = args.rest()
-    if macro_lookup.nullp():
-        macro_lookup = DEFAULT_MACRO_LOOKUP
-    else:
+    if not macro_lookup.nullp():
         macro_lookup = macro_lookup.first()
     return expand_sexp(args.first(), macro_lookup, eval_f)
 
@@ -55,8 +55,11 @@ def do_symbol_replace(args, eval_f):
     return symbol_replace(args.first(), args.rest().first())
 
 
-def qa_transformer(sexp, env, eval_f):
-    return qa_sexp(expand_sexp(sexp, DEFAULT_MACRO_LOOKUP, eval_f)), env
+def make_eval_f(function_bindings, macro_bindings):
+    def qa_transformer(sexp, env, eval_f):
+        return qa_sexp(expand_sexp(sexp, macro_bindings, eval_f)), env
+
+    return wrap_eval_f(bind_eval_f(eval_f, function_bindings), qa_transformer)
 
 
 BINDINGS = {
@@ -73,4 +76,18 @@ BINDINGS = {
 }
 
 
-EVAL_F = wrap_eval_f(bind_eval_f(eval_f, BINDINGS), qa_transformer)
+def make_macro_built_ins(function_bindings, macros):
+    built_ins_list = []
+    null = to_sexp_f([])
+    for macro in macros:
+        eval_f = make_eval_f(function_bindings, to_sexp_f(built_ins_list))
+        macro_sexp = binutils.assemble(macro)
+        macro_binding = eval_f(eval_f, macro_sexp, null)
+        built_ins_list.append(macro_binding)
+    return to_sexp_f(built_ins_list)
+
+
+MACRO_BUILT_INS = make_macro_built_ins(
+    BINDINGS, DEFAULT_MACROS_DEFINITIONS)
+
+EVAL_F = make_eval_f(BINDINGS, MACRO_BUILT_INS)
