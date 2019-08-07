@@ -79,7 +79,7 @@ def trace_to_html(invocations, disassemble):
 
 def trace_to_text(trace, disassemble):
     for (form, env), rv in trace:
-        env_str = ", ".join(disassemble(_) for _ in env.as_iter())
+        env_str = disassemble(env)
         rewrit_form = form
         if form != rewrit_form:
             print("%s -> %s [%s] => %s" % (
