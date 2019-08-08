@@ -9,8 +9,8 @@ DEFAULT_MACROS_DEFINITIONS = [
      "(list q (f (r (a)))) (list q (f (r (r (a))))))))"),
     ("(defmacro lambda (ARGS BODY) (list lambda_op "
      "(list q ARGS) (list q BODY)))"),
-    ("(q (compile_qq (list #q (compile_qq_op "
-     "(list #q (f (a)))))))"),
+    ("(defmacro compile_qq (ARG) (list compile_qq_op (list q ARG)))"),
+    ("(defmacro qq (ARG) (list e (list q (compile_qq_op ARG)) (list a)))"),
 ]
 
 
