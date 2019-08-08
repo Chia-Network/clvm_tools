@@ -5,12 +5,36 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
 DEFAULT_MACROS_DEFINITIONS = [
-    ("(q (defmacro (list defmacro_op (list q (f (a))) "
-     "(list q (f (r (a)))) (list q (f (r (r (a))))))))"),
-    ("(defmacro lambda (ARGS BODY) (list lambda_op "
-     "(list q ARGS) (list q BODY)))"),
-    ("(defmacro compile_qq (ARG) (list compile_qq_op (list q ARG)))"),
-    ("(defmacro qq (ARG) (list e (list q (compile_qq_op ARG)) (list a)))"),
+    # defmacro
+    """
+    (q (defmacro (list defmacro_op (list q (f (a)))
+                                   (list q (f (r (a))))
+                                   (list q (f (r (r (a))))))))""",
+
+    # qq
+    """
+    (defmacro qq (ARG) (
+       list e
+            (list q (compile_qq_op ARG))
+            (list a)))
+    """,
+
+    # if
+    """
+    (defmacro if (ARG IF_TRUE IF_FALSE)
+        (qq (e (i (unquote ARG)
+                  (q (unquote IF_TRUE))
+                  (q (unquote IF_FALSE)))
+               (a))
+         )
+    )
+    """,
+
+    # lambda
+    """
+    (defmacro lambda (ARGS BODY)
+       (list lambda_op (list q ARGS) (list q BODY)))
+    """,
 ]
 
 
