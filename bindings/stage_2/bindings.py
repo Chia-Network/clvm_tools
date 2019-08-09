@@ -6,9 +6,10 @@ from ..patch_eval_f import bind_eval_f, wrap_eval_f
 from .expand import expand_sexp, DEFAULT_MACROS_DEFINITIONS
 
 from .lambda_ import (
-    do_defmacro_op, do_lambda_op, do_mod_op,
+    do_defmacro_op, do_lambda_op,
     symbol_replace, symbol_table_sexp
 )
+from .mod import do_mod_op
 from .qa import qa_sexp
 from .qq import compile_qq_sexp
 

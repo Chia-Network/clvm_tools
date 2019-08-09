@@ -72,37 +72,3 @@ def do_lambda_op(args, eval_f):
 def do_defmacro_op(args, eval_f):
     macro_name = args.first()
     return args.to([macro_name, do_lambda_op(args.rest(), eval_f)])
-
-
-"""
-(mod (N)
-    (defun fact K (if (= K 1) 1 (* K (fact (- K 1)))))
-    (defun next_fib (n0 n1) (list n1 (+ n0 n1)))
-    (defun fib2 N (if (= N 0) (q (0 1)) (next_fib (fib2 (- N 1)))))
-    (defun fib N (first (fib2 N)))
-    (+ (fib N) (fact N))
-)
-"""
-
-
-def do_mod_op(args, eval_f):
-    definitions = {}
-    main_symbol_table = symbol_table_sexp(args.first())
-    while True:
-        args = args.rest()
-        if args.rest().nullp():
-            break
-        declaration_sexp = args.first()
-        if declaration_sexp.first().as_atom() != b"defun":
-            raise SyntaxError("expected defun")
-        declaration_sexp = declaration_sexp.rest()
-        function_name = declaration_sexp.first()
-        declaration_sexp = declaration_sexp.rest()
-        imp = do_lambda_op(declaration_sexp, eval_f)
-        definitions[function_name.as_atom()] = imp
-    from opacity.binutils import disassemble
-    print(disassemble(main_symbol_table))
-    for k, v in definitions.items():
-        print("%s: %s" % (k, disassemble(v)))
-    breakpoint()
-    pass
