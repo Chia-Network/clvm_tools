@@ -17,8 +17,6 @@ def qa_sexp(sexp):
         if as_atom == QUOTE_KW:
             return sexp
 
-    # expand arguments
-    sexp = sexp.to([operator] + [qa_sexp(_) for _ in sexp.rest().as_iter()])
     return sexp
 
 
