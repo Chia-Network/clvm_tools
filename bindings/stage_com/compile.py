@@ -15,8 +15,6 @@ PASS_THROUGH_OPERATORS = set(
 )
 
 
-PASS_THROUGH_OPERATORS.update([b"compile_op"])
-
 
 def compile_list(args, eval_f):
     if not args.listp() or args.nullp():
@@ -54,12 +52,19 @@ def do_compile_sexp(sexp, eval_f):
         remaining_args = to_sexp_f([
             do_compile_sexp(_, eval_f) for _ in sexp.rest().as_iter()])
 
+        if as_atom == b"compile_op":
+            if remaining_args.first().first().as_atom() == QUOTE_KW:
+                const_sexp = remaining_args.first().rest().first()
+                compiled_sexp = do_compile_sexp(const_sexp, eval_f)
+                return to_sexp_f([QUOTE_KW, compiled_sexp])
+            return to_sexp_f(as_atom).cons(remaining_args)
+
         if as_atom in PASS_THROUGH_OPERATORS:
             return to_sexp_f(as_atom).cons(remaining_args)
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
-            return f(remaining_args, eval_f)
+            return do_compile_sexp(f(remaining_args, eval_f), eval_f)
 
     raise SyntaxError(
         "can't compile %s, unknown operator" %
