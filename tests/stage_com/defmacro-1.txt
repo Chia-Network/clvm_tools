@@ -1,2 +1,2 @@
 brun -scom '(com (q (defmacro total (A B) (+ A B))))'
-(c (q "total") (c (c (q 12) (c (e (q (c (q 6) (c (a) (q ())))) (q (a))) (c (e (q (c (q 6) (c (c (q 7) (c (a) (q ()))) (q ())))) (q (a))) (q ())))) (q ())))
+(q ("total" (+ (f (a)) (f (r (a))))))

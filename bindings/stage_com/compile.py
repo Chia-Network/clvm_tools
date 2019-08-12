@@ -29,7 +29,7 @@ def compile_list(args):
 
 
 def compile_function(args):
-    return to_sexp_f([b"list", QUOTE_KW, [b"com", [QUOTE_KW, args.first()]]])
+    return to_sexp_f([b"com", [QUOTE_KW, args.first()]])
 
 
 COMPILE_BINDINGS = {
@@ -39,6 +39,11 @@ COMPILE_BINDINGS = {
     b"defmacro": compile_defmacro,
     b"mod": compile_mod,
 }
+
+
+def optimize(r, eval_f):
+    r1 = eval_f(eval_f, r, r.null())
+    return to_sexp_f([QUOTE_KW, r1])
 
 
 def do_compile_sexp(eval_f, sexp, macro_lookup):
@@ -63,7 +68,10 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_sexp = f(sexp.rest())
-            return do_compile_sexp(eval_f, post_sexp, macro_lookup)
+            r = do_compile_sexp(eval_f, post_sexp, macro_lookup)
+            # OPTIMIZE
+            r = optimize(r, eval_f)
+            return r
 
         remaining_args = to_sexp_f([
             do_compile_sexp(
