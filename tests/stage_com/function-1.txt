@@ -1,0 +1,2 @@
+brun -scom '(function (+ 20 30))))'
+(+ (q 20) (q 30))

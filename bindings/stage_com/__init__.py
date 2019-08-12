@@ -1,4 +1,4 @@
-from .bindings import BINDINGS, EVAL_F  # noqa
+from .bindings import EVAL_F  # noqa
 
 
 """

@@ -94,6 +94,8 @@ inject("stage_1")
 
 inject("stage_2")
 
+inject("stage_com")
+
 inject("stage_prog")
 
 inject("v0_0_2")

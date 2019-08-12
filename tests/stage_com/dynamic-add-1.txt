@@ -1,0 +1,2 @@
+brun -scom '(compile_op (list + 15 20)))'
+(+ (q 15) (q 20))
