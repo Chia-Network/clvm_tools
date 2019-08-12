@@ -1,2 +1,2 @@
-brun -scom '(function (+ 20 30))))'
-(+ (q 20) (q 30))
+brun -scom '(com (q (function (+ 20 30))))))'
+(c (q 1) (c (q (+ (q 20) (q 30))) (q ())))

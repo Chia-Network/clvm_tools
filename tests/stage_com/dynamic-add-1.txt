@@ -1,2 +1,2 @@
-brun -scom '(compile_op (list + 15 20)))'
+brun -scom '(com (e (com (q (list + 15 20))) (a)))'
 (+ (q 15) (q 20))

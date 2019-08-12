@@ -1,2 +1,2 @@
-brun -scom '(compile_op (q (sha256 "foo")))'
+brun -scom '(com (q (sha256 "foo")))'
 (sha256 (q "foo"))

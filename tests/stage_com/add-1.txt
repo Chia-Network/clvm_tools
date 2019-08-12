@@ -1,2 +1,2 @@
-brun -scom '(compile_op (q (+ 6 55)))'
+brun -scom '(com (q (+ 6 55)))'
 (+ (q 6) (q 55))

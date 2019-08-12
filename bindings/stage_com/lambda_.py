@@ -10,6 +10,7 @@ ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
+EVAL_KW = KEYWORD_TO_ATOM["e"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
@@ -22,12 +23,12 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
 
     r = []
     for pair in symbol_table_sexp(sexp.first(), [
-            CONS_KW, FIRST_KW, [CONS_KW, so_far, []]]).as_iter():
+            CONS_KW, [QUOTE_KW, FIRST_KW], [CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
     for pair in symbol_table_sexp(sexp.rest(), [
-            CONS_KW, REST_KW, [CONS_KW, so_far, []]]).as_iter():
+            CONS_KW, [QUOTE_KW, REST_KW], [CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
@@ -35,7 +36,7 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
     return sexp.to(r)
 
 
-def symbol_replace(sexp, symbol_table, eval_f, root_node):
+def symbol_replace(sexp, symbol_table, root_node):
     if sexp.nullp():
         return sexp
 
@@ -44,7 +45,7 @@ def symbol_replace(sexp, symbol_table, eval_f, root_node):
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
                 prog = pair.rest().first()
-                r = eval_f(eval_f, prog, root_node)
+                r = sexp.to([EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, root_node]])
                 return r
         return sexp
 
@@ -52,16 +53,19 @@ def symbol_replace(sexp, symbol_table, eval_f, root_node):
     if not operator.listp() and operator.as_atom() == QUOTE_KW:
         return sexp
 
-    return sexp.to([operator] + [
-        symbol_replace(_, symbol_table, eval_f, root_node)
+    return sexp.to([b"list", operator] + [
+        symbol_replace(_, symbol_table, root_node)
         for _ in sexp.rest().as_iter()])
 
 
-def compile_lambda_op(args, eval_f):
-    symbol_table_args = eval_f(eval_f, args.first(), args.null())
-    symbol_table = symbol_table_sexp(symbol_table_args)
+def compile_lambda(args):
+    symbol_table = symbol_table_sexp(args.first())
     root_node = args.to([ARGS_KW])
-    code_args = eval_f(eval_f, args.rest().first(), args.null())
     expansion = symbol_replace(
-        code_args, symbol_table, eval_f, root_node)
-    return args.to([b"compile_op", [QUOTE_KW, expansion]])
+        args.rest().first(), symbol_table, root_node)
+    return args.to(expansion)
+
+
+def compile_defmacro(args):
+    macro_name = args.first()
+    return args.to([b"list", macro_name, compile_lambda(args.rest())])
