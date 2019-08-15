@@ -23,7 +23,7 @@ for _ in "com opt mac".split():
 
 def wrap_with_run(sexp, macro_lookup, args=[ARGS_KW]):
     return to_sexp_f([
-        EVAL_KW, [b"com", [QUOTE_KW, sexp], [QUOTE_KW, macro_lookup]], args])
+        EVAL_KW, [b"com", [QUOTE_KW, sexp], [b"mac"]], args])
 
 
 def compile_list(args):
@@ -76,7 +76,7 @@ def do_compile_sexp(sexp, macro_lookup):
         if as_atom == QUOTE_KW:
             return sexp
 
-        if as_atom == b"macros":
+        if as_atom == b"mac":
             return to_sexp_f([QUOTE_KW, macro_lookup])
 
         for macro_pair in macro_lookup.as_iter():

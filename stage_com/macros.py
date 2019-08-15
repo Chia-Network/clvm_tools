@@ -5,7 +5,7 @@ from opacity import binutils
 
 
 DEFAULT_MACROS_SRC = [
-    "(defmacro if (A B C) (qq (e (i (unquote (com A (macros))) (q (unquote (com B (macros)))) (q (unquote (com C (macros))))) (a))))",
+    "(defmacro if (A B C) (qq (e (i (unquote (com A (mac))) (q (unquote (com B (mac)))) (q (unquote (com C (mac))))) (a))))",
 ]
 
 
@@ -27,5 +27,6 @@ def build_default_macro_lookup():
 def default_macro_lookup():
     global DEFAULT_MACRO_LOOKUP
     if DEFAULT_MACRO_LOOKUP is None:
+        DEFAULT_MACRO_LOOKUP = []
         DEFAULT_MACRO_LOOKUP = build_default_macro_lookup()
     return DEFAULT_MACRO_LOOKUP

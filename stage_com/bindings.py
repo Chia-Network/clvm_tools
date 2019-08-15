@@ -8,14 +8,14 @@ from .macros import default_macro_lookup
 from .optimize import do_opt
 
 
-def do_macros(sexp, eval_f):
+def do_mac(sexp, eval_f):
     return default_macro_lookup()
 
 
 BINDINGS = {
     "com": do_com,
     "opt": do_opt,
-    "mac": do_macros,
+    "mac": do_mac,
 }
 
 
