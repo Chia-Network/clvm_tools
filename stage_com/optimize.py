@@ -65,4 +65,5 @@ def optimize_sexp(r, eval_f):
     if op == QUOTE_KW:
         return r
 
-    return to_sexp_f([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
+def do_opt(args, eval_f):
+    return optimize_sexp(args.first(), eval_f)
