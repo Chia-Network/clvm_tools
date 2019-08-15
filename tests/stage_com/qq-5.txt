@@ -1,0 +1,2 @@
+brun -scom '(com (q (qq ((unquote (a)) 200 300 400))))'
+(c (a) (q (200 300 400)))

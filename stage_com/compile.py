@@ -56,7 +56,7 @@ def compile_qq_sexp(sexp):
             and sexp.first().as_atom() == b"unquote"):
         return sexp.rest().first()
 
-    return to_sexp_f([b"list", sexp.first()] + [[b"qq", _] for _ in sexp.rest().as_iter()])
+    return to_sexp_f([b"list"] + [[b"qq", _] for _ in sexp.as_iter()])
 
 
 COMPILE_BINDINGS = {
