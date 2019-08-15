@@ -1,6 +1,6 @@
 from clvm import eval_f
 
-from ..patch_eval_f import bind_eval_f
+from opacity.patch_eval_f import bind_eval_f
 
 from .compile import do_com
 from .mod import do_substitute_functions

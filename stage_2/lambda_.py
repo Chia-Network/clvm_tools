@@ -10,6 +10,7 @@ ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
+QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
 def symbol_table_sexp(sexp, so_far=[ARGS_KW]):

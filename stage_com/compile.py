@@ -56,7 +56,6 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
-                breakpoint()
                 macro_code = macro_pair.rest().first()
                 post_sexp = eval_f(eval_f, macro_code, sexp.rest())
                 optimized_sexp = optimize_sexp(macro_code, eval_f)

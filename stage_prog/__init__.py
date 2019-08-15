@@ -1,7 +1,7 @@
 
 from clvm import eval_f
 
-from ..patch_eval_f import bind_eval_f
+from opacity.patch_eval_f import bind_eval_f
 
 from .prog import do_prog_op
 

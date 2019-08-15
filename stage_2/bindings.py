@@ -1,7 +1,7 @@
 from clvm import eval_f, to_sexp_f
 from opacity import binutils
 
-from ..patch_eval_f import bind_eval_f, wrap_eval_f
+from opacity.patch_eval_f import bind_eval_f, wrap_eval_f
 
 from .expand import expand_sexp, DEFAULT_MACROS_DEFINITIONS
 
