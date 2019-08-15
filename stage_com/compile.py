@@ -17,7 +17,7 @@ PASS_THROUGH_OPERATORS = set(
     "e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()
 )
 
-for _ in "com opt".split():
+for _ in "com opt mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
@@ -37,7 +37,7 @@ def compile_list(args):
 
 
 def compile_function(args):
-    return to_sexp_f([b"com", [QUOTE_KW, args.first()]])
+    return to_sexp_f([b"com", [QUOTE_KW, args.first()], [b"mac"]])
 
 
 def compile_qq(args):

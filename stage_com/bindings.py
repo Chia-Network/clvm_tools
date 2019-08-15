@@ -15,11 +15,11 @@ def do_macros(sexp, eval_f):
 BINDINGS = {
     "com": do_com,
     "opt": do_opt,
-    "macros": do_macros,
+    "mac": do_macros,
 }
 
 
 EVAL_F = bind_eval_f(eval_f, BINDINGS)
 
 brun = binutils.assemble("(e (f (a)) (r (a)))")
-run = binutils.assemble("(e (com (f (a)) (macros)) (r (a)))")
+run = binutils.assemble("(e (com (f (a)) (mac)) (r (a)))")
