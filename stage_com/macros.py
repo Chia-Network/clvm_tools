@@ -5,7 +5,13 @@ from opacity import binutils
 
 
 DEFAULT_MACROS_SRC = [
-    "(defmacro if (A B C) (qq (e (i (unquote (com A (mac))) (q (unquote (com B (mac)))) (q (unquote (com C (mac))))) (a))))",
+    """
+    (defmacro if (A B C)
+        (qq (e
+            (i (unquote (com A (mac)))
+               (q (unquote (com B (mac))))
+               (q (unquote (com C (mac)))))
+            (a))))""",
 ]
 
 
@@ -13,7 +19,6 @@ DEFAULT_MACRO_LOOKUP = None
 
 
 def build_default_macro_lookup():
-    #breakpoint()
     from .bindings import EVAL_F
     run = binutils.assemble("(com (f (a)) (r (a)))")
     macro_lookup = to_sexp_f([])
