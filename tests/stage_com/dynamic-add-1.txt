@@ -1,2 +1,2 @@
 brun -scom '(com (e (com (q (list + 15 20))) (a)))'
-(+ (q 15) (q 20))
+(q 35)

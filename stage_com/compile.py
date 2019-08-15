@@ -8,6 +8,8 @@ from .optimize import optimize_sexp
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
+EVAL_KW = KEYWORD_TO_ATOM["e"]
+ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
 PASS_THROUGH_OPERATORS = set(
@@ -19,14 +21,23 @@ for _ in "com".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
+def wrap_with_compile(sexp):
+    return to_sexp_f([b"compile", sexp])
+
+
+def wrap_with_run(sexp):
+    return to_sexp_f([
+        EVAL_KW, wrap_with_compile(sexp), [ARGS_KW]])
+
+
 def compile_list(args):
     if not args.listp() or args.nullp():
         return to_sexp_f([QUOTE_KW, args])
 
     return to_sexp_f([
         CONS_KW,
-        args.first(),
-        [b"list"] + list(args.rest().as_iter())])
+        wrap_with_run(args.first()),
+        wrap_with_run([b"list"] + list(args.rest().as_iter()))])
 
 
 def compile_function(args):
@@ -69,6 +80,9 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
         if as_atom == QUOTE_KW:
             return sexp
 
+        if as_atom == b"compile":
+            return to_sexp_f([b"com", [QUOTE_KW, sexp.rest().first()]])
+
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
@@ -109,4 +123,6 @@ def do_com(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = sexp.null()
-    return do_compile_sexp(eval_f, new_sexp, macro_lookup)
+    compiled_sexp = do_compile_sexp(eval_f, new_sexp, macro_lookup)
+    optimized_sexp = optimize_sexp(compiled_sexp, eval_f)
+    return optimized_sexp
