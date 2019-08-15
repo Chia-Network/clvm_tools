@@ -4,16 +4,22 @@ from opacity import binutils
 from opacity.patch_eval_f import bind_eval_f
 
 from .compile import do_com
+from .macros import default_macro_lookup
 from .optimize import do_opt
+
+
+def do_macros(sexp, eval_f):
+    return default_macro_lookup()
 
 
 BINDINGS = {
     "com": do_com,
     "opt": do_opt,
+    "macros": do_macros,
 }
 
 
 EVAL_F = bind_eval_f(eval_f, BINDINGS)
 
 brun = binutils.assemble("(e (f (a)) (r (a)))")
-run = binutils.assemble("(e (com (f (a))) (r (a)))")
+run = binutils.assemble("(e (com (f (a)) (macros)) (r (a)))")
