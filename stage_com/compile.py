@@ -77,7 +77,7 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
             return sexp
 
         if as_atom == b"compile":
-            return to_sexp_f([b"com", [QUOTE_KW, sexp.rest().first()]])
+            return to_sexp_f([b"com", [QUOTE_KW, sexp.rest().first()], [QUOTE_KW, macro_lookup]])
 
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
