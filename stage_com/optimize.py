@@ -47,23 +47,33 @@ def eval_q_a_optimizer(r, eval_f):
     return first_arg.rest().first()
 
 
-def optimize_sexp(r, eval_f):
-    if r.nullp() or not r.listp():
-        return r
-
-    while True:
-        start_r = r
-        r = constant_optimizer(r, eval_f)
-        r = eval_q_a_optimizer(r, eval_f)
-        if start_r == r:
-            break
-
+def children_optimizer(r, eval_f):
     operator = r.first()
     if operator.listp():
         return r
     op = operator.as_atom()
     if op == QUOTE_KW:
         return r
+    return to_sexp_f([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
+
+
+def optimize_sexp(r, eval_f):
+    if r.nullp() or not r.listp():
+        return r
+
+    OPTIMIZERS = [
+        constant_optimizer,
+        eval_q_a_optimizer,
+        children_optimizer,
+    ]
+
+    while True:
+        start_r = r
+        for opt in OPTIMIZERS:
+            r = opt(r, eval_f)
+        if start_r == r:
+            return r
+
 
 def do_opt(args, eval_f):
     return optimize_sexp(args.first(), eval_f)
