@@ -30,10 +30,10 @@ def compile_list(args):
     if not args.listp() or args.nullp():
         return to_sexp_f([QUOTE_KW, args])
 
-    return wrap_with_run([
+    return [
         CONS_KW,
         args.first(),
-        [b"list"] + list(args.rest().as_iter())], [])
+        [b"list"] + list(args.rest().as_iter())]
 
 
 def compile_function(args):
@@ -90,9 +90,7 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_sexp = f(sexp.rest())
-            macro_code = do_compile_sexp(eval_f, post_sexp, macro_lookup)
-            optimized_sexp = optimize_sexp(macro_code, eval_f)
-            return do_compile_sexp(eval_f, optimized_sexp, macro_lookup)
+            return wrap_with_run(post_sexp, macro_lookup)
 
         remaining_args = to_sexp_f([
             do_compile_sexp(
