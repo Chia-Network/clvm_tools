@@ -74,7 +74,7 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
                 post_sexp = eval_f(eval_f, macro_code, sexp.rest())
-                optimized_sexp = optimize_sexp(macro_code, eval_f)
+                optimized_sexp = optimize_sexp(post_sexp, eval_f)
                 return do_compile_sexp(eval_f, optimized_sexp, macro_lookup)
 
         if as_atom in COMPILE_BINDINGS:
