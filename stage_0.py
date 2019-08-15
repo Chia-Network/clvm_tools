@@ -1,7 +1,10 @@
 from clvm import eval_f
 
+from opacity import binutils
+
 EVAL_F = eval_f
 
+brun = run = binutils.assemble("(e (f (a)) (r (a)))")
 
 """
 Copyright 2019 Chia Network Inc

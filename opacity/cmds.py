@@ -85,14 +85,14 @@ def as_bin(streamer_f):
 
 
 def run(args=sys.argv):
-    return brun_or_run(args, allow_stage=True)
+    return brun_or_run(args, is_run=True)
 
 
 def brun(args=sys.argv):
     return brun_or_run(args)
 
 
-def brun_or_run(args, allow_stage=False):
+def brun_or_run(args, is_run=False):
     parser = argparse.ArgumentParser(
         description='Execute a clvm script.'
     )
@@ -118,7 +118,7 @@ def brun_or_run(args, allow_stage=False):
 
     src_text = args.path_or_code
     src_sexp = reader.read_ir(src_text)
-    clvm_sexp = binutils.assemble_from_ir(src_sexp)
+    assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
     if args.verbose:
 
@@ -127,9 +127,12 @@ def brun_or_run(args, allow_stage=False):
 
         eval_f, log_entries = make_tracing_f(eval_f, transform_exception)
 
+    run_script = args.stage.run if is_run else args.stage.brun
+
     try:
         env = binutils.assemble_from_ir(args.args)
-        result = eval_f(eval_f, clvm_sexp, env)
+        input_sexp = to_sexp_f((assembled_sexp, env))
+        result = eval_f(eval_f, run_script, input_sexp)
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = binascii.hexlify(blob).decode("utf8")

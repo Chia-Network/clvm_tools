@@ -92,3 +92,5 @@ MACRO_BUILT_INS = make_macro_built_ins(
     BINDINGS, DEFAULT_MACROS_DEFINITIONS)
 
 EVAL_F = make_eval_f(BINDINGS, MACRO_BUILT_INS)
+
+brun = run = binutils.assemble("(e (f (a)) (r (a)))")
