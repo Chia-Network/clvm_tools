@@ -21,7 +21,7 @@ for _ in "com opt mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def wrap_with_run(sexp, macro_lookup, args=[ARGS_KW]):
+def wrap_with_run(sexp, args=[ARGS_KW]):
     return to_sexp_f([
         EVAL_KW, [b"com", [QUOTE_KW, sexp], [b"mac"]], args])
 
@@ -83,16 +83,16 @@ def do_compile_sexp(sexp, macro_lookup):
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
-                post_sexp = wrap_with_run(macro_code, macro_lookup, [QUOTE_KW, sexp.rest()])
-                return wrap_with_run(post_sexp, macro_lookup)
+                post_sexp = wrap_with_run(macro_code, [QUOTE_KW, sexp.rest()])
+                return wrap_with_run(post_sexp)
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_sexp = f(sexp.rest())
-            return wrap_with_run(post_sexp, macro_lookup)
+            return wrap_with_run(post_sexp)
 
         remaining_args = to_sexp_f([
-            wrap_with_run(_, macro_lookup)
+            wrap_with_run(_)
             for _ in sexp.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:
