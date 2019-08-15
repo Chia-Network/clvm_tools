@@ -2,6 +2,7 @@ from clvm import KEYWORD_TO_ATOM, to_sexp_f
 from opacity.binutils import disassemble
 
 from .lambda_ import compile_lambda, compile_defmacro
+from .macros import default_macro_lookup
 from .mod import compile_mod
 from .optimize import optimize_sexp
 
@@ -108,7 +109,7 @@ def do_com(sexp, eval_f):
     if not sexp.rest().nullp():
         macro_lookup = sexp.rest().first()
     else:
-        macro_lookup = sexp.null()
+        macro_lookup = default_macro_lookup()
     compiled_sexp = do_compile_sexp(new_sexp, macro_lookup)
     optimized_sexp = optimize_sexp(compiled_sexp, eval_f)
     return optimized_sexp

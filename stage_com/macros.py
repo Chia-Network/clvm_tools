@@ -27,6 +27,6 @@ def build_default_macro_lookup():
 def default_macro_lookup():
     global DEFAULT_MACRO_LOOKUP
     if DEFAULT_MACRO_LOOKUP is None:
-        DEFAULT_MACRO_LOOKUP = []
+        DEFAULT_MACRO_LOOKUP = to_sexp_f([])
         DEFAULT_MACRO_LOOKUP = build_default_macro_lookup()
     return DEFAULT_MACRO_LOOKUP
