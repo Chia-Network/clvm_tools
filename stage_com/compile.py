@@ -21,23 +21,19 @@ for _ in "com".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def wrap_with_compile(sexp):
-    return to_sexp_f([b"compile", sexp])
-
-
-def wrap_with_run(sexp):
+def wrap_with_run(sexp, macro_lookup):
     return to_sexp_f([
-        EVAL_KW, wrap_with_compile(sexp), [ARGS_KW]])
+        EVAL_KW, [b"com", [QUOTE_KW, sexp], [QUOTE_KW, macro_lookup]], [ARGS_KW]])
 
 
 def compile_list(args):
     if not args.listp() or args.nullp():
         return to_sexp_f([QUOTE_KW, args])
 
-    return to_sexp_f([
+    return wrap_with_run([
         CONS_KW,
-        wrap_with_run(args.first()),
-        wrap_with_run([b"list"] + list(args.rest().as_iter()))])
+        args.first(),
+        [b"list"] + list(args.rest().as_iter())], [])
 
 
 def compile_function(args):
