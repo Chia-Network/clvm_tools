@@ -15,7 +15,7 @@ PASS_THROUGH_OPERATORS = set(
     "e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()
 )
 
-for _ in "com substitute_functions".split():
+for _ in "com".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
