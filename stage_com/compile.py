@@ -84,8 +84,7 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
                 post_sexp = eval_f(eval_f, macro_code, sexp.rest())
-                optimized_sexp = optimize_sexp(post_sexp, eval_f)
-                return do_compile_sexp(eval_f, optimized_sexp, macro_lookup)
+                return wrap_with_run(post_sexp, macro_lookup)
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
@@ -93,15 +92,8 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
             return wrap_with_run(post_sexp, macro_lookup)
 
         remaining_args = to_sexp_f([
-            do_compile_sexp(
-                eval_f, _, macro_lookup) for _ in sexp.rest().as_iter()])
-
-        if as_atom == b"com":
-            if remaining_args.first().first().as_atom() == QUOTE_KW:
-                const_sexp = remaining_args.first().rest().first()
-                compiled_sexp = do_compile_sexp(eval_f, const_sexp, macro_lookup)
-                return to_sexp_f([QUOTE_KW, compiled_sexp])
-            return to_sexp_f(as_atom).cons(remaining_args)
+            wrap_with_run(_, macro_lookup)
+            for _ in sexp.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:
             return to_sexp_f(as_atom).cons(remaining_args)
