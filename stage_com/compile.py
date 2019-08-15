@@ -17,7 +17,7 @@ PASS_THROUGH_OPERATORS = set(
     "e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()
 )
 
-for _ in "com".split():
+for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
@@ -76,8 +76,8 @@ def do_compile_sexp(sexp, macro_lookup):
         if as_atom == QUOTE_KW:
             return sexp
 
-        if as_atom == b"compile":
-            return to_sexp_f([b"com", [QUOTE_KW, sexp.rest().first()], [QUOTE_KW, macro_lookup]])
+        if as_atom == b"macros":
+            return to_sexp_f([QUOTE_KW, macro_lookup])
 
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
