@@ -3,6 +3,7 @@ from opacity.binutils import disassemble
 
 from .lambda_ import compile_lambda, compile_defmacro
 from .mod import compile_mod
+from .optimize import optimize_sexp
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -25,7 +26,7 @@ def compile_list(args):
     return to_sexp_f([
         CONS_KW,
         args.first(),
-        compile_list(args.rest())])
+        [b"list"] + list(args.rest().as_iter())])
 
 
 def compile_function(args):
@@ -39,11 +40,6 @@ COMPILE_BINDINGS = {
     b"defmacro": compile_defmacro,
     b"mod": compile_mod,
 }
-
-
-def optimize(r, eval_f):
-    r1 = eval_f(eval_f, r, r.null())
-    return to_sexp_f([QUOTE_KW, r1])
 
 
 def do_compile_sexp(eval_f, sexp, macro_lookup):
@@ -63,15 +59,15 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
                 breakpoint()
                 macro_code = macro_pair.rest().first()
                 post_sexp = eval_f(eval_f, macro_code, sexp.rest())
-                return do_compile_sexp(eval_f, post_sexp, macro_lookup)
+                optimized_sexp = optimize_sexp(macro_code, eval_f)
+                return do_compile_sexp(eval_f, optimized_sexp, macro_lookup)
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_sexp = f(sexp.rest())
-            r = do_compile_sexp(eval_f, post_sexp, macro_lookup)
-            # OPTIMIZE
-            r = optimize(r, eval_f)
-            return r
+            macro_code = do_compile_sexp(eval_f, post_sexp, macro_lookup)
+            optimized_sexp = optimize_sexp(macro_code, eval_f)
+            return do_compile_sexp(eval_f, optimized_sexp, macro_lookup)
 
         remaining_args = to_sexp_f([
             do_compile_sexp(
