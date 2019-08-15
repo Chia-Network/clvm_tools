@@ -124,6 +124,8 @@ def token_stream(s: str):
     offset = 0
     while offset < len(s):
         offset = consume_whitespace(s, offset)
+        if offset >= len(s):
+            break
         c = s[offset]
         if c in "(.)":
             yield c, offset
