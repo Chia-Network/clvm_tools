@@ -21,9 +21,9 @@ for _ in "com".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def wrap_with_run(sexp, macro_lookup):
+def wrap_with_run(sexp, macro_lookup, args=[ARGS_KW]):
     return to_sexp_f([
-        EVAL_KW, [b"com", [QUOTE_KW, sexp], [QUOTE_KW, macro_lookup]], [ARGS_KW]])
+        EVAL_KW, [b"com", [QUOTE_KW, sexp], [QUOTE_KW, macro_lookup]], args])
 
 
 def compile_list(args):
@@ -58,14 +58,14 @@ def compile_qq_sexp(sexp):
 COMPILE_BINDINGS = {
     b"list": compile_list,
     b"function": compile_function,
+    b"qq": compile_qq,
     b"lambda": compile_lambda,
     b"defmacro": compile_defmacro,
     b"mod": compile_mod,
-    b"qq": compile_qq,
 }
 
 
-def do_compile_sexp(eval_f, sexp, macro_lookup):
+def do_compile_sexp(sexp, macro_lookup):
     # quote atoms
     if sexp.nullp() or not sexp.listp():
         return to_sexp_f([QUOTE_KW, sexp])
@@ -83,7 +83,7 @@ def do_compile_sexp(eval_f, sexp, macro_lookup):
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
-                post_sexp = eval_f(eval_f, macro_code, sexp.rest())
+                post_sexp = wrap_with_run(macro_code, macro_lookup, [QUOTE_KW, sexp.rest()])
                 return wrap_with_run(post_sexp, macro_lookup)
 
         if as_atom in COMPILE_BINDINGS:
@@ -109,6 +109,6 @@ def do_com(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = sexp.null()
-    compiled_sexp = do_compile_sexp(eval_f, new_sexp, macro_lookup)
+    compiled_sexp = do_compile_sexp(new_sexp, macro_lookup)
     optimized_sexp = optimize_sexp(compiled_sexp, eval_f)
     return optimized_sexp

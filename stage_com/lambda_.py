@@ -49,11 +49,7 @@ def symbol_replace(sexp, symbol_table, root_node):
                 return r
         return sexp
 
-    operator = sexp.first()
-    if not operator.listp() and operator.as_atom() == QUOTE_KW:
-        return sexp
-
-    return sexp.to([b"list", operator] + [
+    return sexp.to([b"list", sexp.first()] + [
         symbol_replace(_, symbol_table, root_node)
         for _ in sexp.rest().as_iter()])
 
