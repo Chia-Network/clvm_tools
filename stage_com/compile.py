@@ -33,12 +33,28 @@ def compile_function(args):
     return to_sexp_f([b"com", [QUOTE_KW, args.first()]])
 
 
+def compile_qq(args):
+    return compile_qq_sexp(args.first())
+
+
+def compile_qq_sexp(sexp):
+    if not sexp.listp() or sexp.nullp():
+        return to_sexp_f([QUOTE_KW, sexp])
+
+    if (sexp.listp() and not sexp.first().listp()
+            and sexp.first().as_atom() == b"unquote"):
+        return sexp.rest().first()
+
+    return to_sexp_f([b"list", sexp.first()] + [[b"qq", _] for _ in sexp.rest().as_iter()])
+
+
 COMPILE_BINDINGS = {
     b"list": compile_list,
     b"function": compile_function,
     b"lambda": compile_lambda,
     b"defmacro": compile_defmacro,
     b"mod": compile_mod,
+    b"qq": compile_qq,
 }
 
 

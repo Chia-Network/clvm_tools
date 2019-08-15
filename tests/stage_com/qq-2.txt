@@ -1,0 +1,2 @@
+brun -scom '(com (q (qq 9999)))'
+(q 9999)
