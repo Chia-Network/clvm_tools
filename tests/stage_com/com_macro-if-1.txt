@@ -1,0 +1,2 @@
+brun -scom '(com (q (if 100 999 2000)) (f (r (com (q (list (defmacro if (A B C) (qq (e (i (unquote A) (q (unquote (com B))) (q (unquote (com C)))) (a))))))))) )'
+(q (e (i 100 (q (q 999)) (q (q 2000))) (a)))
