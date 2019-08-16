@@ -22,19 +22,19 @@ for _ in "com opt exp mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def run(sexp, args=[ARGS_KW]):
-    return [
-        EVAL_KW, [b"com", [QUOTE_KW, sexp], [b"mac"]], args]
+def run(prog, args=[ARGS_KW]):
+    return prog.to([
+        EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
 
 
 def compile_list(args):
     if not args.listp() or args.nullp():
         return args.to([QUOTE_KW, args])
 
-    return [
+    return args.to([
         CONS_KW,
         args.first(),
-        [b"list"] + list(args.rest().as_iter())]
+        [b"list"] + list(args.rest().as_iter())])
 
 
 def compile_function(args):
