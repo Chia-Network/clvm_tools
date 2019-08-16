@@ -74,8 +74,6 @@ def do_exp_sexp(sexp, macro_lookup):
     operator = sexp.first()
     if not operator.listp():
         as_atom = operator.as_atom()
-        if as_atom == QUOTE_KW:
-            return sexp
 
         if as_atom == b"mac":
             return sexp.to([QUOTE_KW, macro_lookup])
@@ -102,6 +100,10 @@ def do_com_sexp(sexp, macro_lookup):
     operator = sexp.first()
     if not operator.listp():
         as_atom = operator.as_atom()
+
+        if as_atom == QUOTE_KW:
+            return sexp
+
         remaining_args = sexp.to([
             run(_) for _ in sexp.rest().as_iter()])
 
