@@ -1,0 +1,2 @@
+brun -scom '(exp (q (list 1999 2 3))))'
+(e ("com" (q (c 1999 ("list" 2 3))) ("mac")) (a))
