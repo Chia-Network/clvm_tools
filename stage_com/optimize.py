@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM, to_sexp_f
+from clvm import KEYWORD_TO_ATOM
 
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
@@ -22,7 +22,7 @@ def seems_constant(sexp):
 def constant_optimizer(r, eval_f):
     if seems_constant(r):
         r1 = eval_f(eval_f, r, r.null())
-        r = to_sexp_f([QUOTE_KW, r1])
+        r = r.to([QUOTE_KW, r1])
     return r
 
 
@@ -54,7 +54,7 @@ def children_optimizer(r, eval_f):
     op = operator.as_atom()
     if op == QUOTE_KW:
         return r
-    return to_sexp_f([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
+    return r.to([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
 
 
 def optimize_sexp(r, eval_f):

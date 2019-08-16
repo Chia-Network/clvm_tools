@@ -24,7 +24,7 @@ def build_default_macro_lookup():
     macro_lookup = to_sexp_f([])
     for macro_src in DEFAULT_MACROS_SRC:
         macro_sexp = binutils.assemble(macro_src)
-        new_macro = EVAL_F(EVAL_F, run, to_sexp_f((macro_sexp, macro_lookup)))
+        new_macro = EVAL_F(EVAL_F, run, macro_sexp.to((macro_sexp, macro_lookup)))
         macro_lookup = new_macro.rest().first().cons(macro_lookup)
     return macro_lookup
 

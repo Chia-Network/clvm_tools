@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM, to_sexp_f
+from clvm import KEYWORD_TO_ATOM
 from opacity.binutils import disassemble
 
 from .lambda_ import compile_lambda, compile_defmacro
@@ -23,13 +23,13 @@ for _ in "com opt exp mac".split():
 
 
 def run(sexp, args=[ARGS_KW]):
-    return to_sexp_f([
-        EVAL_KW, [b"com", [QUOTE_KW, sexp], [b"mac"]], args])
+    return [
+        EVAL_KW, [b"com", [QUOTE_KW, sexp], [b"mac"]], args]
 
 
 def compile_list(args):
     if not args.listp() or args.nullp():
-        return to_sexp_f([QUOTE_KW, args])
+        return args.to([QUOTE_KW, args])
 
     return [
         CONS_KW,
@@ -38,7 +38,7 @@ def compile_list(args):
 
 
 def compile_function(args):
-    return to_sexp_f([b"com", [QUOTE_KW, args.first()], [b"mac"]])
+    return args.to([b"com", [QUOTE_KW, args.first()], [b"mac"]])
 
 
 def compile_qq(args):
@@ -47,13 +47,13 @@ def compile_qq(args):
 
 def compile_qq_sexp(sexp):
     if not sexp.listp() or sexp.nullp():
-        return to_sexp_f([QUOTE_KW, sexp])
+        return sexp.to([QUOTE_KW, sexp])
 
     if (sexp.listp() and not sexp.first().listp()
             and sexp.first().as_atom() == b"unquote"):
         return sexp.rest().first()
 
-    return to_sexp_f([b"list"] + [[b"qq", _] for _ in sexp.as_iter()])
+    return sexp.to([b"list"] + [[b"qq", _] for _ in sexp.as_iter()])
 
 
 COMPILE_BINDINGS = {
@@ -97,16 +97,16 @@ def do_exp_sexp(sexp, macro_lookup):
 def do_com_sexp(sexp, macro_lookup):
     expanded_sexp = do_exp_sexp(sexp, macro_lookup)
     if expanded_sexp:
-        return expanded_sexp
+        return sexp.to(expanded_sexp)
 
     operator = sexp.first()
     if not operator.listp():
         as_atom = operator.as_atom()
-        remaining_args = to_sexp_f([
+        remaining_args = sexp.to([
             run(_) for _ in sexp.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:
-            return to_sexp_f(as_atom).cons(remaining_args)
+            return sexp.to(as_atom).cons(remaining_args)
 
     raise SyntaxError(
         "can't compile %s, unknown operator" %
@@ -132,5 +132,5 @@ def do_exp(sexp, eval_f):
         macro_lookup = default_macro_lookup()
     expanded_sexp = do_exp_sexp(new_sexp, macro_lookup)
     if expanded_sexp:
-        return expanded_sexp
-    return new_sexp
+        return sexp.to(expanded_sexp)
+    return sexp.to(new_sexp)
