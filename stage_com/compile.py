@@ -4,7 +4,6 @@ from opacity.binutils import disassemble
 from .lambda_ import compile_lambda, compile_defmacro
 from .macros import default_macro_lookup
 from .mod import compile_mod
-from .optimize import optimize_sexp
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -38,7 +37,7 @@ def compile_list(args):
 
 
 def compile_function(args):
-    return args.to([b"com", [QUOTE_KW, args.first()], [b"mac"]])
+    return run(args.to([b"opt", [b"com", [QUOTE_KW, args.first()]]]))
 
 
 def compile_qq(args):
@@ -56,7 +55,12 @@ def compile_qq_sexp(sexp):
     return sexp.to([b"list"] + [[b"qq", _] for _ in sexp.as_iter()])
 
 
+def compile_com(sexp):
+    return sexp.first()
+
+
 COMPILE_BINDINGS = {
+    b"com": compile_com,
     b"list": compile_list,
     b"function": compile_function,
     b"qq": compile_qq,
@@ -135,9 +139,7 @@ def do_com(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = default_macro_lookup()
-    compiled_sexp = do_com_prog(prog, macro_lookup)
-    optimized_sexp = optimize_sexp(compiled_sexp, eval_f)
-    return optimized_sexp
+    return do_com_prog(prog, macro_lookup)
 
 
 def do_exp(sexp, eval_f):
