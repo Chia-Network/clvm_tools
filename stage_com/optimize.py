@@ -20,6 +20,11 @@ def seems_constant(sexp):
 
 
 def constant_optimizer(r, eval_f):
+    """
+    If the expression does not depend upon (a) anywhere,
+    it's a constant. So we can simply evaluate it and
+    return the quoted result.
+    """
     if seems_constant(r):
         r1 = eval_f(eval_f, r, r.null())
         r = r.to([QUOTE_KW, r1])
@@ -27,6 +32,10 @@ def constant_optimizer(r, eval_f):
 
 
 def eval_q_a_optimizer(r, eval_f):
+    """
+    This applies the transform
+    (e (q SEXP) (a)) => SEXP
+    """
     if r.nullp() or not r.listp():
         return r
     operator = r.first()
@@ -48,6 +57,9 @@ def eval_q_a_optimizer(r, eval_f):
 
 
 def children_optimizer(r, eval_f):
+    """
+    Recursively apply optimizations to all non-quoted child nodes.
+    """
     operator = r.first()
     if operator.listp():
         return r
