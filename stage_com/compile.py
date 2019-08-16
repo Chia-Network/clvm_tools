@@ -94,12 +94,12 @@ def do_exp_prog(prog, macro_lookup):
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
                 post_prog = run(macro_code, [QUOTE_KW, prog.rest()])
-                return run(post_prog)
+                return post_prog
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_prog = f(prog.rest())
-            return run(post_prog)
+            return post_prog
     return None
 
 
@@ -111,9 +111,11 @@ def do_com_prog(prog, macro_lookup):
     It will not start with "com" (or we're in recursion trouble).
     """
 
-    expanded_prog = do_exp_prog(prog, macro_lookup)
-    if expanded_prog:
-        return prog.to(expanded_prog)
+    while True:
+        expanded_prog = do_exp_prog(prog, macro_lookup)
+        if expanded_prog is None:
+            break
+        prog = expanded_prog
 
     operator = prog.first()
     if not operator.listp():
