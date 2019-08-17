@@ -9,7 +9,7 @@ from clvm import to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
-from opacity import binutils
+from opacity import binutils, patch_sexp
 
 from ir import reader
 
@@ -130,6 +130,7 @@ def brun_or_run(args, is_run=False):
     run_script = args.stage.run if is_run else args.stage.brun
 
     try:
+        output = "(didn't finish)"
         env = binutils.assemble_from_ir(args.args)
         input_sexp = to_sexp_f((assembled_sexp, env))
         result = eval_f(eval_f, run_script, input_sexp)
