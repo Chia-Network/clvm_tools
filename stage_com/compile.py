@@ -111,11 +111,9 @@ def do_com_prog(prog, macro_lookup):
     It will not start with "com" (or we're in recursion trouble).
     """
 
-    while True:
-        expanded_prog = do_exp_prog(prog, macro_lookup)
-        if expanded_prog is None:
-            break
-        prog = expanded_prog
+    expanded_prog = do_exp_prog(prog, macro_lookup)
+    if expanded_prog is not None:
+        return run(expanded_prog)
 
     operator = prog.first()
     if not operator.listp():
