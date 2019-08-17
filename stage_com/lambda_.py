@@ -60,10 +60,10 @@ def compile_lambda(args):
     expansion = symbol_replace(
         args.rest().first(), symbol_table, root_node)
     r = args.to([EVAL_KW, [b"qq", [b"com", [QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
-    r = args.to([EVAL_KW, r, [ARGS_KW]])
+    r = args.to([b"opt", [EVAL_KW, r, [ARGS_KW]]])
     return r
 
 
 def compile_defmacro(args):
     macro_name = args.first()
-    return args.to([b"list", macro_name, compile_lambda(args.rest())])
+    return args.to([b"opt", [b"list", macro_name, compile_lambda(args.rest())]])
