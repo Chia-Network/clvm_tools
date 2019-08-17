@@ -1,2 +1,2 @@
-brun -scom '(opt (exp (q (lambda (A B C) (+ A B C))))))'
-(q (e ("com" (q (c 12 ("list" (e (q (c (q 6) (c (a) (q ())))) (q (a))) (e (q (c (q 6) (c (c (q 7) (c (a) (q ()))) (q ())))) (q (a))) (e (q (c (q 6) (c (c (q 7) (c (c (q 7) (c (a) (q ()))) (q ()))) (q ())))) (q (a)))))) ("mac")) (a)))
+brun -scom '(opt (com (q (lambda (A B C) (+ A B C))))))'
+(q (+ (f (a)) (f (r (a))) (f (r (r (a))))))

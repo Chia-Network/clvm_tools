@@ -1,2 +1,2 @@
 brun -scom '(opt (com (q (lambda (A B) (+ 100 B)))))'
-(q ("list" 12 100 (e (q (c (q 6) (c (c (q 7) (c (a) (q ()))) (q ())))) (q (a)))))
+(q (+ (q 100) (f (r (a)))))

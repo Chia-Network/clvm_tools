@@ -59,7 +59,9 @@ def compile_lambda(args):
     root_node = args.to([ARGS_KW])
     expansion = symbol_replace(
         args.rest().first(), symbol_table, root_node)
-    return args.to([EVAL_KW, [b"com", [QUOTE_KW, expansion]], [ARGS_KW]])
+    r = args.to([EVAL_KW, [b"qq", [b"com", [QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
+    r = args.to([EVAL_KW, r, [ARGS_KW]])
+    return r
 
 
 def compile_defmacro(args):
