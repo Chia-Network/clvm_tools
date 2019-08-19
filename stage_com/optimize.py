@@ -70,6 +70,10 @@ def children_optimizer(r, eval_f):
 
 
 def optimize_sexp(r, eval_f):
+    """
+    Optimize an s-expression R written for clvm to R_opt where
+    (e R args) == (e R_opt args) for ANY args.
+    """
     if r.nullp() or not r.listp():
         return r
 

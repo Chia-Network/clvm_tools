@@ -47,12 +47,12 @@ def opt_com(prog):
 
 def compile_list(args):
     """
-    (list) => (q ())
+    (list) => ()
     (list (a @B) => (c a (list @B)))
     """
-    if not args.listp() or args.nullp():
-        # (list) => (q ())
-        return args.to([QUOTE_KW, args])
+    if args.nullp():
+        # (list) => ()
+        return args
 
     # (list (a @B) => (c a (list @B)))
     return args.to([
@@ -63,7 +63,16 @@ def compile_list(args):
 
 def compile_function(args):
     """
-    (function PROG) => (e (list #q (opt (com PROG)) (a))
+    "function" is used in front of a constant uncompiled
+    program to indicate we want this program literal to be
+    compiled and quoted, so it can be passed as an argument
+    to a compiled clvm program.
+
+    EG: (function (+ 20 (a))) should return (+ (q 20) (a)) when run.
+    Thus (opt (com (q (function (+ 20 (a))))))
+    should return (q (+ (q 20) (a)))
+
+    (function PROG) => (opt (com (q PROG) (mac)))
 
     We have to use "opt" as (com PROG) might leave
     some partial "com" operators in there and our
