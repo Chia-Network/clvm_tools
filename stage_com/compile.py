@@ -14,7 +14,8 @@ ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 PASS_THROUGH_OPERATORS = set(
     KEYWORD_TO_ATOM[_] for _ in
-    "e a i c f r l x = sha256 + - * . wrap unwrap point_add pubkey_for_exp".split()
+    ("e a i c f r l x = sha256 + - * . "
+     "wrap unwrap point_add pubkey_for_exp").split()
 )
 
 for _ in "com opt exp mac".split():
@@ -22,14 +23,38 @@ for _ in "com opt exp mac".split():
 
 
 def run(prog, args=[ARGS_KW]):
+    """
+    PROG => (e (com (q PROG) (mac)) ARGS)
+    """
     return prog.to([
         EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
 
 
+def eval(prog, args=[ARGS_KW]):
+    """
+    PROG => (e (q PROG) ARGS)
+    """
+    return prog.to([
+        EVAL_KW, [QUOTE_KW, prog], args])
+
+
+def opt_com(prog):
+    """
+    PROG => (opt (com (q PROG)))
+    """
+    return prog.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
+
+
 def compile_list(args):
+    """
+    (list) => (q ())
+    (list (a @B) => (c a (list @B)))
+    """
     if not args.listp() or args.nullp():
+        # (list) => (q ())
         return args.to([QUOTE_KW, args])
 
+    # (list (a @B) => (c a (list @B)))
     return args.to([
         CONS_KW,
         args.first(),
@@ -37,25 +62,40 @@ def compile_list(args):
 
 
 def compile_function(args):
-    return run(args.to([b"opt", [b"com", [QUOTE_KW, args.first()]]]))
+    """
+    (function PROG) => (e (list #q (opt (com PROG)) (a))
+
+    We have to use "opt" as (com PROG) might leave
+    some partial "com" operators in there and our
+    goals is to compile PROG as much as possible.
+    """
+    return eval(opt_com(args.first()))
 
 
 def compile_qq(args):
-    return compile_qq_sexp(args.first())
-
-
-def compile_qq_sexp(sexp):
+    """
+    (qq ATOM) => (q ATOM)
+    (qq (unquote X)) => X
+    (qq (a . B)) => (c (qq a) (qq B))
+    """
+    sexp = args.first()
     if not sexp.listp() or sexp.nullp():
+        # (qq ATOM) => (q ATOM)
         return sexp.to([QUOTE_KW, sexp])
 
     if (sexp.listp() and not sexp.first().listp()
             and sexp.first().as_atom() == b"unquote"):
+        # (qq (unquote X)) => X
         return sexp.rest().first()
 
-    return sexp.to([b"list"] + [[b"qq", _] for _ in sexp.as_iter()])
+    # (qq (a . B)) => (c (qq a) (qq B))
+    return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
 
 
 def compile_com(sexp):
+    """
+    (com prog) => prog
+    """
     return sexp.first()
 
 
@@ -74,8 +114,14 @@ def do_exp_prog(prog, macro_lookup):
     """
     prog is an uncompiled s-expression.
 
-    Return a new expanded s-expression that is equivalent by rewriting
-    based upon the operator.
+    Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
+    based upon the operator, where "equivalent" means
+
+    (e (com (q PROG) (mac)) ARGS) == (e (com (q PROG_EXP) (mac)) ARGS)
+    for all ARGS.
+
+    Also, (opt (com (q PROG) (mac))) == (opt (com (q PROG_EXP) (mac)))
+    for all ARGS.
     """
 
     # quote atoms
@@ -108,6 +154,7 @@ def do_com_prog(prog, macro_lookup):
     prog is an uncompiled s-expression.
     Returns an equivalent compiled s-expression by calling "exp"
     or passing through an already compiled operator.
+
     It will not start with "com" (or we're in recursion trouble).
     """
 
