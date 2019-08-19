@@ -33,21 +33,6 @@ def mark_uncompiled(prog, args=[ARGS_KW]):
         EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
 
 
-def eval(prog, args=[ARGS_KW]):
-    """
-    PROG => (e (q PROG) ARGS)
-    """
-    return prog.to([
-        EVAL_KW, [QUOTE_KW, prog], args])
-
-
-def opt_com(prog):
-    """
-    PROG => (opt (com (q PROG)))
-    """
-    return prog.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
-
-
 def compile_list(args):
     """
     (list) => ()
