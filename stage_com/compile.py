@@ -22,9 +22,12 @@ for _ in "com opt exp mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def run(prog, args=[ARGS_KW]):
+def mark_uncompiled(prog, args=[ARGS_KW]):
     """
     PROG => (e (com (q PROG) (mac)) ARGS)
+
+    The result can be evaluated with the stage_com eval_f
+    function.
     """
     return prog.to([
         EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
@@ -78,7 +81,9 @@ def compile_function(args):
     some partial "com" operators in there and our
     goals is to compile PROG as much as possible.
     """
-    return eval(opt_com(args.first()))
+    prog = args.first()
+    inner = args.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
+    return mark_uncompiled(inner)
 
 
 def compile_qq(args):
@@ -148,7 +153,7 @@ def do_exp_prog(prog, macro_lookup):
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
-                post_prog = run(macro_code, [QUOTE_KW, prog.rest()])
+                post_prog = mark_uncompiled(macro_code, [QUOTE_KW, prog.rest()])
                 return post_prog
 
         if as_atom in COMPILE_BINDINGS:
@@ -169,7 +174,7 @@ def do_com_prog(prog, macro_lookup):
 
     expanded_prog = do_exp_prog(prog, macro_lookup)
     if expanded_prog is not None:
-        return run(expanded_prog)
+        return mark_uncompiled(expanded_prog)
 
     operator = prog.first()
     if not operator.listp():
@@ -179,7 +184,7 @@ def do_com_prog(prog, macro_lookup):
             return prog
 
         compiled_args = prog.to([
-            run(_) for _ in prog.rest().as_iter()])
+            mark_uncompiled(_) for _ in prog.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:
             return prog.to(as_atom).cons(compiled_args)
