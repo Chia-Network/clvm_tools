@@ -1,9 +1,10 @@
 from clvm import KEYWORD_TO_ATOM
 from opacity.binutils import disassemble
 
+from .helpers import brun, run
 from .lambda_ import compile_lambda, compile_defmacro
 from .macros import default_macro_lookup
-from .mod import compile_mod
+from .mod import compile_mod, do_substitute_functions
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -20,22 +21,6 @@ PASS_THROUGH_OPERATORS = set(
 
 for _ in "com opt exp mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
-
-
-def run(prog, args=[ARGS_KW]):
-    """
-    PROG => (e (com (q PROG) (mac)) ARGS)
-
-    The result can be evaluated with the stage_com eval_f
-    function.
-    """
-    return prog.to([
-        EVAL_KW, [b"com", prog, [b"mac"]], args])
-
-
-def brun(prog, args):
-    return prog.to([
-        EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, args]])
 
 
 def compile_list(args):
@@ -101,6 +86,7 @@ COMPILE_BINDINGS = {
     b"qq": compile_qq,
     b"lambda": compile_lambda,
     b"defmacro": compile_defmacro,
+    b"substitute_functions": do_substitute_functions,
     b"mod": compile_mod,
 }
 

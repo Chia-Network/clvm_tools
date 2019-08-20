@@ -86,7 +86,7 @@ def compile_mod(args):
     return args.to([b"substitute_functions", main_sexp, definition_table])
 
 
-def do_substitute_functions(args, eval_f):
+def do_substitute_functions(args):
     main_sexp = args.first()
     definitions_list = args.rest().first()
     definitions = {}
