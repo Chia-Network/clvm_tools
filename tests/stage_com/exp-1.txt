@@ -1,2 +1,2 @@
 brun -scom '(exp (q (list 1999 2 3))))'
-(c 1999 ("list" 2 3))
+(q (c 1999 ("list" 2 3)))

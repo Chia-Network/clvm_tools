@@ -33,6 +33,18 @@ def mark_uncompiled(prog, args=[ARGS_KW]):
         EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
 
 
+def mark_expanded(prog):
+    """
+    PROG => (e (com (q PROG) (mac)) ARGS)
+
+    The result can be evaluated with the stage_com eval_f
+    function.
+    """
+    args = [ARGS_KW]
+    return prog.to([
+        EVAL_KW, [b"com", prog, [b"mac"]], args])
+
+
 def compile_list(args):
     """
     (list) => ()
@@ -117,26 +129,26 @@ def do_exp_prog(prog, macro_lookup, eval_f):
 
     # quote atoms
     if prog.nullp() or not prog.listp():
-        return prog.to([QUOTE_KW, prog])
+        return prog.to([QUOTE_KW, [QUOTE_KW, prog]])
 
     operator = prog.first()
     if not operator.listp():
         as_atom = operator.as_atom()
 
         if as_atom == b"mac":
-            return prog.to([QUOTE_KW, macro_lookup])
+            return prog.to([QUOTE_KW, [QUOTE_KW, macro_lookup]])
 
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
                 post_prog = eval_f(eval_f, macro_code, prog.rest())
-                return post_prog
+                return post_prog.to([QUOTE_KW, post_prog])
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
             post_prog = f(prog.rest())
-            return post_prog
+            return post_prog.to([QUOTE_KW, post_prog])
     return None
 
 
@@ -151,7 +163,7 @@ def do_com_prog(prog, macro_lookup, eval_f):
 
     expanded_prog = do_exp_prog(prog, macro_lookup, eval_f)
     if expanded_prog is not None:
-        return mark_uncompiled(expanded_prog)
+        return mark_expanded(expanded_prog)
 
     operator = prog.first()
     if not operator.listp():
