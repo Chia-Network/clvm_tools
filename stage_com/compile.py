@@ -184,7 +184,7 @@ def do_com(sexp, eval_f):
     if not sexp.rest().nullp():
         macro_lookup = sexp.rest().first()
     else:
-        macro_lookup = default_macro_lookup()
+        macro_lookup = default_macro_lookup(eval_f)
     return do_com_prog(prog, macro_lookup, eval_f)
 
 
@@ -193,7 +193,7 @@ def do_exp(sexp, eval_f):
     if not sexp.rest().nullp():
         macro_lookup = sexp.rest().first()
     else:
-        macro_lookup = default_macro_lookup()
+        macro_lookup = default_macro_lookup(eval_f)
     expanded_sexp = do_exp_prog(prog, macro_lookup, eval_f)
     if expanded_sexp:
         return sexp.to(expanded_sexp)
