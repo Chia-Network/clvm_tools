@@ -22,25 +22,13 @@ for _ in "com opt exp mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def mark_uncompiled(prog, args=[ARGS_KW]):
+def run(prog, args=[ARGS_KW]):
     """
     PROG => (e (com (q PROG) (mac)) ARGS)
 
     The result can be evaluated with the stage_com eval_f
     function.
     """
-    return prog.to([
-        EVAL_KW, [b"com", [QUOTE_KW, prog], [b"mac"]], args])
-
-
-def mark_expanded(prog):
-    """
-    PROG => (e (com (q PROG) (mac)) ARGS)
-
-    The result can be evaluated with the stage_com eval_f
-    function.
-    """
-    args = [ARGS_KW]
     return prog.to([
         EVAL_KW, [b"com", prog, [b"mac"]], args])
 
@@ -167,7 +155,7 @@ def do_com_prog(prog, macro_lookup):
 
     expanded_prog = do_exp_prog(prog, macro_lookup)
     if expanded_prog is not None:
-        return mark_expanded(expanded_prog)
+        return run(expanded_prog)
 
     operator = prog.first()
     if not operator.listp():
@@ -177,7 +165,8 @@ def do_com_prog(prog, macro_lookup):
             return prog
 
         compiled_args = prog.to([
-            mark_uncompiled(_) for _ in prog.rest().as_iter()])
+            run(prog.to([QUOTE_KW, _]))
+            for _ in prog.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:
             return prog.to(as_atom).cons(compiled_args)
