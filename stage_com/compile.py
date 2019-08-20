@@ -109,7 +109,7 @@ COMPILE_BINDINGS = {
 }
 
 
-def do_exp_prog(prog, macro_lookup):
+def do_exp_prog(prog, macro_lookup, eval_f):
     """
     prog is an uncompiled s-expression.
 
@@ -138,7 +138,7 @@ def do_exp_prog(prog, macro_lookup):
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
-                post_prog = mark_uncompiled(macro_code, [QUOTE_KW, prog.rest()])
+                post_prog = eval_f(eval_f, macro_code, prog.rest())
                 return post_prog
 
         if as_atom in COMPILE_BINDINGS:
@@ -148,7 +148,7 @@ def do_exp_prog(prog, macro_lookup):
     return None
 
 
-def do_com_prog(prog, macro_lookup):
+def do_com_prog(prog, macro_lookup, eval_f):
     """
     prog is an uncompiled s-expression.
     Returns an equivalent compiled s-expression by calling "exp"
@@ -157,7 +157,7 @@ def do_com_prog(prog, macro_lookup):
     It will not start with "com" (or we're in recursion trouble).
     """
 
-    expanded_prog = do_exp_prog(prog, macro_lookup)
+    expanded_prog = do_exp_prog(prog, macro_lookup, eval_f)
     if expanded_prog is not None:
         return mark_uncompiled(expanded_prog)
 
@@ -185,7 +185,7 @@ def do_com(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = default_macro_lookup()
-    return do_com_prog(prog, macro_lookup)
+    return do_com_prog(prog, macro_lookup, eval_f)
 
 
 def do_exp(sexp, eval_f):
@@ -194,7 +194,7 @@ def do_exp(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = default_macro_lookup()
-    expanded_sexp = do_exp_prog(prog, macro_lookup)
+    expanded_sexp = do_exp_prog(prog, macro_lookup, eval_f)
     if expanded_sexp:
         return sexp.to(expanded_sexp)
     return sexp.to(prog)
