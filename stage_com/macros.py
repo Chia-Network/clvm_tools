@@ -12,6 +12,15 @@ DEFAULT_MACROS_SRC = [
                (function (unquote B))
                (function (unquote C)))
             (a))))""",
+    """
+    (defmacro and ARGS
+        (if ARGS
+            (qq (if (unquote (f ARGS))
+                (unquote (c and (r ARGS)))
+                ()
+                ))
+            1)
+        )""",
 ]
 
 
@@ -25,7 +34,8 @@ def build_default_macro_lookup(eval_f):
         macro_sexp = binutils.assemble(macro_src)
         env = macro_sexp.to((macro_sexp, DEFAULT_MACRO_LOOKUP))
         new_macro = eval_f(eval_f, run, env)
-        DEFAULT_MACRO_LOOKUP = new_macro.rest().first().cons(DEFAULT_MACRO_LOOKUP)
+        DEFAULT_MACRO_LOOKUP = new_macro.rest().first().cons(
+            DEFAULT_MACRO_LOOKUP)
     return DEFAULT_MACRO_LOOKUP
 
 
