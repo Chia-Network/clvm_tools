@@ -5,6 +5,8 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 EVAL_KW = KEYWORD_TO_ATOM["e"]
 
+DEBUG_OPTIMIZATIONS = 0
+
 
 def seems_constant(sexp):
     if sexp.nullp() or not sexp.listp():
@@ -87,8 +89,13 @@ def optimize_sexp(r, eval_f):
         start_r = r
         for opt in OPTIMIZERS:
             r = opt(r, eval_f)
+            if start_r != r:
+                break
         if start_r == r:
             return r
+        if DEBUG_OPTIMIZATIONS:
+            print("OPT-%s[%s] => %s\n" % (
+                opt.__name__, start_r, r))
 
 
 def do_opt(args, eval_f):
