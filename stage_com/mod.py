@@ -81,7 +81,8 @@ def compile_mod(args):
     main_lambda = args.to([main_symbols, args.first()])
     main_sexp = compile_lambda(main_lambda)
 
-    definition_table = [b"list"] + [[b"list"] + list(_) for _ in definitions.items()]
+    definition_table = [b"list"] + [
+        [b"list"] + list(_) for _ in definitions.items()]
     return args.to([b"substitute_functions", main_sexp, definition_table])
 
 

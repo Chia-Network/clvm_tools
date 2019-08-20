@@ -23,12 +23,14 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
 
     r = []
     for pair in symbol_table_sexp(sexp.first(), [
-            CONS_KW, [QUOTE_KW, FIRST_KW], [CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
+            CONS_KW, [QUOTE_KW, FIRST_KW], [
+                CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
     for pair in symbol_table_sexp(sexp.rest(), [
-            CONS_KW, [QUOTE_KW, REST_KW], [CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
+            CONS_KW, [QUOTE_KW, REST_KW], [
+                CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
         _ = pair.first()
         node = pair.rest().first()
         r.append(_.to([_, node]))
@@ -59,11 +61,14 @@ def compile_lambda(args):
     root_node = args.to([ARGS_KW])
     expansion = symbol_replace(
         args.rest().first(), symbol_table, root_node)
-    r = args.to([EVAL_KW, [b"qq", [b"com", [QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
+    r = args.to([
+        EVAL_KW, [b"qq", [b"com", [
+            QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
     r = args.to([b"opt", [EVAL_KW, r, [ARGS_KW]]])
     return r
 
 
 def compile_defmacro(args):
     macro_name = args.first()
-    return args.to([b"opt", [b"list", macro_name, compile_lambda(args.rest())]])
+    return args.to([b"opt", [
+        b"list", macro_name, compile_lambda(args.rest())]])
