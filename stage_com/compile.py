@@ -91,15 +91,7 @@ def compile_qq(args):
     return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
 
 
-def compile_com(sexp):
-    """
-    (com prog) => prog
-    """
-    return sexp.first()
-
-
 COMPILE_BINDINGS = {
-    b"com": compile_com,
     b"list": compile_list,
     b"function": compile_function,
     b"qq": compile_qq,
