@@ -45,6 +45,11 @@ def mark_expanded(prog):
         EVAL_KW, [b"com", prog, [b"mac"]], args])
 
 
+def brun(prog, args):
+    return prog.to([
+        EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, args]])
+
+
 def compile_list(args):
     """
     (list) => ()
@@ -113,7 +118,7 @@ COMPILE_BINDINGS = {
 }
 
 
-def do_exp_prog(prog, macro_lookup, eval_f):
+def do_exp_prog(prog, macro_lookup):
     """
     prog is an uncompiled s-expression.
 
@@ -142,8 +147,8 @@ def do_exp_prog(prog, macro_lookup, eval_f):
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
                 macro_code = macro_pair.rest().first()
-                post_prog = eval_f(eval_f, macro_code, prog.rest())
-                return post_prog.to([QUOTE_KW, post_prog])
+                post_prog = brun(macro_code, prog.rest())
+                return post_prog
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
@@ -152,7 +157,7 @@ def do_exp_prog(prog, macro_lookup, eval_f):
     return None
 
 
-def do_com_prog(prog, macro_lookup, eval_f):
+def do_com_prog(prog, macro_lookup):
     """
     prog is an uncompiled s-expression.
     Returns an equivalent compiled s-expression by calling "exp"
@@ -161,7 +166,7 @@ def do_com_prog(prog, macro_lookup, eval_f):
     It will not start with "com" (or we're in recursion trouble).
     """
 
-    expanded_prog = do_exp_prog(prog, macro_lookup, eval_f)
+    expanded_prog = do_exp_prog(prog, macro_lookup)
     if expanded_prog is not None:
         return mark_expanded(expanded_prog)
 
@@ -189,7 +194,7 @@ def do_com(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = default_macro_lookup(eval_f)
-    return do_com_prog(prog, macro_lookup, eval_f)
+    return do_com_prog(prog, macro_lookup)
 
 
 def do_exp(sexp, eval_f):
@@ -198,7 +203,7 @@ def do_exp(sexp, eval_f):
         macro_lookup = sexp.rest().first()
     else:
         macro_lookup = default_macro_lookup(eval_f)
-    expanded_sexp = do_exp_prog(prog, macro_lookup, eval_f)
+    expanded_sexp = do_exp_prog(prog, macro_lookup)
     if expanded_sexp:
         return sexp.to(expanded_sexp)
     return sexp.to(prog)
