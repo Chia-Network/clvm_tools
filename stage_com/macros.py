@@ -8,9 +8,9 @@ DEFAULT_MACROS_SRC = [
     """
     (defmacro if (A B C)
         (qq (e
-            (i (unquote (com A (mac)))
-               (q (unquote (com B (mac))))
-               (q (unquote (com C (mac)))))
+            (i (unquote A)
+               (function (unquote B))
+               (function (unquote C)))
             (a))))""",
 ]
 
