@@ -84,8 +84,7 @@ def compile_function(args):
     goals is to compile PROG as much as possible.
     """
     prog = args.first()
-    inner = args.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
-    return mark_uncompiled(inner)
+    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
 
 
 def compile_qq(args):
