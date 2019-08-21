@@ -1,5 +1,7 @@
 from clvm import KEYWORD_TO_ATOM
 
+from .helpers import brun, run
+
 
 # (lambda x (* x x)) => (quote (* (a) (a)))
 # lambda_op
@@ -47,8 +49,7 @@ def symbol_replace(sexp, symbol_table, root_node):
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
                 prog = pair.rest().first()
-                r = sexp.to([EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, root_node]])
-                return r
+                return brun(prog, root_node)
         return sexp
 
     return sexp.to([b"list", sexp.first()] + [
@@ -64,7 +65,7 @@ def compile_lambda(args):
     r = args.to([
         EVAL_KW, [b"qq", [b"com", [
             QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
-    r = args.to([b"opt", [EVAL_KW, r, [ARGS_KW]]])
+    r = args.to([EVAL_KW, r, [ARGS_KW]])
     return r
 
 

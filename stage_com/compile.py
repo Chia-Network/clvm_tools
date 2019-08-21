@@ -141,7 +141,7 @@ def do_com_prog(prog, macro_lookup):
 
     expanded_prog = do_exp_prog(prog, macro_lookup)
     if expanded_prog is not None:
-        return run(expanded_prog)
+        return run(expanded_prog, macro_lookup)
 
     operator = prog.first()
     if not operator.listp():
@@ -151,7 +151,7 @@ def do_com_prog(prog, macro_lookup):
             return prog
 
         compiled_args = prog.to([
-            run(prog.to([QUOTE_KW, _]))
+            run(prog.to([QUOTE_KW, _]), macro_lookup)
             for _ in prog.rest().as_iter()])
 
         if as_atom in PASS_THROUGH_OPERATORS:

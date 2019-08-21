@@ -7,15 +7,17 @@ EVAL_KW = KEYWORD_TO_ATOM["e"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
-def run(prog, args=[ARGS_KW]):
+def run(prog, macro_lookup):
     """
     PROG => (e (com (q PROG) (mac)) ARGS)
 
     The result can be evaluated with the stage_com eval_f
     function.
     """
+    args = [ARGS_KW]
+    mac = [QUOTE_KW, macro_lookup]
     return prog.to([
-        EVAL_KW, [b"com", prog, [b"mac"]], args])
+        EVAL_KW, [b"com", prog, mac], args])
 
 
 def brun(prog, args):
