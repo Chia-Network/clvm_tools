@@ -1,0 +1,2 @@
+run -scom '(mod noargs (defun map (func items) (if items (c (e func (list (f items))) (map func (r items))) ()) ) (map (lambda (VAL) (* VAL VAL)) (list 11 22 33 300)))'
+(121 484 1089 0x015f90)

@@ -1,2 +1,0 @@
-run -s2 '(lambda_op (q (x y)) (q (+ (* x x) (* y y))))'
-(+ (* (f (a)) (f (a))) (* (f (r (a))) (f (r (a)))))

@@ -1,0 +1,2 @@
+run -scom '(lambda (x y) (+ (* x x) (* y y)))'
+(+ (* (f (a)) (f (a))) (* (f (r (a))) (f (r (a)))))
