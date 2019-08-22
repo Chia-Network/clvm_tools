@@ -1,9 +1,9 @@
 from clvm import KEYWORD_TO_ATOM
 from opacity.binutils import disassemble
 
+from .defaults import default_macro_lookup
 from .helpers import brun, run
 from .lambda_ import compile_lambda, compile_defmacro
-from .macros import default_macro_lookup
 from .mod import compile_mod, do_substitute_functions
 
 
