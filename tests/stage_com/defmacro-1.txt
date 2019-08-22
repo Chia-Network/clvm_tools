@@ -1,2 +1,2 @@
-brun -scom '(opt (com (q (defmacro total (A B) (+ A B)))))'
-(q ("total" (+ (f (a)) (f (r (a))))))
+run -scom '(mod ARGS (defmacro add (n1 n2) (+ n1 n2)) (add 50 60))'
+110
