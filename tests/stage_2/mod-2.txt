@@ -1,0 +1,2 @@
+brun -s2 '(opt (com (q (mod (N) (defun fact (N) (if (= N 1) 1 (* N (fact (- N 1))))) (fact N)))))'
+(e (q (e (f (a)) (c (f (a)) (c (f (r (a))) (q ()))))) (c (q (e (i (= (f (r (a))) (q 1)) (q (q 1)) (q (* (f (r (a))) (e (f (a)) (c (f (a)) (c (- (f (r (a))) (q 1)) (q ()))))))) (a))) (a)))
