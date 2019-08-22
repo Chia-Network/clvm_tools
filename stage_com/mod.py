@@ -1,6 +1,8 @@
 from clvm import KEYWORD_TO_ATOM
 
-from .lambda_ import compile_lambda
+from opacity import binutils
+
+from .lambda_ import symbol_table_sexp, symbol_replace
 
 
 # (lambda x (* x x)) => (quote (* (a) (a)))
@@ -8,6 +10,9 @@ from .lambda_ import compile_lambda
 # (symbol_replace sexp symbol_table)
 # (symbol_table sexp) => symbol_table
 
+ARGS_KW = KEYWORD_TO_ATOM["a"]
+FIRST_KW = KEYWORD_TO_ATOM["f"]
+REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 EVAL_KW = KEYWORD_TO_ATOM["e"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
@@ -62,9 +67,77 @@ def substitute_functions(sexp, definitions):
     return build_invocation(new_imp, args)
 
 
+def load_declaration(args):
+    symbol_table = symbol_table_sexp(args.first())
+    root_node = args.to([REST_KW, [ARGS_KW]])
+    expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
+        args.rest().first(), symbol_table, root_node)]])
+    from .bindings import EVAL_F
+    null = expansion.null()
+    return EVAL_F(EVAL_F, expansion, null)
+
+
+def imp_to_defmacro(name, position):
+    body_src = (
+        "(defmacro %s ARGS (qq (e %s (c (f (a))"
+        " (unquote (c list ARGS))))))" % (
+            name, position))
+    body_sexp = binutils.assemble(body_src)
+    return body_sexp
+
+
+def build_tree_prog(items):
+    size = len(items)
+    if size == 1:
+        return items[0]
+    half_size = size >> 1
+    left = build_tree_prog(items[:half_size])
+    right = build_tree_prog(items[half_size:])
+    return [CONS_KW, left, right]
+
+
+def build_positions(function_items, to_sexp_f):
+
+    null = to_sexp_f([])
+
+    function_pairs = list(function_items)
+    tree_prog = to_sexp_f(build_tree_prog([[QUOTE_KW, _[0]] for _ in function_pairs]))
+    from .bindings import EVAL_F
+    tree = EVAL_F(EVAL_F, tree_prog, null)
+    symbol_table = symbol_table_sexp(tree)
+    root_node = to_sexp_f([FIRST_KW, [ARGS_KW]])
+    d = {}
+    for pair in symbol_table.as_iter():
+        name = pair.first().as_atom()
+        prog = pair.rest().first()
+        position = EVAL_F(EVAL_F, prog, root_node)
+        d[name] = position
+
+    expanded_imps = [EVAL_F(EVAL_F, _[1], null) for _ in function_pairs]
+    return d, expanded_imps
+
+
+def build_mac_wrapper(macros):
+    text = "(mac)"
+    for _ in macros:
+        text = "(c %s %s)" % (_, text)
+    wrapper_src = "(e (com (q %s)) (a))" % text
+    wrapper_sexp = binutils.assemble(wrapper_src)
+    return wrapper_sexp
+
+
+def simplify(sexp, mac=[b"mac"]):
+    from .bindings import EVAL_F
+    r = EVAL_F(EVAL_F, sexp, sexp.null())
+    return r.to([QUOTE_KW, r])
+
+
 def compile_mod(args):
+    null = args.null()
+
     definitions = {}
     main_symbols = args.first()
+
     while True:
         args = args.rest()
         if args.rest().nullp():
@@ -75,15 +148,41 @@ def compile_mod(args):
         declaration_sexp = declaration_sexp.rest()
         function_name = declaration_sexp.first()
         declaration_sexp = declaration_sexp.rest()
-        imp = compile_lambda(declaration_sexp)
+        imp = load_declaration(declaration_sexp)
         definitions[function_name.as_atom()] = imp
 
     main_lambda = args.to([main_symbols, args.first()])
-    main_sexp = compile_lambda(main_lambda)
+    main_sexp = load_declaration(main_lambda)
 
-    definition_table = [b"list"] + [
-        [b"list"] + list(_) for _ in definitions.items()]
-    return args.to([b"substitute_functions", main_sexp, definition_table])
+    position_lookup, pre_subtituted_imps = build_positions(definitions.items(), args.to)
+    macros = []
+    for name, position in position_lookup.items():
+        macros.append(imp_to_defmacro(name.decode("utf8"), position))
+
+    macro_wrapper = build_mac_wrapper(macros)
+    macro_wrapper = simplify(macro_wrapper)
+
+    main_sexp = simplify(main_sexp)
+    main_src = binutils.disassemble(main_sexp)
+    macro_wrapper_src = binutils.disassemble(macro_wrapper)
+
+    from .bindings import EVAL_F
+    imps = []
+    for _ in pre_subtituted_imps:
+        sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
+        imps.append(EVAL_F(EVAL_F, sub_sexp, null))
+    imps_sexp = args.to(imps)
+
+    imps_tree = simplify(imps_sexp.to(build_tree_prog(
+        list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))))
+
+    compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
+    expanded_main = EVAL_F(EVAL_F, binutils.assemble(compiled_main_src), null)
+
+    entry_src = "(e (q %s) (c %s (a))))" % (
+        expanded_main, imps_tree)
+
+    return binutils.assemble(entry_src)
 
 
 def do_substitute_functions(args):
