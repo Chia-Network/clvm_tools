@@ -71,5 +71,5 @@ def compile_lambda(args):
 
 def compile_defmacro(args):
     macro_name = args.first()
-    return args.to([b"opt", [
-        b"list", macro_name, compile_lambda(args.rest())]])
+    return args.to([
+        b"list", macro_name, compile_lambda(args.rest())])
