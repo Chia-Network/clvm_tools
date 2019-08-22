@@ -126,7 +126,7 @@ def build_mac_wrapper(macros):
     return wrapper_sexp
 
 
-def simplify(sexp, mac=[b"mac"]):
+def simplify(sexp):
     from .bindings import EVAL_F
     r = EVAL_F(EVAL_F, sexp, sexp.null())
     return r.to([QUOTE_KW, r])
@@ -135,7 +135,8 @@ def simplify(sexp, mac=[b"mac"]):
 def compile_mod(args):
     null = args.null()
 
-    definitions = {}
+    defuns = {}
+    macros = []
     main_symbols = args.first()
 
     while True:
@@ -143,21 +144,27 @@ def compile_mod(args):
         if args.rest().nullp():
             break
         declaration_sexp = args.first()
-        if declaration_sexp.first().as_atom() != b"defun":
-            raise SyntaxError("expected defun")
+        op = declaration_sexp.first().as_atom()
+        if op == b"defmacro":
+            macros.append(declaration_sexp)
+            continue
+        if op != b"defun":
+            raise SyntaxError("expected defun or defmacro")
         declaration_sexp = declaration_sexp.rest()
-        function_name = declaration_sexp.first()
+        function_name = declaration_sexp.first().as_atom()
         declaration_sexp = declaration_sexp.rest()
         imp = load_declaration(declaration_sexp)
-        definitions[function_name.as_atom()] = imp
+        defuns[function_name] = imp
 
     main_lambda = args.to([main_symbols, args.first()])
     main_sexp = load_declaration(main_lambda)
 
-    position_lookup, pre_subtituted_imps = build_positions(definitions.items(), args.to)
-    macros = []
-    for name, position in position_lookup.items():
-        macros.append(imp_to_defmacro(name.decode("utf8"), position))
+    if defuns:
+        position_lookup, pre_subtituted_imps = build_positions(defuns.items(), args.to)
+
+        # add defun macros
+        for name, position in position_lookup.items():
+            macros.append(imp_to_defmacro(name.decode("utf8"), position))
 
     macro_wrapper = build_mac_wrapper(macros)
     macro_wrapper = simplify(macro_wrapper)
@@ -167,6 +174,14 @@ def compile_mod(args):
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
 
     from .bindings import EVAL_F
+
+    compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
+    expanded_main = EVAL_F(EVAL_F, binutils.assemble(compiled_main_src), null)
+
+    if not defuns:
+        # no functions, just macros
+        return expanded_main
+
     imps = []
     for _ in pre_subtituted_imps:
         sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
@@ -175,9 +190,6 @@ def compile_mod(args):
 
     imps_tree = simplify(imps_sexp.to(build_tree_prog(
         list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))))
-
-    compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
-    expanded_main = EVAL_F(EVAL_F, binutils.assemble(compiled_main_src), null)
 
     entry_src = "(e (q %s) (c %s (a))))" % (
         expanded_main, imps_tree)
