@@ -132,6 +132,19 @@ def simplify(sexp):
     return r.to([QUOTE_KW, r])
 
 
+def new_mod(macros, functions, main_symbols, uncompiled_main):
+    breakpoint()
+    mod_sexp = (
+        [b"mod", main_symbols] +
+        [_ for _ in macros[1:]] +
+        functions +
+        [uncompiled_main.as_python()])
+    new_com_sexp = ([EVAL_KW, [b"com", [QUOTE_KW, [
+        b"list", macros[0]]]], [ARGS_KW]])
+    total_sexp = [b"com", [QUOTE_KW, mod_sexp], new_com_sexp]
+    return uncompiled_main.to(total_sexp)
+
+
 def compile_mod(args):
     null = args.null()
 
@@ -152,6 +165,12 @@ def compile_mod(args):
             raise SyntaxError("expected defun or defmacro")
         functions.append(declaration_sexp)
 
+    uncompiled_main = args.first()
+
+    # TODO: get this working
+    if 0 and macros:
+        return new_mod(macros, functions, main_symbols, uncompiled_main)
+
     root_node = args.to([ARGS_KW])
     if functions:
         root_node = args.to([REST_KW, root_node])
@@ -164,7 +183,7 @@ def compile_mod(args):
         imp = load_declaration(declaration_sexp, root_node)
         defuns[function_name] = imp
 
-    main_lambda = args.to([main_symbols, args.first()])
+    main_lambda = args.to([main_symbols, uncompiled_main])
     main_sexp = load_declaration(main_lambda, root_node)
 
     if defuns:

@@ -1,6 +1,6 @@
 from clvm import KEYWORD_TO_ATOM
 
-from .helpers import brun, run
+from .helpers import brun
 
 
 # (lambda x (* x x)) => (quote (* (a) (a)))
