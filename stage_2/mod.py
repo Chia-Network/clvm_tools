@@ -67,9 +67,8 @@ def substitute_functions(sexp, definitions):
     return build_invocation(new_imp, args)
 
 
-def load_declaration(args):
+def load_declaration(args, root_node):
     symbol_table = symbol_table_sexp(args.first())
-    root_node = args.to([REST_KW, [ARGS_KW]])
     expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
         args.rest().first(), symbol_table, root_node)]])
     from .bindings import EVAL_F
@@ -139,6 +138,7 @@ def compile_mod(args):
     macros = []
     main_symbols = args.first()
 
+    root_node = args.to([ARGS_KW])
     while True:
         args = args.rest()
         if args.rest().nullp():
@@ -150,14 +150,15 @@ def compile_mod(args):
             continue
         if op != b"defun":
             raise SyntaxError("expected defun or defmacro")
+        root_node = args.to([REST_KW, [ARGS_KW]])
         declaration_sexp = declaration_sexp.rest()
         function_name = declaration_sexp.first().as_atom()
         declaration_sexp = declaration_sexp.rest()
-        imp = load_declaration(declaration_sexp)
+        imp = load_declaration(declaration_sexp, root_node)
         defuns[function_name] = imp
 
     main_lambda = args.to([main_symbols, args.first()])
-    main_sexp = load_declaration(main_lambda)
+    main_sexp = load_declaration(main_lambda, root_node)
 
     if defuns:
         position_lookup, pre_subtituted_imps = build_positions(defuns.items(), args.to)
