@@ -26,16 +26,21 @@ def get_test_cases(path):
     for p in paths:
         with open(p) as f:
             # allow "#" comments at the beginning of the file
+            cmd_lines = []
             comments = []
             while 1:
-                cmd = f.readline()
-                if len(cmd) < 1 or cmd[0] != '#':
+                line = f.readline().rstrip()
+                if len(line) < 1 or line[0] != '#':
+                    if line[-1:] == "\\":
+                        cmd_lines.append(line[:-1])
+                        continue
+                    cmd_lines.append(line)
                     break
-                comments.append(cmd)
+                comments.append(line)
             expected_output = f.read()
             test_name = os.path.relpath(
                 p, PREFIX).replace(".", "_").replace("/", "_")
-            test_cases.append((test_name, cmd, expected_output, comments, p))
+            test_cases.append((test_name, cmd_lines, expected_output, comments, p))
     return test_cases
 
 
@@ -62,9 +67,10 @@ class TestCmds(unittest.TestCase):
         return v, stdout_buffer.getvalue(), stderr_buffer.getvalue()
 
 
-def make_f(cmd, expected_output, comments, path):
+def make_f(cmd_lines, expected_output, comments, path):
 
     def f(self):
+        cmd = ''.join(cmd_lines)
         for c in cmd.split(";"):
             r, actual_output, actual_stderr = self.invoke_tool(c)
         if actual_output != expected_output:
@@ -74,7 +80,11 @@ def make_f(cmd, expected_output, comments, path):
             if REPAIR:
                 f = open(path, "w")
                 f.write(''.join(comments))
-                f.write(cmd)
+                for line in cmd_lines[:-1]:
+                    f.write(line)
+                    f.write("\\\n")
+                f.write(cmd_lines[-1])
+                f.write("\n")
                 f.write(actual_output)
                 f.close()
         self.assertEqual(expected_output, actual_output)
