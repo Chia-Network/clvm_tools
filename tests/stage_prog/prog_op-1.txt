@@ -1,2 +1,0 @@
-run -s prog '(prog_op (q ((defun add (n1 n2) (+ n1 n2)))) (q (add (q 50) (q 60))))))'
-(e (q (e (f (f (a))) (c (f (a)) ("list" (q 50) (q 60))))) (c ("list" (q (+ (f (r (a))) (f (r (r (a))))))) (a)))

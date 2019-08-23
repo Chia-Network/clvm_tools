@@ -104,8 +104,6 @@ inject("stage_1")
 
 inject("stage_com")
 
-#inject("stage_prog")
-
 #inject("v0_0_2")
 
 inject("runtime_001")
@@ -114,8 +112,6 @@ inject("runtime_001")
 inject("clvm")
 
 inject("puzzles")
-
-#inject("compiler")
 
 inject("brun")
 
