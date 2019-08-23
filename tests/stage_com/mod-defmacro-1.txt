@@ -1,2 +1,10 @@
-brun -scom '(opt (com (q (mod args (defmacro map (func items) (if items (qq (c (e (unquote func) (unquote (f items))) (map (unquote func) (unquote (r items))))) ())) (map (lambda X (* X X)) (10 20 30 40 50))))))'
+brun -scom '(opt (com (q \
+	(mod args \
+		(defmacro map (func items) \
+		         (if items (qq (c (e (unquote func) (unquote (f items))) \
+				                  (map (unquote func) (unquote (r items))))) \
+				           ())) \
+		(map (lambda X (* X X)) (10 20 30 40 50)) \
+	) \
+)))'
 (q (100 400 900 1600 2500))
