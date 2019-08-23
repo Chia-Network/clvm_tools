@@ -126,12 +126,6 @@ def build_mac_wrapper(macros):
     return wrapper_sexp
 
 
-def simplify(sexp):
-    from .bindings import EVAL_F
-    r = EVAL_F(EVAL_F, sexp, sexp.null())
-    return r.to([QUOTE_KW, r])
-
-
 def new_mod(macros, functions, main_symbols, uncompiled_main):
     breakpoint()
     mod_sexp = (
@@ -195,9 +189,7 @@ def compile_mod(args):
             macros.append(imp_to_defmacro(name.decode("utf8"), position))
 
     macro_wrapper = build_mac_wrapper(macros)
-    macro_wrapper = simplify(macro_wrapper)
 
-    main_sexp = simplify(main_sexp)
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
 
@@ -216,8 +208,9 @@ def compile_mod(args):
         imps.append(EVAL_F(EVAL_F, sub_sexp, null))
     imps_sexp = args.to(imps)
 
-    imps_tree = simplify(imps_sexp.to(build_tree_prog(
-        list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))))
+    imps_tree_prog = build_tree_prog(
+        list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))
+    imps_tree = imps_sexp.to(imps_tree_prog)
 
     entry_src = "(e (q %s) (c %s (a))))" % (
         expanded_main, imps_tree)
