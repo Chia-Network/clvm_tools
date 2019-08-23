@@ -100,7 +100,8 @@ def build_positions(function_items, to_sexp_f):
     null = to_sexp_f([])
 
     function_pairs = list(function_items)
-    tree_prog = to_sexp_f(build_tree_prog([[QUOTE_KW, _[0]] for _ in function_pairs]))
+    tree_prog = to_sexp_f(build_tree_prog([[
+        QUOTE_KW, _[0]] for _ in function_pairs]))
     from .bindings import EVAL_F
     tree = EVAL_F(EVAL_F, tree_prog, null)
     symbol_table = symbol_table_sexp(tree)
@@ -134,11 +135,10 @@ def simplify(sexp):
 def compile_mod(args):
     null = args.null()
 
-    defuns = {}
+    functions = []
     macros = []
     main_symbols = args.first()
 
-    root_node = args.to([ARGS_KW])
     while True:
         args = args.rest()
         if args.rest().nullp():
@@ -150,8 +150,15 @@ def compile_mod(args):
             continue
         if op != b"defun":
             raise SyntaxError("expected defun or defmacro")
-        root_node = args.to([REST_KW, [ARGS_KW]])
-        declaration_sexp = declaration_sexp.rest()
+        functions.append(declaration_sexp)
+
+    root_node = args.to([ARGS_KW])
+    if functions:
+        root_node = args.to([REST_KW, root_node])
+
+    defuns = {}
+    for function in functions:
+        declaration_sexp = function.rest()
         function_name = declaration_sexp.first().as_atom()
         declaration_sexp = declaration_sexp.rest()
         imp = load_declaration(declaration_sexp, root_node)
@@ -161,7 +168,8 @@ def compile_mod(args):
     main_sexp = load_declaration(main_lambda, root_node)
 
     if defuns:
-        position_lookup, pre_subtituted_imps = build_positions(defuns.items(), args.to)
+        position_lookup, pre_subtituted_imps = build_positions(
+            defuns.items(), args.to)
 
         # add defun macros
         for name, position in position_lookup.items():
