@@ -1,2 +1,0 @@
-run -scom '(mod ARGS (defmacro test args (if args 5000 6000 )) (test 10))'
-5000

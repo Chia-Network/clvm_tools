@@ -1,2 +1,0 @@
-brun -scom '(opt (com (e (com (q (list + 15 20))) (a))))'
-(q 35)

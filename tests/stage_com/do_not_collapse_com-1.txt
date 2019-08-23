@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (opt (com (c (q list) (q ())))))))'
-(q (q ()))

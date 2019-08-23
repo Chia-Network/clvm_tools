@@ -102,18 +102,12 @@ inject("opc")
 
 inject("stage_1")
 
-inject("stage_com")
+inject("stage_2")
 
 #inject("v0_0_2")
 
-inject("runtime_001")
-
 # all pass
 inject("clvm")
-
-inject("puzzles")
-
-inject("brun")
 
 
 def main():

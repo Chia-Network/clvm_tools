@@ -1,0 +1,2 @@
+run -s2 '(mod args (defmacro list1 args (if args (qq (c (unquote (f args)) (unquote (c list1 (r args))))) ())) (list1))'
+()

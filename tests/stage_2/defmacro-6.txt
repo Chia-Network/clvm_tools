@@ -1,0 +1,2 @@
+brun -s2 '(opt (com (q (defmacro total (A B) (+ A B)))))'
+(q ("total" (+ (f (a)) (f (r (a))))))

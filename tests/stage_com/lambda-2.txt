@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (lambda (A B C) (+ A B C))))))'
-(q (+ (f (a)) (f (r (a))) (f (r (r (a))))))

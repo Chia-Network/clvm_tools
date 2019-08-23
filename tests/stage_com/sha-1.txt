@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (sha256 "foo"))))'
-(q 0x2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae)

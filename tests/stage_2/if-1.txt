@@ -1,0 +1,2 @@
+run -s2 '(if (= (* (a) (a)) 25) yes nope)' '5'
+"yes"

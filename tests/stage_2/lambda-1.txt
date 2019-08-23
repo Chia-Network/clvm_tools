@@ -1,0 +1,2 @@
+brun -s2 '(opt (com (q (lambda (A B) (+ 100 B)))))'
+(q (+ (q 100) (f (r (a)))))

@@ -1,0 +1,2 @@
+run -s2 '(mod ARGS (defmacro add (n1 n2) (+ n1 n2)) (add 50 60))'
+110

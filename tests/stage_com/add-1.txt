@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (+ 6 55))))'
-(q 61)

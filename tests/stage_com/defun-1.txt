@@ -1,2 +1,0 @@
-run -scom '(mod ARGS (defun add (n1 n2) (+ n1 n2)) (add 50 60))'
-110

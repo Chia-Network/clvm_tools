@@ -1,2 +1,0 @@
-run -scom '(if (= (* (a) (a)) 25) yes nope)' '5'
-"yes"

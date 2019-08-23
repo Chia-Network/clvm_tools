@@ -1,2 +1,0 @@
-run -scom "(e (lambda (x0 x1 x2) (= x0 (+ x1 x2))) (a))" "(7 3 3)"
-()

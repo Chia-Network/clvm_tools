@@ -1,2 +1,0 @@
-run -scom '(mod noargs (defun map (func items) (if items (c (e func (list (f items))) (map func (r items))) ()) ) (map (lambda (VAL) (+ VAL 1)) (list 100 200 300)))'
-(101 201 301)

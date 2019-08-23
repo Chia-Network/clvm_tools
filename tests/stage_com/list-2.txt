@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (list + 1 2 (+ 1 2)))))'
-(q (+ 1 2 3))

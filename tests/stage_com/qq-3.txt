@@ -1,2 +1,0 @@
-brun -scom '(opt (com (q (qq (foo (f (a)) 9999)))))'
-(q ("foo" (f (a)) 9999))
