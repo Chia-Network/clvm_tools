@@ -23,7 +23,7 @@ for _ in "com opt exp mac".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def compile_list(args):
+def compile_list(args, macro_lookup):
     """
     (list) => ()
     (list (a @B) => (c a (list @B)))
@@ -39,7 +39,7 @@ def compile_list(args):
         [b"list"] + list(args.rest().as_iter())])
 
 
-def compile_function(args):
+def compile_function(args, macro_lookup):
     """
     "function" is used in front of a constant uncompiled
     program to indicate we want this program literal to be
@@ -57,10 +57,10 @@ def compile_function(args):
     goals is to compile PROG as much as possible.
     """
     prog = args.first()
-    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [b"mac"]]])
+    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [QUOTE_KW, macro_lookup]]])
 
 
-def compile_qq(args):
+def compile_qq(args, macro_lookup):
     """
     (qq ATOM) => (q ATOM)
     (qq (unquote X)) => X
@@ -112,9 +112,6 @@ def do_exp_prog(prog, macro_lookup):
     if not operator.listp():
         as_atom = operator.as_atom()
 
-        if as_atom == b"mac":
-            return prog.to([QUOTE_KW, [QUOTE_KW, macro_lookup]])
-
         for macro_pair in macro_lookup.as_iter():
             macro_name = macro_pair.first()
             if macro_name.as_atom() == as_atom:
@@ -124,7 +121,7 @@ def do_exp_prog(prog, macro_lookup):
 
         if as_atom in COMPILE_BINDINGS:
             f = COMPILE_BINDINGS[as_atom]
-            post_prog = f(prog.rest())
+            post_prog = f(prog.rest(), macro_lookup)
             return post_prog.to([QUOTE_KW, post_prog])
     return None
 

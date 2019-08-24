@@ -139,7 +139,7 @@ def new_mod(macros, functions, main_symbols, uncompiled_main):
     return uncompiled_main.to(total_sexp)
 
 
-def compile_mod(args):
+def compile_mod(args, macro_lookup):
     null = args.null()
 
     functions = []

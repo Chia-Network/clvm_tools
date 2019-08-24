@@ -57,19 +57,19 @@ def symbol_replace(sexp, symbol_table, root_node):
         for _ in sexp.rest().as_iter()])
 
 
-def compile_lambda(args):
+def compile_lambda(args, macro_lookup):
     symbol_table = symbol_table_sexp(args.first())
     root_node = args.to([ARGS_KW])
     expansion = symbol_replace(
         args.rest().first(), symbol_table, root_node)
     r = args.to([
         EVAL_KW, [b"qq", [b"com", [
-            QUOTE_KW, [b"function", [b"unquote", expansion]]]]], [ARGS_KW]])
+            QUOTE_KW, [b"function", [b"unquote", expansion]]], [QUOTE_KW, macro_lookup]]], [ARGS_KW]])
     r = args.to([EVAL_KW, r, [ARGS_KW]])
     return r
 
 
-def compile_defmacro(args):
+def compile_defmacro(args, macro_lookup):
     macro_name = args.first()
     return args.to([
-        b"list", macro_name, compile_lambda(args.rest())])
+        b"list", macro_name, compile_lambda(args.rest(), macro_lookup)])
