@@ -4,6 +4,9 @@ from clvm import KEYWORD_TO_ATOM
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 EVAL_KW = KEYWORD_TO_ATOM["e"]
+FIRST_KW = KEYWORD_TO_ATOM["f"]
+REST_KW = KEYWORD_TO_ATOM["r"]
+CONS_KW = KEYWORD_TO_ATOM["c"]
 
 DEBUG_OPTIMIZATIONS = 0
 
@@ -71,6 +74,32 @@ def children_optimizer(r, eval_f):
     return r.to([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
 
 
+def cons_optimizer(r, eval_f):
+    """
+    This applies the transform
+    (f (c A B)) => A
+    and
+    (r (c A B)) => B
+    """
+    if r.nullp() or not r.listp():
+        return r
+    operator = r.first()
+    if operator.listp():
+        return r
+
+    as_atom = operator.as_atom()
+    if as_atom not in (FIRST_KW, REST_KW):
+        return r
+
+    cons_sexp = r.rest().first()
+    if cons_sexp.listp() and not cons_sexp.nullp():
+        if cons_sexp.first().as_atom() == CONS_KW:
+            if as_atom == FIRST_KW:
+                return cons_sexp.rest().first()
+            return cons_sexp.rest().rest().first()
+    return r
+
+
 def optimize_sexp(r, eval_f):
     """
     Optimize an s-expression R written for clvm to R_opt where
@@ -80,6 +109,7 @@ def optimize_sexp(r, eval_f):
         return r
 
     OPTIMIZERS = [
+        cons_optimizer,
         constant_optimizer,
         eval_q_a_optimizer,
         children_optimizer,
