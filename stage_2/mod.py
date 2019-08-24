@@ -38,35 +38,6 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 """
 
 
-def build_invocation(imp, args):
-    from .compile import compile_list
-    new_args = compile_list(args)
-    sexp = args.to([EVAL_KW, [QUOTE_KW, imp], new_args])
-    return sexp
-
-
-def substitute_functions(sexp, definitions):
-    if sexp.nullp() or not sexp.listp():
-        return sexp
-
-    operator = sexp.first()
-    if operator.listp():
-        return sexp
-
-    args = sexp.to([substitute_functions(
-        _, definitions) for _ in sexp.rest().as_iter()])
-    op = operator.as_atom()
-    for f_name, imp in definitions.items():
-        if f_name == op:
-            break
-    else:
-        return sexp.to([operator] + list(args.as_iter()))
-
-    # substitute!
-    new_imp = substitute_functions(imp, definitions)
-    return build_invocation(new_imp, args)
-
-
 def load_declaration(args, root_node):
     symbol_table = symbol_table_sexp(args.first())
     expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
@@ -156,9 +127,10 @@ def compile_mod(args, macro_lookup):
         if op == b"defmacro":
             macros.append(declaration_sexp)
             continue
-        if op != b"defun":
-            raise SyntaxError("expected defun or defmacro")
-        functions.append(declaration_sexp)
+        if op == b"defun":
+            functions.append(declaration_sexp)
+            continue
+        raise SyntaxError("expected defun or defmacro")
 
     uncompiled_main = args.first()
 
