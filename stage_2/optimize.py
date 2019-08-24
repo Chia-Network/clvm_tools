@@ -61,6 +61,64 @@ def eval_q_a_optimizer(r, eval_f):
     return first_arg.rest().first()
 
 
+def sub_args(sexp, new_args):
+    if sexp.nullp() or not sexp.listp():
+        return sexp
+
+    op = sexp.first().as_atom()
+    if op == ARGS_KW:
+        return new_args
+
+    if op == QUOTE_KW:
+        return sexp
+
+    return sexp.to([op] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
+
+
+def var_change_optimizer(r, eval_f):
+    """
+    This applies the transform
+    (e (q (op SEXP1...)) (ARGS)) => (q RET_VAL) where ARGS != (a)
+    via
+    (op (e SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
+    In some cases, this can result in a constant in some of the children.
+
+    If we end up needing to push the "change of variables" to only one child, keep
+    the optimization. Otherwise discard it.
+    """
+
+    if r.nullp() or not r.listp():
+        return r
+    operator = r.first()
+    if operator.listp():
+        return r
+
+    as_atom = operator.as_atom()
+    if as_atom != EVAL_KW:
+        return r
+    first_arg = r.rest().first()
+    if not first_arg.listp() or first_arg.nullp():
+        return r
+    op_2 = first_arg.first()
+    if op_2.listp() or op_2.as_atom() != QUOTE_KW:
+        return r
+    new_args = r.rest().rest().first().as_python()
+    if new_args == [ARGS_KW]:
+        # let eval_q_a_optimizer take care of this
+        return r
+
+    inner_sexp = first_arg.rest().first()
+    new_sexp = sub_args(inner_sexp, new_args)
+
+    new_operands = list(new_sexp.rest().as_iter())
+    opt_operands = [optimize_sexp(_, eval_f) for _ in new_operands]
+    non_constant_count = sum(1 if _.first() != QUOTE_KW else 0 for _ in opt_operands)
+    if non_constant_count < 1:
+        final_sexp = r.to([first_arg.rest().first().first().as_atom()] + opt_operands)
+        return final_sexp
+    return r
+
+
 def children_optimizer(r, eval_f):
     """
     Recursively apply optimizations to all non-quoted child nodes.
@@ -112,6 +170,7 @@ def optimize_sexp(r, eval_f):
         cons_optimizer,
         constant_optimizer,
         eval_q_a_optimizer,
+        var_change_optimizer,
         children_optimizer,
     ]
 
