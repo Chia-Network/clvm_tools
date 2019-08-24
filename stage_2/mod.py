@@ -216,13 +216,3 @@ def compile_mod(args):
         expanded_main, imps_tree)
 
     return binutils.assemble(entry_src)
-
-
-def do_substitute_functions(args):
-    main_sexp = args.first()
-    definitions_list = args.rest().first()
-    definitions = {}
-    for pair in definitions_list.as_iter():
-        definitions[pair.first().as_atom()] = pair.rest().first()
-    breakpoint()
-    return substitute_functions(main_sexp, definitions)
