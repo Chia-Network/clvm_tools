@@ -23,4 +23,4 @@ BINDINGS = {
 EVAL_F = bind_eval_f(eval_f, BINDINGS)
 
 brun = binutils.assemble("(e (f (a)) (r (a)))")
-run = binutils.assemble("(e (com (f (a)) (mac)) (r (a)))")
+run = binutils.assemble("(e (opt (com (f (a)) (mac))) (r (a)))")

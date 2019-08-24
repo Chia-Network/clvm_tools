@@ -174,7 +174,7 @@ def compile_mod(args, macro_lookup):
 
     if not defuns:
         # no functions, just macros
-        return expanded_main
+        return expanded_main.to([QUOTE_KW, expanded_main])
 
     imps = []
     for _ in pre_subtituted_imps:
@@ -186,7 +186,7 @@ def compile_mod(args, macro_lookup):
         list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))
     imps_tree = imps_sexp.to(imps_tree_prog)
 
-    entry_src = "(e (q %s) (c %s (a))))" % (
+    entry_src = "(opt (q (e (q %s) (c %s (a))))))" % (
         expanded_main, imps_tree)
 
     return binutils.assemble(entry_src)

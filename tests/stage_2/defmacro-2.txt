@@ -1,2 +1,2 @@
 run -s2 '(mod ARGS (defmacro test args (if args 5000 6000 )) (test))'
-6000
+(q 6000)

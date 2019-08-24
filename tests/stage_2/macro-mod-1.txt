@@ -17,4 +17,4 @@ run -s2 '(opt (com (q (mod (ARGS) \
     ) \
     (and1 (f (a)) 30) \
 ))))'
-(e (i (f (a)) (q (q 1)) (q (q ()))) (a))
+(q (e (i (f (a)) (q (q 1)) (q (q ()))) (a)))

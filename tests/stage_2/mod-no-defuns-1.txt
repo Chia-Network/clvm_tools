@@ -1,3 +1,3 @@
 # this test defines no functions and so failed when we didn't look for this case
 run -s2 '(function (mod (VAL) (+ VAL 1))))'
-(+ (f (a)) (q 1))
+(q (+ (f (a)) (q 1)))

@@ -1,2 +1,2 @@
 run -s 2 '(mod NOARGS (defun add (n1 n2) (+ n1 n2)) (add 50 60))'
-110
+(q 110)
