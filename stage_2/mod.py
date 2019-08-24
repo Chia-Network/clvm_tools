@@ -117,26 +117,27 @@ def build_positions(function_items, to_sexp_f):
     return d, expanded_imps
 
 
-def build_mac_wrapper(macros):
-    text = "(mac)"
+def build_mac_wrapper(macros, macro_lookup):
+    mlt = "(q %s)" % binutils.disassemble(macro_lookup)
+    text = mlt
     for _ in macros:
         text = "(c %s %s)" % (_, text)
-    wrapper_src = "(e (com (q %s)) (a))" % text
+    wrapper_src = "(e (com (q %s) %s) (a))" % (text, mlt)
     wrapper_sexp = binutils.assemble(wrapper_src)
     return wrapper_sexp
 
 
-def new_mod(macros, functions, main_symbols, uncompiled_main):
-    breakpoint()
+def new_mod(
+        macros, functions, main_symbols, uncompiled_main, macro_lookup):
     mod_sexp = (
         [b"mod", main_symbols] +
         [_ for _ in macros[1:]] +
         functions +
         [uncompiled_main.as_python()])
     new_com_sexp = ([EVAL_KW, [b"com", [QUOTE_KW, [
-        b"list", macros[0]]]], [ARGS_KW]])
-    total_sexp = [b"com", [QUOTE_KW, mod_sexp], new_com_sexp]
-    return uncompiled_main.to(total_sexp)
+        CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]], [ARGS_KW]])
+    total_sexp = uncompiled_main.to([EVAL_KW, [b"com", [QUOTE_KW, mod_sexp], new_com_sexp], [ARGS_KW]])
+    return total_sexp
 
 
 def compile_mod(args, macro_lookup):
@@ -161,9 +162,10 @@ def compile_mod(args, macro_lookup):
 
     uncompiled_main = args.first()
 
-    # TODO: get this working
-    if 0 and macros:
-        return new_mod(macros, functions, main_symbols, uncompiled_main)
+    if macros:
+        return new_mod(
+            macros, functions, main_symbols,
+            uncompiled_main, macro_lookup)
 
     root_node = args.to([ARGS_KW])
     if functions:
@@ -188,7 +190,7 @@ def compile_mod(args, macro_lookup):
         for name, position in position_lookup.items():
             macros.append(imp_to_defmacro(name.decode("utf8"), position))
 
-    macro_wrapper = build_mac_wrapper(macros)
+    macro_wrapper = build_mac_wrapper(macros, macro_lookup)
 
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
