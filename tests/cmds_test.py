@@ -36,7 +36,7 @@ def get_test_cases(path):
                         continue
                     cmd_lines.append(line)
                     break
-                comments.append(line)
+                comments.append(line + "\n")
             expected_output = f.read()
             test_name = os.path.relpath(
                 p, PREFIX).replace(".", "_").replace("/", "_")
