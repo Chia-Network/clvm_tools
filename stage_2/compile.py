@@ -3,8 +3,7 @@ from opacity.binutils import disassemble
 
 from .defaults import default_macro_lookup
 from .helpers import brun, run
-from .lambda_ import compile_lambda, compile_defmacro
-from .mod import compile_mod
+from .mod import compile_defmacro, compile_mod
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -84,7 +83,7 @@ COMPILE_BINDINGS = {
     b"list": compile_list,
     b"function": compile_function,
     b"qq": compile_qq,
-    b"lambda": compile_lambda,
+    b"lambda": compile_mod,
     b"defmacro": compile_defmacro,
     b"mod": compile_mod,
 }
