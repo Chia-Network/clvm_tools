@@ -8,19 +8,14 @@ from .defaults import default_macro_lookup
 from .optimize import do_opt
 
 
-def do_mac(sexp, eval_f):
-    return default_macro_lookup(eval_f)
-
-
 BINDINGS = {
     "com": do_com,
     "opt": do_opt,
     "exp": do_exp,
-    "mac": do_mac,
 }
 
 
 EVAL_F = bind_eval_f(eval_f, BINDINGS)
 
 brun = binutils.assemble("(e (f (a)) (r (a)))")
-run = binutils.assemble("(e (opt (com (f (a)) (mac))) (r (a)))")
+run = binutils.assemble("(e (opt (com (f (a)))) (r (a)))")

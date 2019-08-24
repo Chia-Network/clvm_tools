@@ -18,7 +18,7 @@ PASS_THROUGH_OPERATORS = set(
      "wrap unwrap point_add pubkey_for_exp").split()
 )
 
-for _ in "com opt exp mac".split():
+for _ in "com opt exp".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
@@ -49,7 +49,7 @@ def compile_function(args, macro_lookup):
     Thus (opt (com (q (function (+ 20 (a))))))
     should return (q (+ (q 20) (a)))
 
-    (function PROG) => (opt (com (q PROG) (mac)))
+    (function PROG) => (opt (com (q PROG) (q MACROS)))
 
     We have to use "opt" as (com PROG) might leave
     some partial "com" operators in there and our
@@ -96,10 +96,10 @@ def do_exp_prog(prog, macro_lookup):
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    (e (com (q PROG) (mac)) ARGS) == (e (com (q PROG_EXP) (mac)) ARGS)
+    (e (com (q PROG) (MACROS)) ARGS) == (e (com (q PROG_EXP) (MACROS)) ARGS)
     for all ARGS.
 
-    Also, (opt (com (q PROG) (mac))) == (opt (com (q PROG_EXP) (mac)))
+    Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
     for all ARGS.
     """
 
