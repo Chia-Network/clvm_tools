@@ -7,6 +7,7 @@ EVAL_KW = KEYWORD_TO_ATOM["e"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
+RAISE_KW = KEYWORD_TO_ATOM["x"]
 
 DEBUG_OPTIMIZATIONS = 0
 
@@ -20,6 +21,8 @@ def seems_constant(sexp):
         if as_atom == QUOTE_KW:
             return True
         if as_atom == ARGS_KW:
+            return False
+        if as_atom == RAISE_KW:
             return False
     return all(seems_constant(_) for _ in sexp.rest().as_iter())
 
