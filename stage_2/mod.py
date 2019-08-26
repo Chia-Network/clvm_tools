@@ -5,37 +5,12 @@ from clvm_tools import binutils
 from .helpers import brun
 
 
-# (lambda x (* x x)) => (quote (* (a) (a)))
-# lambda_op
-# (symbol_replace sexp symbol_table)
-# (symbol_table sexp) => symbol_table
-
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 EVAL_KW = KEYWORD_TO_ATOM["e"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-
-
-"""
-(mod (N)
-    (defun fact K (if (= K 1) 1 (* K (fact (- K 1)))))
-    (defun next_fib (n0 n1) (list n1 (+ n0 n1)))
-    (defun fib2 N (if (= N 0) (q (0 1)) (next_fib (fib2 (- N 1)))))
-    (defun fib N (first (fib2 N)))
-    (+ (fib N) (fact N))
-)
-"""
-
-
-"""
-(mod (A B)
-    (defun square (N) (* N N))
-    (defun hyp (A B) (+ (square A) (square B)))
-    (hyp A B)
-)
-"""
 
 
 def load_declaration(args, root_node):
