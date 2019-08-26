@@ -1,7 +1,7 @@
 from clvm import eval_f
 
-from opacity import binutils
-from opacity.patch_eval_f import bind_eval_f
+from clvm_tools import binutils
+from clvm_tools.patch_eval_f import bind_eval_f
 
 
 def make_invocation(code):

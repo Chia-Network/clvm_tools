@@ -1,7 +1,7 @@
 from clvm import to_sexp_f
 
 
-from opacity import binutils
+from clvm_tools import binutils
 
 
 DEFAULT_MACROS_SRC = [

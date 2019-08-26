@@ -1,6 +1,6 @@
 from clvm import eval_f
 
-from opacity import binutils
+from clvm_tools import binutils
 
 EVAL_F = eval_f
 

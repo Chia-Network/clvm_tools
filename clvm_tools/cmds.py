@@ -9,10 +9,9 @@ from clvm import to_sexp_f
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
-from opacity import binutils, patch_sexp
-
 from ir import reader
 
+from . import binutils, patch_sexp
 from .debug import make_tracing_f, trace_to_text
 
 
@@ -32,14 +31,14 @@ def stream_to_bin(write_f):
 
 def opc(args=sys.argv):
     parser = argparse.ArgumentParser(
-        description='Compile an opacity script.'
+        description='Compile a clvm script.'
     )
     parser.add_argument(
         "-H", "--script_hash", action="store_true",
         help="Show sha256 script hash")
     parser.add_argument(
         "path_or_code", nargs="*", type=path_or_code,
-        help="path to opacity script, or literal script")
+        help="path to clvm script, or literal script")
 
     args = parser.parse_args(args=args[1:])
 
@@ -58,11 +57,11 @@ def opc(args=sys.argv):
 
 def opd(args=sys.argv):
     parser = argparse.ArgumentParser(
-        description='Disassemble a compiled opacity script.'
+        description='Disassemble a compiled clvm script.'
     )
     parser.add_argument(
         "script", nargs="+", type=binascii.unhexlify,
-        help="hex version of opacity script")
+        help="hex version of clvm script")
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:

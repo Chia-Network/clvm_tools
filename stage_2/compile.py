@@ -1,5 +1,5 @@
 from clvm import KEYWORD_TO_ATOM
-from opacity.binutils import disassemble
+from clvm_tools.binutils import disassemble
 
 from .defaults import default_macro_lookup
 from .helpers import brun, run

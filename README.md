@@ -1,6 +1,4 @@
-This is the in-development version of Chiascript "opacity", a LISP-like language for encumbering and releasing funds with smart-contract capabilities.
-
-See docs/CHIASCRIPT-BY-EXAMPLE.md.html for more info.
+This is the in-development version of clvm_tools for clvm, which implements, a LISP-like language for encumbering and releasing funds with smart-contract capabilities.
 
 
 Set up your virtual environments:
@@ -8,6 +6,7 @@ Set up your virtual environments:
     $ python3 -m venv env
     $ ln -s env/bin/activate
     $ . ./activate
+    $ pip install -e git+git@github.com:Chia-Network/clvm.git#egg=clvm
     $ pip install -e .
 
 The language has two components: the higher level language and the compiled lower level language which runs on the clvm.

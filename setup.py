@@ -2,28 +2,27 @@
 
 from setuptools import setup
 
-from opacity.version import version
+from clvm_tools.version import version
 
 setup(
-    name="opacity",
+    name="clvm_tools",
     version=version,
     packages=[
-        "clvm",
         "ir",
-        "opacity",
-        "bindings",
+        "clvm_tools",
+        "stage_2",
     ],
     author="Chia Network, Inc.",
 
     entry_points={
         'console_scripts':
             [
-                'opc = opacity.cmds:opc',
-                'opd = opacity.cmds:opd',
-                'read_ir = opacity.cmds:read_ir',
+                'opc = clvm_tools.cmds:opc',
+                'opd = clvm_tools.cmds:opd',
+                'read_ir = clvm_tools.cmds:read_ir',
                 'com = compiler.cmds:com',
-                'run = opacity.cmds:run',
-                'brun = opacity.cmds:brun',
+                'run = clvm_tools.cmds:run',
+                'brun = clvm_tools.cmds:brun',
             ]
         },
     author_email="kiss@chia.net",

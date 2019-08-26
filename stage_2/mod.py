@@ -1,6 +1,6 @@
 from clvm import KEYWORD_TO_ATOM
 
-from opacity import binutils
+from clvm_tools import binutils
 
 from .helpers import brun
 

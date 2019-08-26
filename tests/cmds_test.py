@@ -58,7 +58,7 @@ class TestCmds(unittest.TestCase):
         sys.stderr = stderr_buffer
 
         args = shlex.split(cmd_line)
-        v = pkg_resources.load_entry_point('opacity', 'console_scripts',
+        v = pkg_resources.load_entry_point('clvm_tools', 'console_scripts',
                                            args[0])(args)
 
         sys.stdout = old_stdout
