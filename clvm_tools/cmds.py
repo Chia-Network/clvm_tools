@@ -84,20 +84,20 @@ def as_bin(streamer_f):
 
 
 def run(args=sys.argv):
-    return brun_or_run(args, is_run=True)
+    return launch_tool(args, "run", default_stage=2)
 
 
 def brun(args=sys.argv):
-    return brun_or_run(args)
+    return launch_tool(args, "brun")
 
 
-def brun_or_run(args, is_run=False):
+def launch_tool(args, tool_name, default_stage=0):
     parser = argparse.ArgumentParser(
         description='Execute a clvm script.'
     )
     parser.add_argument(
         "-s", "--stage", type=stage_import,
-        help="stage number to include", default=stage_import(0))
+        help="stage number to include", default=stage_import(default_stage))
     parser.add_argument(
         "-v", "--verbose", action="store_true",
         help="Display resolve of all reductions, for debugging")
@@ -126,7 +126,7 @@ def brun_or_run(args, is_run=False):
 
         eval_f, log_entries = make_tracing_f(eval_f, transform_exception)
 
-    run_script = args.stage.run if is_run else args.stage.brun
+    run_script = getattr(args.stage, tool_name)
 
     try:
         output = "(didn't finish)"

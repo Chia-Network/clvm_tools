@@ -17,10 +17,9 @@ setup(
     entry_points={
         'console_scripts':
             [
+                'read_ir = clvm_tools.cmds:read_ir',
                 'opc = clvm_tools.cmds:opc',
                 'opd = clvm_tools.cmds:opd',
-                'read_ir = clvm_tools.cmds:read_ir',
-                'com = compiler.cmds:com',
                 'run = clvm_tools.cmds:run',
                 'brun = clvm_tools.cmds:brun',
             ]
@@ -28,7 +27,7 @@ setup(
     author_email="kiss@chia.net",
     url="https://github.com/Chia-Network",
     license="https://opensource.org/licenses/Apache-2.0",
-    description="Script compiler.",
+    description="CLVM compiler.",
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Programming Language :: Python :: 3',
