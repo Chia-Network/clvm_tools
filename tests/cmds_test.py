@@ -106,9 +106,6 @@ inject("stage_2")
 
 #inject("v0_0_2")
 
-# all pass
-inject("clvm")
-
 
 def main():
     unittest.main()
