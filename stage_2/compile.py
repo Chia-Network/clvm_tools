@@ -59,7 +59,7 @@ def compile_function(args, macro_lookup):
     return args.to([b"opt", [b"com", [QUOTE_KW, prog], [QUOTE_KW, macro_lookup]]])
 
 
-def compile_qq(args, macro_lookup):
+def compile_qq(args, macro_lookup, level=1):
     """
     (qq ATOM) => (q ATOM)
     (qq (unquote X)) => X
@@ -70,10 +70,17 @@ def compile_qq(args, macro_lookup):
         # (qq ATOM) => (q ATOM)
         return sexp.to([QUOTE_KW, sexp])
 
-    if (sexp.listp() and not sexp.first().listp()
-            and sexp.first().as_atom() == b"unquote"):
-        # (qq (unquote X)) => X
-        return sexp.rest().first()
+    if sexp.listp() and not sexp.first().listp():
+        op = sexp.first().as_atom()
+        if op == b"qq":
+            subexp = compile_qq(sexp.rest(), macro_lookup, level+1)
+            return sexp.to([b"list", op, subexp])
+        if op == b"unquote":
+            if level == 1:
+                # (qq (unquote X)) => X
+                return sexp.rest().first()
+            subexp = compile_qq(sexp.rest(), macro_lookup, level-1)
+            return sexp.to([b"list", op, subexp])
 
     # (qq (a . B)) => (c (qq a) (qq B))
     return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
