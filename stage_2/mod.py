@@ -22,7 +22,8 @@ def load_declaration(args, root_node):
     return EVAL_F(EVAL_F, expansion, null)
 
 
-def imp_to_defmacro(name, position):
+def imp_to_defmacro(name, position_sexp):
+    position = binutils.disassemble(position_sexp)
     body_src = (
         "(defmacro %s ARGS (qq (e %s (c (f (a))"
         " (unquote (c list ARGS))))))" % (
@@ -67,7 +68,8 @@ def build_mac_wrapper(macros, macro_lookup):
     mlt = "(q %s)" % binutils.disassemble(macro_lookup)
     text = mlt
     for _ in macros:
-        text = "(c %s %s)" % (_, text)
+        src = binutils.disassemble(_)
+        text = "(c %s %s)" % (src, text)
     wrapper_src = "(e (com (q %s) %s) (a))" % (text, mlt)
     wrapper_sexp = binutils.assemble(wrapper_src)
     return wrapper_sexp
@@ -134,8 +136,9 @@ def compile_mod(args, macro_lookup):
             defuns.items(), args.to)
 
         # add defun macros
-        for name, position in position_lookup.items():
-            macros.append(imp_to_defmacro(name.decode("utf8"), position))
+        for name, position_sexp in position_lookup.items():
+            macros.append(imp_to_defmacro(
+                name.decode("utf8"), position_sexp))
 
     macro_wrapper = build_mac_wrapper(macros, macro_lookup)
 
@@ -161,8 +164,10 @@ def compile_mod(args, macro_lookup):
         list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))
     imps_tree = imps_sexp.to(imps_tree_prog)
 
+    imps_tree_src = binutils.disassemble(imps_tree)
+    expanded_main_src = binutils.disassemble(expanded_main)
     entry_src = "(opt (q (e (q %s) (c %s (a))))))" % (
-        expanded_main, imps_tree)
+        expanded_main_src, imps_tree_src)
 
     return binutils.assemble(entry_src)
 
