@@ -1,7 +1,7 @@
 
 def bind_eval_f(old_eval_f, binding_table):
     def new_eval_f(eval_f, sexp, env):
-        if sexp.listp() and not sexp.nullp():
+        if sexp.listp() and not sexp.nullp() and not sexp.first().listp():
             operator = sexp.first().as_atom()
             try:
                 symbol = operator.decode("utf8")
