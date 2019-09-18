@@ -4,7 +4,6 @@ from clvm_tools import binutils
 from clvm_tools.patch_eval_f import bind_eval_f
 
 from .compile import do_com, do_exp
-from .defaults import default_macro_lookup
 from .optimize import do_opt
 
 
