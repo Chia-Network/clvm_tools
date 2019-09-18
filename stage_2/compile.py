@@ -8,7 +8,6 @@ from .mod import compile_defmacro, compile_mod
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-EVAL_KW = KEYWORD_TO_ATOM["e"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 

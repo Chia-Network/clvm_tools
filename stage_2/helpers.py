@@ -7,6 +7,11 @@ EVAL_KW = KEYWORD_TO_ATOM["e"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
+def eval(prog, args):
+    return prog.to([
+        EVAL_KW, prog, args])
+
+
 def run(prog, macro_lookup):
     """
     PROG => (e (com (q PROG) (mac)) ARGS)
@@ -16,10 +21,8 @@ def run(prog, macro_lookup):
     """
     args = [ARGS_KW]
     mac = [QUOTE_KW, macro_lookup]
-    return prog.to([
-        EVAL_KW, [b"com", prog, mac], args])
+    return eval(prog.to([b"com", prog, mac]), args)
 
 
 def brun(prog, args):
-    return prog.to([
-        EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, args]])
+    return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, args])
