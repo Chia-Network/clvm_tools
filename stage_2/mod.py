@@ -208,9 +208,9 @@ def symbol_replace(sexp, symbol_table, root_node):
                 return brun(prog, root_node)
         return sexp
 
-    return sexp.to([b"list", sexp.first()] + [
+    return sexp.to([b"list"] + [
         symbol_replace(_, symbol_table, root_node)
-        for _ in sexp.rest().as_iter()])
+        for _ in sexp.as_iter()])
 
 
 def compile_defmacro(args, macro_lookup):
