@@ -114,21 +114,22 @@ def do_exp_prog(prog, macro_lookup):
         return prog.to([QUOTE_KW, [QUOTE_KW, prog]])
 
     operator = prog.first()
-    if not operator.listp():
-        as_atom = operator.as_atom()
+    if operator.listp():
+        return None
 
-        for macro_pair in macro_lookup.as_iter():
-            macro_name = macro_pair.first()
-            if macro_name.as_atom() == as_atom:
-                macro_code = macro_pair.rest().first()
-                post_prog = brun(macro_code, prog.rest())
-                return post_prog
+    as_atom = operator.as_atom()
 
-        if as_atom in COMPILE_BINDINGS:
-            f = COMPILE_BINDINGS[as_atom]
-            post_prog = f(prog.rest(), macro_lookup)
-            return post_prog.to([QUOTE_KW, post_prog])
-    return None
+    for macro_pair in macro_lookup.as_iter():
+        macro_name = macro_pair.first()
+        if macro_name.as_atom() == as_atom:
+            macro_code = macro_pair.rest().first()
+            post_prog = brun(macro_code, prog.rest())
+            return post_prog
+
+    if as_atom in COMPILE_BINDINGS:
+        f = COMPILE_BINDINGS[as_atom]
+        post_prog = f(prog.rest(), macro_lookup)
+        return post_prog.to([QUOTE_KW, post_prog])
 
 
 def do_com_prog(prog, macro_lookup):
