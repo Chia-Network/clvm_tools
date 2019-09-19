@@ -2,7 +2,7 @@ from clvm import KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
 
 from .defaults import default_macro_lookup
-from .helpers import brun, run
+from .helpers import brun, run, eval
 from .mod import compile_defmacro, compile_mod
 
 
@@ -115,7 +115,8 @@ def do_exp_prog(prog, macro_lookup):
 
     operator = prog.first()
     if operator.listp():
-        return None
+        # (exp ((FORM) . ENV)) => ((c (exp (FORM)) (q ENV)))
+        return eval(prog.to([b"exp", operator]), [QUOTE_KW, prog.rest()])
 
     as_atom = operator.as_atom()
 
