@@ -24,6 +24,8 @@ def seems_constant(sexp):
             return False
         if as_atom == RAISE_KW:
             return False
+    elif not seems_constant(operator):
+            return False
     return all(seems_constant(_) for _ in sexp.rest().as_iter())
 
 
