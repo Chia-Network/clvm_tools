@@ -188,7 +188,8 @@ def cons_optimizer(r, eval_f):
 
     cons_sexp = r.rest().first()
     if cons_sexp.listp() and not cons_sexp.nullp():
-        if cons_sexp.first().as_atom() == CONS_KW:
+        operator = cons_sexp.first()
+        if not operator.listp() and operator.as_atom() == CONS_KW:
             if as_atom == FIRST_KW:
                 return cons_sexp.rest().first()
             return cons_sexp.rest().rest().first()
