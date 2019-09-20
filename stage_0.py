@@ -4,7 +4,7 @@ from clvm_tools import binutils
 
 EVAL_F = eval_f
 
-brun = run = binutils.assemble("(e (f (a)) (r (a)))")
+brun = run = binutils.assemble("((c (f (a)) (r (a))))")
 
 """
 Copyright 2019 Chia Network Inc
