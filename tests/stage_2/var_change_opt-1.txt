@@ -1,2 +1,2 @@
-brun -s2 '(opt (e (q (e (f (a)) (a))) (c (q (+ (r (a)) (r (a)))) (q 30)))))'
-60
+brun -s2 '(opt (q (e (q (e (f (a)) (a))) (c (q (+ (r (a)) (r (a)))) (q 30))))))'
+(q 60)
