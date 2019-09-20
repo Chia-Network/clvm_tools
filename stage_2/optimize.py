@@ -66,6 +66,39 @@ def eval_q_a_optimizer(r, eval_f):
     return first_arg.rest().first()
 
 
+def cons_q_a_optimizer(r, eval_f):
+    """
+    This applies the transform
+    ((c (q SEXP) (a))) => SEXP
+    """
+    if r.nullp() or not r.listp():
+        return r
+
+    if not r.rest().nullp():
+        return r
+
+    r0 = r.first()
+    if r0.nullp() or not r0.listp():
+        return r
+
+    operator = r0.first()
+    if operator.listp():
+        return r
+
+    as_atom = operator.as_atom()
+    if as_atom != CONS_KW:
+        return r
+    first_arg = r0.rest().first()
+    if not first_arg.listp() or first_arg.nullp():
+        return r
+    op_2 = first_arg.first()
+    if op_2.listp() or op_2.as_atom() != QUOTE_KW:
+        return r
+    if r0.rest().rest().as_python() != [[ARGS_KW]]:
+        return r
+    return first_arg.rest().first()
+
+
 def sub_args(sexp, new_args):
     if sexp.nullp() or not sexp.listp():
         return sexp
@@ -175,6 +208,7 @@ def optimize_sexp(r, eval_f):
         cons_optimizer,
         constant_optimizer,
         eval_q_a_optimizer,
+        cons_q_a_optimizer,
         var_change_optimizer,
         children_optimizer,
     ]
