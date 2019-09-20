@@ -162,12 +162,11 @@ def children_optimizer(r, eval_f):
     Recursively apply optimizations to all non-quoted child nodes.
     """
     operator = r.first()
-    if operator.listp():
-        return r
-    op = operator.as_atom()
-    if op == QUOTE_KW:
-        return r
-    return r.to([op] + [optimize_sexp(_, eval_f) for _ in r.rest().as_iter()])
+    if not operator.listp():
+        op = operator.as_atom()
+        if op == QUOTE_KW:
+            return r
+    return r.to([optimize_sexp(_, eval_f) for _ in r.as_iter()])
 
 
 def cons_optimizer(r, eval_f):
