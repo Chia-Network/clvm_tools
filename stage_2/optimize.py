@@ -103,22 +103,24 @@ def sub_args(sexp, new_args):
     if sexp.nullp() or not sexp.listp():
         return sexp
 
-    op = sexp.first().as_atom()
-    if op == ARGS_KW:
-        return new_args
+    first = sexp.first()
+    if not first.listp():
+        op = first.as_atom()
+        if op == ARGS_KW:
+            return new_args
 
-    if op == QUOTE_KW:
-        return sexp
+        if op == QUOTE_KW:
+            return sexp
 
-    return sexp.to([op] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
+    return sexp.to([sub_args(_, new_args) for _ in sexp.as_iter()])
 
 
 def var_change_optimizer(r, eval_f):
     """
     This applies the transform
-    (e (q (op SEXP1...)) (ARGS)) => (q RET_VAL) where ARGS != (a)
-    via
-    (op (e SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
+    (e (q (op SEXP1...)) (ARGS)) => (op SEXP1' ...) where ARGS != (a)
+    where
+    SEXP1 = (e SEXP1 (ARGS)), ... and then "children_optimizer" of this.
     In some cases, this can result in a constant in some of the children.
 
     If we end up needing to push the "change of variables" to only one child, keep
@@ -152,7 +154,70 @@ def var_change_optimizer(r, eval_f):
     opt_operands = [optimize_sexp(_, eval_f) for _ in new_operands]
     non_constant_count = sum(1 if _.first() != QUOTE_KW else 0 for _ in opt_operands)
     if non_constant_count < 1:
-        final_sexp = r.to([first_arg.rest().first().first().as_atom()] + opt_operands)
+        final_sexp = r.to([first_arg.rest().first().first()] + opt_operands)
+        return final_sexp
+    return r
+
+
+def var_change_optimizer_cons_eval(r, eval_f):
+    """
+    This applies the transform
+    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != (a)
+    via
+    (op (e SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
+    In some cases, this can result in a constant in some of the children.
+
+    If we end up needing to push the "change of variables" to only one child, keep
+    the optimization. Otherwise discard it.
+    """
+    if r.nullp() or not r.listp():
+        return r
+
+    # r is a cons
+
+    if not r.rest().nullp():
+        return r
+
+    # r is a cons of the form (XX, ())
+
+    r0 = r.first()
+    if r0.nullp() or not r0.listp():
+        return r
+
+    # r is of the form (r0, ()) and r0 is a cons
+
+    operator = r0.first()
+    if operator.listp():
+        return r
+
+    # (f r0) is an atom
+
+    if operator.as_python() != CONS_KW:
+        return r
+
+    # r0 is (c XXX)
+    cons_args = r0.rest()
+    eval_sexp = cons_args.first()
+
+    # r0 is (c eval_sexp orig_args)
+    if not eval_sexp.listp() or eval_sexp.nullp():
+        return r
+    if eval_sexp.first().as_python() != QUOTE_KW:
+        return r
+    # eval_sexp is (q FUNCTION)
+    orig_args = r0.rest().rest().first()
+    if orig_args.as_python() == [ARGS_KW]:
+        # let eval_q_a_optimizer take care of this
+        return r
+
+    eval_sexp_op = eval_sexp.rest().first().first()
+    new_eval_sexp_args = sub_args(eval_sexp.rest().first(), orig_args)
+
+    new_operands = list(new_eval_sexp_args.as_iter())
+    opt_operands = [optimize_sexp(_, eval_f) for _ in new_operands]
+    non_constant_count = sum(1 if _.listp() and _.first() != QUOTE_KW else 0 for _ in opt_operands)
+    if non_constant_count < 1:
+        final_sexp = r0.to(opt_operands)
         return final_sexp
     return r
 
@@ -210,6 +275,7 @@ def optimize_sexp(r, eval_f):
         eval_q_a_optimizer,
         cons_q_a_optimizer,
         var_change_optimizer,
+        var_change_optimizer_cons_eval,
         children_optimizer,
     ]
 
