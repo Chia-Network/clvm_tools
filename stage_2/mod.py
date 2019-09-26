@@ -2,8 +2,6 @@ from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
 
-from .helpers import brun
-
 
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
@@ -205,7 +203,7 @@ def symbol_replace(sexp, symbol_table, root_node):
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
                 prog = pair.rest().first()
-                return brun(prog, root_node)
+                return prog.to([EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, root_node]])
         return sexp
 
     return sexp.to([b"list"] + [

@@ -210,7 +210,6 @@ def var_change_optimizer_cons_eval(r, eval_f):
         # let eval_q_a_optimizer take care of this
         return r
 
-    eval_sexp_op = eval_sexp.rest().first().first()
     new_eval_sexp_args = sub_args(eval_sexp.rest().first(), orig_args)
 
     new_operands = list(new_eval_sexp_args.as_iter())

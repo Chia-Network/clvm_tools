@@ -3,13 +3,11 @@ from clvm import KEYWORD_TO_ATOM
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-EVAL_KW = KEYWORD_TO_ATOM["e"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
 def eval(prog, args):
-    return prog.to([
-        EVAL_KW, prog, args])
+    return prog.to([[CONS_KW, prog, args]])
 
 
 def run(prog, macro_lookup):
