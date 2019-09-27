@@ -2,12 +2,13 @@ from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
 
+from .helpers import eval, eval_old
+
 
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
-EVAL_KW = KEYWORD_TO_ATOM["e"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
@@ -80,9 +81,9 @@ def new_mod(
         [_ for _ in macros[1:]] +
         functions +
         [uncompiled_main.as_python()])
-    new_com_sexp = ([EVAL_KW, [b"com", [QUOTE_KW, [
-        CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]], [ARGS_KW]])
-    total_sexp = uncompiled_main.to([EVAL_KW, [b"com", [QUOTE_KW, mod_sexp], new_com_sexp], [ARGS_KW]])
+    new_com_sexp = eval_old(uncompiled_main.to([b"com", [QUOTE_KW, [
+        CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
+    total_sexp = eval_old(uncompiled_main.to([b"com", [QUOTE_KW, mod_sexp], new_com_sexp]), [ARGS_KW])
     return total_sexp
 
 
@@ -203,7 +204,7 @@ def symbol_replace(sexp, symbol_table, root_node):
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
                 prog = pair.rest().first()
-                return prog.to([EVAL_KW, [QUOTE_KW, prog], [QUOTE_KW, root_node]])
+                return eval_old(prog.to([QUOTE_KW, prog]), [QUOTE_KW, root_node])
         return sexp
 
     return sexp.to([b"list"] + [
