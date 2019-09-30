@@ -2,7 +2,7 @@ from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
 
-from .helpers import eval, eval_old
+from .helpers import eval
 
 
 ARGS_KW = KEYWORD_TO_ATOM["a"]
@@ -81,9 +81,9 @@ def new_mod(
         [_ for _ in macros[1:]] +
         functions +
         [uncompiled_main.as_python()])
-    new_com_sexp = eval_old(uncompiled_main.to([b"com", [QUOTE_KW, [
+    new_com_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, [
         CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
-    total_sexp = eval_old(uncompiled_main.to([b"com", [QUOTE_KW, mod_sexp], new_com_sexp]), [ARGS_KW])
+    total_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, mod_sexp], new_com_sexp]), [ARGS_KW])
     return total_sexp
 
 

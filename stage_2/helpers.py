@@ -6,11 +6,6 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
-def eval_old(prog, args):
-    EVAL_KW = KEYWORD_TO_ATOM["e"]
-    return prog.to([EVAL_KW, prog, args])
-
-
 def eval(prog, args):
     return prog.to([[CONS_KW, prog, args]])
 
