@@ -117,8 +117,10 @@ def do_com_prog(prog, macro_lookup):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((FORM) . ENV)) => ((c (com (FORM)) (q ())))
-        return eval(prog.to([b"com", operator, [QUOTE_KW, macro_lookup]]), [QUOTE_KW, prog.null()])
+        # (com ((OP) . RIGHT)) => ((c (com (q OP)) (a)))
+        inner_exp = eval(prog.to([b"com", [
+            QUOTE_KW, operator], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
+        return prog.to([inner_exp])
 
     as_atom = operator.as_atom()
 
