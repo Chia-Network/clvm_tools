@@ -7,11 +7,11 @@ from clvm_tools import binutils
 DEFAULT_MACROS_SRC = [
     """
     (defmacro if (A B C)
-        (qq (e
+        (qq ((c
             (i (unquote A)
                (function (unquote B))
                (function (unquote C)))
-            (a))))""",
+            (a)))))""",
     """
     (defmacro and ARGS
         (if ARGS
@@ -28,7 +28,7 @@ DEFAULT_MACRO_LOOKUP = None
 
 
 def build_default_macro_lookup(eval_f):
-    run = binutils.assemble("(e (com (f (a)) (r (a))) (a))")
+    run = binutils.assemble("((c (com (f (a)) (r (a))) (a)))")
     global DEFAULT_MACRO_LOOKUP
     for macro_src in DEFAULT_MACROS_SRC:
         macro_sexp = binutils.assemble(macro_src)

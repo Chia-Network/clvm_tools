@@ -1,11 +1,11 @@
 # this tests defining multiple interdependent macros at once
 run -s2 '(opt (com (q (mod (ARGS) \
     (defmacro if1 (A B C) \
-        (qq (e \
+        (qq ((c \
             (i (unquote A) \
                (function (unquote B)) \
                (function (unquote C))) \
-            (a))) \
+            (a)))) \
     ) \
     (defmacro and1 ARGS \
         (if1 ARGS \
@@ -17,4 +17,4 @@ run -s2 '(opt (com (q (mod (ARGS) \
     ) \
     (and1 (f (a)) 30) \
 ))))'
-(q (e (i (f (a)) (q (q 1)) (q (q ()))) (a)))
+(q ((c (i (f (a)) (q (q 1)) (q (q ()))) (a))))

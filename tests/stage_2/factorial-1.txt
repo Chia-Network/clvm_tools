@@ -1,2 +1,2 @@
-run -s2 '(e (q (e (f (a)) (a))) (list (lambda (self N) (if (= N 1) 1 (* N (e self (list self (- N 1)))))) (f (a))))' '(10)'
+run -s2 '((c (q ((c (f (a)) (a)))) (list (lambda (self N) (if (= N 1) 1 (* N ((c self (list self (- N 1))))))) (f (a)))))' '(10)'
 0x375f00

@@ -24,8 +24,8 @@ def load_declaration(args, root_node):
 def imp_to_defmacro(name, position_sexp):
     position = binutils.disassemble(position_sexp)
     body_src = (
-        "(defmacro %s ARGS (qq (e %s (c (f (a))"
-        " (unquote (c list ARGS))))))" % (
+        "(defmacro %s ARGS (qq ((c %s (c (f (a))"
+        " (unquote (c list ARGS)))))))" % (
             name, position))
     body_sexp = binutils.assemble(body_src)
     return body_sexp
@@ -69,7 +69,7 @@ def build_mac_wrapper(macros, macro_lookup):
     for _ in macros:
         src = binutils.disassemble(_)
         text = "(c %s %s)" % (src, text)
-    wrapper_src = "(e (com (q %s) %s) (a))" % (text, mlt)
+    wrapper_src = "((c (com (q %s) %s) (a)))" % (text, mlt)
     wrapper_sexp = binutils.assemble(wrapper_src)
     return wrapper_sexp
 
@@ -165,7 +165,7 @@ def compile_mod(args, macro_lookup):
 
     imps_tree_src = binutils.disassemble(imps_tree)
     expanded_main_src = binutils.disassemble(expanded_main)
-    entry_src = "(opt (q (e (q %s) (c %s (a))))))" % (
+    entry_src = "(opt (q ((c (q %s) (c %s (a)))))))" % (
         expanded_main_src, imps_tree_src)
 
     return binutils.assemble(entry_src)
