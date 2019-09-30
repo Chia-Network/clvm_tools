@@ -2,7 +2,7 @@ from clvm import KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
 
 from .defaults import default_macro_lookup
-from .helpers import brun, run, eval
+from .helpers import brun, eval
 from .mod import compile_defmacro, compile_mod
 
 
@@ -17,7 +17,7 @@ PASS_THROUGH_OPERATORS = set(
      "wrap unwrap point_add pubkey_for_exp").split()
 )
 
-for _ in "com opt exp".split():
+for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
@@ -95,28 +95,30 @@ COMPILE_BINDINGS = {
 }
 
 
-def do_exp_prog(prog, macro_lookup):
+def do_com_prog(prog, macro_lookup):
     """
+    Turn the given program `prog` into a clvm program using
+    the macros to do transformation.
+
     prog is an uncompiled s-expression.
 
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    (e (com (q PROG) (MACROS)) ARGS) == (e (com (q PROG_EXP) (MACROS)) ARGS)
+    (e (com (q PROG) (MACROS)) ARGS) == (e (q PROG_EXP) ARGS)
     for all ARGS.
 
     Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
-    for all ARGS.
     """
 
     # quote atoms
     if prog.nullp() or not prog.listp():
-        return prog.to([QUOTE_KW, [QUOTE_KW, prog]])
+        return prog.to([QUOTE_KW, prog])
 
     operator = prog.first()
     if operator.listp():
-        # (exp ((FORM) . ENV)) => ((c (exp (FORM)) (q ENV)))
-        return eval(prog.to([b"exp", operator]), [QUOTE_KW, prog.rest()])
+        # (com ((FORM) . ENV)) => ((c (com (FORM)) (q ())))
+        return eval(prog.to([b"com", operator, [QUOTE_KW, macro_lookup]]), [QUOTE_KW, prog.null()])
 
     as_atom = operator.as_atom()
 
@@ -125,44 +127,25 @@ def do_exp_prog(prog, macro_lookup):
         if macro_name.as_atom() == as_atom:
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
-            return post_prog
+            return eval(post_prog.to([b"com", post_prog, [QUOTE_KW, macro_lookup]]), [ARGS_KW])
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup)
-        return post_prog.to([QUOTE_KW, post_prog])
+        return eval(post_prog.to([b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
 
+    if operator == QUOTE_KW:
+        return prog
 
-def do_com_prog(prog, macro_lookup):
-    """
-    prog is an uncompiled s-expression.
-    Returns an equivalent compiled s-expression by calling "exp"
-    or passing through an already compiled operator.
+    if as_atom not in PASS_THROUGH_OPERATORS:
+        raise SyntaxError(
+            "can't compile %s, unknown operator" %
+            disassemble(prog))
 
-    It will not start with "com" (or we're in recursion trouble).
-    """
-
-    expanded_prog = do_exp_prog(prog, macro_lookup)
-    if expanded_prog is not None:
-        return run(expanded_prog, macro_lookup)
-
-    operator = prog.first()
-    if not operator.listp():
-        as_atom = operator.as_atom()
-
-        if as_atom == QUOTE_KW:
-            return prog
-
-        compiled_args = prog.to([
-            run(prog.to([QUOTE_KW, _]), macro_lookup)
-            for _ in prog.rest().as_iter()])
-
-        if as_atom in PASS_THROUGH_OPERATORS:
-            return prog.to(as_atom).cons(compiled_args)
-
-    raise SyntaxError(
-        "can't compile %s, unknown operator" %
-        disassemble(prog))
+    new_args = prog.to([[b"com", [
+        QUOTE_KW, _], [QUOTE_KW, macro_lookup]] for _ in prog.rest().as_iter()])
+    return prog.to([operator] + [
+        eval(_, [ARGS_KW]) for _ in new_args.as_iter()])
 
 
 def do_com(sexp, eval_f):
@@ -172,15 +155,3 @@ def do_com(sexp, eval_f):
     else:
         macro_lookup = default_macro_lookup(eval_f)
     return do_com_prog(prog, macro_lookup)
-
-
-def do_exp(sexp, eval_f):
-    prog = sexp.first()
-    if not sexp.rest().nullp():
-        macro_lookup = sexp.rest().first()
-    else:
-        macro_lookup = default_macro_lookup(eval_f)
-    expanded_sexp = do_exp_prog(prog, macro_lookup)
-    if expanded_sexp:
-        return sexp.to(expanded_sexp)
-    return sexp.to(prog)

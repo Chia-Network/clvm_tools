@@ -1,2 +1,2 @@
-brun -s2 '(exp (q (list 1999 2 3))))'
-(q (c 1999 ("list" 2 3)))
+brun -s2 '(com (q (list 1999 2 3))))'
+(e ("com" (q (c 1999 ("list" 2 3))) (q (("and" (e (i (a) (q (c (q 26982) (c (f (a)) (c (c (q "and") (r (a))) (q (())))))) (q (q 1))) (a))) (26982 (c (q 2) (c (c (q 4) (c (f (a)) (c (c (q "function") (c (f (r (a))) (q ()))) (c (c (q "function") (c (f (r (r (a)))) (q ()))) (q ()))))) (q ((a))))))))) (a))
