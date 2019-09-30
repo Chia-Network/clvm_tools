@@ -204,7 +204,7 @@ def symbol_replace(sexp, symbol_table, root_node):
             symbol = pair.first().as_atom()
             if symbol == sexp.as_atom():
                 prog = pair.rest().first()
-                return eval_old(prog.to([QUOTE_KW, prog]), [QUOTE_KW, root_node])
+                return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, root_node])
         return sexp
 
     return sexp.to([b"list"] + [
