@@ -1,6 +1,5 @@
 # read strings into Token
 
-import binascii
 import io
 
 from clvm import casts
@@ -40,15 +39,14 @@ def iter_ir_format(ir_sexp):
     if type == Type.INT:
         yield "%d" % casts.int_from_bytes(atom)
     elif type == Type.HEX:
-        yield "0x%s" % binascii.hexlify(atom).decode("utf8")
+        yield "0x%s" % atom.hex()
     elif type == Type.QUOTES:
         yield '"%s"' % atom.decode("utf8")
     elif type == Type.SYMBOL:
         try:
             yield atom.decode("utf8")
         except UnicodeDecodeError:
-            yield "(undecypherable symbol: %s)" % binascii.hexlify(
-                atom).decode("utf8")
+            yield "(undecypherable symbol: %s)" % atom.hex()
     else:
         raise SyntaxError("bad ir format: %s" % ir_sexp)
 

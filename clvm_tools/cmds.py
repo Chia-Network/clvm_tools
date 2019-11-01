@@ -52,7 +52,7 @@ def opc(args=sys.argv):
         compiled_script = sexp.as_bin()
         if args.script_hash:
             print(hashlib.sha256(compiled_script).hexdigest())
-        print(binascii.hexlify(compiled_script).decode())
+        print(compiled_script.hex())
 
 
 def opd(args=sys.argv):
@@ -135,7 +135,7 @@ def launch_tool(args, tool_name, default_stage=0):
         result = eval_f(eval_f, run_script, input_sexp)
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
-            output = binascii.hexlify(blob).decode("utf8")
+            output = blob.hex()
         else:
             output = binutils.disassemble(result)
     except EvalError as ex:
@@ -164,7 +164,7 @@ def read_ir(args=sys.argv):
 
     sexp = reader.read_ir(args.script)
     blob = stream_to_bin(lambda f: sexp_to_stream(sexp, f))
-    print(binascii.hexlify(blob).decode())
+    print(blob.hex())
 
 
 """
