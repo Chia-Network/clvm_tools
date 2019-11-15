@@ -1,5 +1,4 @@
 import argparse
-import binascii
 import hashlib
 import importlib
 import io
@@ -60,7 +59,7 @@ def opd(args=sys.argv):
         description='Disassemble a compiled clvm script.'
     )
     parser.add_argument(
-        "script", nargs="+", type=binascii.unhexlify,
+        "script", nargs="+", type=bytes.fromhex,
         help="hex version of clvm script")
     args = parser.parse_args(args=args[1:])
 

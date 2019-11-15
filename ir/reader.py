@@ -1,7 +1,5 @@
 # read strings into Token
 
-import binascii
-
 from clvm import to_sexp_f
 
 
@@ -71,7 +69,7 @@ def tokenize_hex(token, offset):
             token = token[2:]
             if len(token) % 2 == 1:
                 token = "0%s" % token
-            return binascii.unhexlify(token)
+            return bytes.fromhex(token)
         except Exception:
             raise SyntaxError("invalid hex at %s: 0x%s" % (offset, token))
 
