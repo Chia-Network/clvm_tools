@@ -11,11 +11,7 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
-PASS_THROUGH_OPERATORS = set(
-    KEYWORD_TO_ATOM[_] for _ in
-    ("e a i c f r l x = sha256 + - * . "
-     "wrap unwrap point_add pubkey_for_exp").split()
-)
+PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 
 for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
