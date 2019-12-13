@@ -22,7 +22,8 @@ setup(
                 'opd = clvm_tools.cmds:opd',
                 'run = clvm_tools.cmds:run',
                 'brun = clvm_tools.cmds:brun',
-            ]
+            ],
+        "setuptools.file_finders": ["clvmc = clvm_tools.clvmc:find_files", ],
         },
     author_email="kiss@chia.net",
     url="https://github.com/Chia-Network",
