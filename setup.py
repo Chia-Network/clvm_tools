@@ -2,7 +2,11 @@
 
 from setuptools import setup
 
+from clvm_tools.setuptools import build_clvm, monkey_patch
 from clvm_tools.version import version
+
+monkey_patch()
+
 
 setup(
     name="clvm_tools",
@@ -10,6 +14,7 @@ setup(
     packages=[
         "ir",
         "clvm_tools",
+        "clvm_tools.setuptools",
         "stage_2",
     ],
     author="Chia Network, Inc.",
@@ -23,7 +28,6 @@ setup(
                 'run = clvm_tools.cmds:run',
                 'brun = clvm_tools.cmds:brun',
             ],
-        "setuptools.file_finders": ["clvmc = clvm_tools.clvmc:find_files", ],
         },
     author_email="kiss@chia.net",
     url="https://github.com/Chia-Network",
