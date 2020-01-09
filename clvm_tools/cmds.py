@@ -10,7 +10,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from ir import reader
 
-from . import binutils, patch_sexp
+from . import binutils, patch_sexp  # noqa
 from .debug import make_trace_pre_and_post_eval, trace_to_text
 
 

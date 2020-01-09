@@ -2,10 +2,7 @@
 
 from setuptools import setup
 
-from clvm_tools.setuptools import build_clvm, monkey_patch
 from clvm_tools.version import version
-
-monkey_patch()
 
 
 setup(
