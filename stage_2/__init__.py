@@ -1,4 +1,4 @@
-from .bindings import EVAL_F, brun, run  # noqa
+from .bindings import EVAL_COST, brun, run  # noqa
 
 
 """

@@ -112,7 +112,7 @@ def launch_tool(args, tool_name, default_stage=0):
 
     args = parser.parse_args(args=args[1:])
 
-    eval_f = args.stage.EVAL_F
+    eval_cost = args.stage.EVAL_COST
 
     src_text = args.path_or_code
     src_sexp = reader.read_ir(src_text)
@@ -123,7 +123,7 @@ def launch_tool(args, tool_name, default_stage=0):
         def transform_exception(ex):
             return to_sexp_f(("FAIL: %s" % str(ex)).encode("utf8"))
 
-        eval_f, log_entries = make_tracing_f(eval_f, transform_exception)
+        eval_cost, log_entries = make_tracing_f(eval_cost, transform_exception)
 
     run_script = getattr(args.stage, tool_name)
 
@@ -131,7 +131,7 @@ def launch_tool(args, tool_name, default_stage=0):
         output = "(didn't finish)"
         env = binutils.assemble_from_ir(args.args)
         input_sexp = to_sexp_f((assembled_sexp, env))
-        result = eval_f(eval_f, run_script, input_sexp)
+        cost, result = eval_cost(eval_cost, run_script, input_sexp)
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = blob.hex()

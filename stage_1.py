@@ -1,13 +1,13 @@
-from clvm import eval_f
+from clvm import eval_cost
 
 from clvm_tools import binutils
-from clvm_tools.patch_eval_f import bind_eval_f
+from clvm_tools.patch_eval_f import bind_eval_cost
 
 
 def make_invocation(code):
 
-    def invoke(args, eval_f):
-        r = eval_f(eval_f, code, args)
+    def invoke(args, eval_cost):
+        cost, r = eval_cost(eval_cost, code, args)
         return r
 
     return invoke
@@ -21,15 +21,15 @@ def make_bindings(bindings_sexp):
     return binding_table
 
 
-def do_bind(args, eval_f):
+def do_bind(args, eval_cost):
     if len(args.as_python()) != 3:
         raise SyntaxError("bind requires 3 arguments")
     bindings = args.first()
     sexp = args.rest().first()
     env = args.rest().rest().first()
     new_bindings = make_bindings(bindings)
-    new_eval_f = bind_eval_f(eval_f, new_bindings)
-    return new_eval_f(new_eval_f, sexp, env)
+    new_eval_cost = bind_eval_cost(eval_cost, new_bindings)
+    return new_eval_cost(new_eval_cost, sexp, env)
 
 
 BINDINGS = {
@@ -37,6 +37,6 @@ BINDINGS = {
 }
 
 
-EVAL_F = bind_eval_f(eval_f, BINDINGS)
+EVAL_COST = bind_eval_cost(eval_cost, BINDINGS)
 
 brun = run = binutils.assemble("((c (f (a)) (r (a))))")

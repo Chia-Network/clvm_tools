@@ -1,8 +1,8 @@
-from clvm import eval_f
+from clvm import eval_cost
 
 from clvm_tools import binutils
 
-EVAL_F = eval_f
+EVAL_COST = eval_cost
 
 brun = run = binutils.assemble("((c (f (a)) (r (a))))")
 

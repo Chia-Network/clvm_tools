@@ -24,8 +24,8 @@ def build_clvm_hex(path):
         assembled_sexp = binutils.assemble_from_ir(ir_src)
 
         input_sexp = assembled_sexp.to((assembled_sexp, []))
-        eval_f = stage_2.EVAL_F
-        result = eval_f(eval_f, stage_2.run, input_sexp)
+        eval_cost = stage_2.EVAL_COST
+        cost, result = eval_cost(eval_cost, stage_2.run, input_sexp)
         hex = result.as_bin().hex()
 
         with open(output_path, "w") as f:

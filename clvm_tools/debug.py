@@ -78,17 +78,11 @@ def trace_to_html(invocations, disassemble):
 
 
 def trace_to_text(trace, disassemble):
-    for (form, env), rv in trace:
+    for item in trace:
+        (form, env, *args), (cost, rv) = item
         env_str = disassemble(env)
-        rewrit_form = form
-        if form != rewrit_form:
-            print("%s -> %s [%s] => %s" % (
-                disassemble(form),
-                disassemble(rewrit_form),
-                env_str, disassemble(rv)))
-        else:
-            print("%s [%s] => %s" % (
-                disassemble(form), env_str, disassemble(rv)))
+        print("%s [%s] => %s" % (
+            disassemble(form), env_str, disassemble(rv)))
         print("")
 
 

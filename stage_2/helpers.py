@@ -14,7 +14,7 @@ def run(prog, macro_lookup):
     """
     PROG => (e (com (q PROG) (mac)) ARGS)
 
-    The result can be evaluated with the stage_com eval_f
+    The result can be evaluated with the stage_com eval_cost
     function.
     """
     args = [ARGS_KW]

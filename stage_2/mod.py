@@ -16,9 +16,10 @@ def load_declaration(args, root_node):
     symbol_table = symbol_table_sexp(args.first())
     expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
         args.rest().first(), symbol_table, root_node)]])
-    from .bindings import EVAL_F
+    from .bindings import EVAL_COST
     null = expansion.null()
-    return EVAL_F(EVAL_F, expansion, null)
+    cost, r = EVAL_COST(EVAL_COST, expansion, null)
+    return r
 
 
 def imp_to_defmacro(name, position_sexp):
@@ -48,18 +49,21 @@ def build_positions(function_items, to_sexp_f):
     function_pairs = list(function_items)
     tree_prog = to_sexp_f(build_tree_prog([[
         QUOTE_KW, _[0]] for _ in function_pairs]))
-    from .bindings import EVAL_F
-    tree = EVAL_F(EVAL_F, tree_prog, null)
+    from .bindings import EVAL_COST
+    cost, tree = EVAL_COST(EVAL_COST, tree_prog, null)
     symbol_table = symbol_table_sexp(tree)
     root_node = to_sexp_f([FIRST_KW, [ARGS_KW]])
     d = {}
     for pair in symbol_table.as_iter():
         name = pair.first().as_atom()
         prog = pair.rest().first()
-        position = EVAL_F(EVAL_F, prog, root_node)
+        cost, position = EVAL_COST(EVAL_COST, prog, root_node)
         d[name] = position
 
-    expanded_imps = [EVAL_F(EVAL_F, _[1], null) for _ in function_pairs]
+    expanded_imps = []
+    for _ in function_pairs:
+        cost, r = EVAL_COST(EVAL_COST, _[1], null)
+        expanded_imps.append(r)
     return d, expanded_imps
 
 
@@ -144,10 +148,10 @@ def compile_mod(args, macro_lookup):
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
 
-    from .bindings import EVAL_F
+    from .bindings import EVAL_COST
 
     compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
-    expanded_main = EVAL_F(EVAL_F, binutils.assemble(compiled_main_src), null)
+    cost, expanded_main = EVAL_COST(EVAL_COST, binutils.assemble(compiled_main_src), null)
 
     if not defuns:
         # no functions, just macros
@@ -156,7 +160,8 @@ def compile_mod(args, macro_lookup):
     imps = []
     for _ in pre_subtituted_imps:
         sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
-        imps.append(EVAL_F(EVAL_F, sub_sexp, null))
+        cost, r = EVAL_COST(EVAL_COST, sub_sexp, null)
+        imps.append(r)
     imps_sexp = args.to(imps)
 
     imps_tree_prog = build_tree_prog(
