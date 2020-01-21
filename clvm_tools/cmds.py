@@ -101,6 +101,10 @@ def launch_tool(args, tool_name, default_stage=0):
         "-v", "--verbose", action="store_true",
         help="Display resolve of all reductions, for debugging")
     parser.add_argument(
+        "-c", "--cost", action="store_true", help="Show cost")
+    parser.add_argument(
+        "-m", "--max-cost", type=int, help="Maximum cost")
+    parser.add_argument(
         "-d", "--dump", action="store_true",
         help="dump hex version of final output")
     parser.add_argument(
@@ -127,11 +131,14 @@ def launch_tool(args, tool_name, default_stage=0):
 
     run_script = getattr(args.stage, tool_name)
 
+    cost = 0
     try:
         output = "(didn't finish)"
         env = binutils.assemble_from_ir(args.args)
         input_sexp = to_sexp_f((assembled_sexp, env))
-        cost, result = eval_cost(eval_cost, run_script, input_sexp)
+        cost, result = eval_cost(eval_cost, run_script, input_sexp, max_cost=args.max_cost)
+        if args.cost:
+            print("cost = %d" % cost)
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = blob.hex()
