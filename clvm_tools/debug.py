@@ -79,30 +79,22 @@ def trace_to_html(invocations, disassemble):
 
 def trace_to_text(trace, disassemble):
     for item in trace:
-        (form, env, *args), (cost, rv) = item
+        form, env, cost_before, cost_after, rv = item
         env_str = disassemble(env)
         print("%s [%s] => %s" % (
             disassemble(form), env_str, disassemble(rv)))
         print("")
 
 
-def make_tracing_f(inner_f, exception_cast=lambda ex: ex):
-    """
-    exception_cast is applied to an exception
-        before it's logged as the return value
-    """
-    log_entries = []
+def make_trace_pre_and_post_eval(log_entries):
 
-    def tracing_f(self, *args):
-        try:
-            log_entry = [tuple(args), None]
-            log_entries.append(log_entry)
-            rv = inner_f(self, *args)
-        except Exception as ex:
-            rv = exception_cast(ex)
-            raise
-        finally:
-            log_entry[-1] = rv
-        return rv
+    def pre_eval_f(sexp, args, current_cost, max_cost):
+        log_entry = [sexp, args, current_cost, None, None]
+        log_entries.append(log_entry)
+        return log_entry
 
-    return tracing_f, log_entries
+    def post_eval_f(context, r):
+        log_entry = context
+        log_entry[-2:] = r
+
+    return pre_eval_f, post_eval_f

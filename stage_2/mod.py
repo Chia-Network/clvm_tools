@@ -16,9 +16,9 @@ def load_declaration(args, root_node):
     symbol_table = symbol_table_sexp(args.first())
     expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
         args.rest().first(), symbol_table, root_node)]])
-    from .bindings import EVAL_COST
+    from .bindings import run_program
     null = expansion.null()
-    cost, r = EVAL_COST(EVAL_COST, expansion, null)
+    cost, r = run_program(expansion, null)
     return r
 
 
@@ -49,20 +49,20 @@ def build_positions(function_items, to_sexp_f):
     function_pairs = list(function_items)
     tree_prog = to_sexp_f(build_tree_prog([[
         QUOTE_KW, _[0]] for _ in function_pairs]))
-    from .bindings import EVAL_COST
-    cost, tree = EVAL_COST(EVAL_COST, tree_prog, null)
+    from .bindings import run_program
+    cost, tree = run_program(tree_prog, null)
     symbol_table = symbol_table_sexp(tree)
     root_node = to_sexp_f([FIRST_KW, [ARGS_KW]])
     d = {}
     for pair in symbol_table.as_iter():
         name = pair.first().as_atom()
         prog = pair.rest().first()
-        cost, position = EVAL_COST(EVAL_COST, prog, root_node)
+        cost, position = run_program(prog, root_node)
         d[name] = position
 
     expanded_imps = []
     for _ in function_pairs:
-        cost, r = EVAL_COST(EVAL_COST, _[1], null)
+        cost, r = run_program(_[1], null)
         expanded_imps.append(r)
     return d, expanded_imps
 
@@ -148,10 +148,10 @@ def compile_mod(args, macro_lookup):
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
 
-    from .bindings import EVAL_COST
+    from .bindings import run_program
 
     compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
-    cost, expanded_main = EVAL_COST(EVAL_COST, binutils.assemble(compiled_main_src), null)
+    cost, expanded_main = run_program(binutils.assemble(compiled_main_src), null)
 
     if not defuns:
         # no functions, just macros
@@ -160,7 +160,7 @@ def compile_mod(args, macro_lookup):
     imps = []
     for _ in pre_subtituted_imps:
         sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
-        cost, r = EVAL_COST(EVAL_COST, sub_sexp, null)
+        cost, r = run_program(sub_sexp, null)
         imps.append(r)
     imps_sexp = args.to(imps)
 

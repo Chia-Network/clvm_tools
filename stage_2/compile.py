@@ -146,10 +146,13 @@ def do_com_prog(prog, macro_lookup):
         eval(_, [ARGS_KW]) for _ in new_args.as_iter()])
 
 
-def do_com(sexp, eval_cost):
+def do_com(sexp, eval):
     prog = sexp.first()
     if not sexp.rest().nullp():
         macro_lookup = sexp.rest().first()
     else:
-        macro_lookup = default_macro_lookup(eval_cost)
+        macro_lookup = default_macro_lookup(eval)
     return do_com_prog(prog, macro_lookup)
+
+
+do_com.needs_eval = 1

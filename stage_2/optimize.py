@@ -29,19 +29,19 @@ def seems_constant(sexp):
     return all(seems_constant(_) for _ in sexp.rest().as_iter())
 
 
-def constant_optimizer(r, eval_cost):
+def constant_optimizer(r, eval):
     """
     If the expression does not depend upon (a) anywhere,
     it's a constant. So we can simply evaluate it and
     return the quoted result.
     """
     if seems_constant(r):
-        cost, r1 = eval_cost(eval_cost, r, r.null())
+        cost, r1 = eval(r, r.null())
         r = r.to([QUOTE_KW, r1])
     return r
 
 
-def eval_q_a_optimizer(r, eval_cost):
+def eval_q_a_optimizer(r, eval):
     """
     This applies the transform
     (e (q SEXP) (a)) => SEXP
@@ -66,7 +66,7 @@ def eval_q_a_optimizer(r, eval_cost):
     return first_arg.rest().first()
 
 
-def cons_q_a_optimizer(r, eval_cost):
+def cons_q_a_optimizer(r, eval):
     """
     This applies the transform
     ((c (q SEXP) (a))) => SEXP
@@ -115,7 +115,7 @@ def sub_args(sexp, new_args):
     return sexp.to([sub_args(_, new_args) for _ in sexp.as_iter()])
 
 
-def var_change_optimizer(r, eval_cost):
+def var_change_optimizer(r, eval):
     """
     This applies the transform
     (e (q (op SEXP1...)) (ARGS)) => (op SEXP1' ...) where ARGS != (a)
@@ -151,7 +151,7 @@ def var_change_optimizer(r, eval_cost):
     new_sexp = sub_args(inner_sexp, new_args)
 
     new_operands = list(new_sexp.rest().as_iter())
-    opt_operands = [optimize_sexp(_, eval_cost) for _ in new_operands]
+    opt_operands = [optimize_sexp(_, eval) for _ in new_operands]
     non_constant_count = sum(1 if _.first() != QUOTE_KW else 0 for _ in opt_operands)
     if non_constant_count < 1:
         final_sexp = r.to([first_arg.rest().first().first()] + opt_operands)
@@ -159,7 +159,7 @@ def var_change_optimizer(r, eval_cost):
     return r
 
 
-def var_change_optimizer_cons_eval(r, eval_cost):
+def var_change_optimizer_cons_eval(r, eval):
     """
     This applies the transform
     ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != (a)
@@ -213,7 +213,7 @@ def var_change_optimizer_cons_eval(r, eval_cost):
     new_eval_sexp_args = sub_args(eval_sexp.rest().first(), orig_args)
 
     new_operands = list(new_eval_sexp_args.as_iter())
-    opt_operands = [optimize_sexp(_, eval_cost) for _ in new_operands]
+    opt_operands = [optimize_sexp(_, eval) for _ in new_operands]
     non_constant_count = sum(1 if _.listp() and _.first() != QUOTE_KW else 0 for _ in opt_operands)
     if non_constant_count < 1:
         final_sexp = r0.to(opt_operands)
@@ -221,7 +221,7 @@ def var_change_optimizer_cons_eval(r, eval_cost):
     return r
 
 
-def children_optimizer(r, eval_cost):
+def children_optimizer(r, eval):
     """
     Recursively apply optimizations to all non-quoted child nodes.
     """
@@ -230,10 +230,10 @@ def children_optimizer(r, eval_cost):
         op = operator.as_atom()
         if op == QUOTE_KW:
             return r
-    return r.to([optimize_sexp(_, eval_cost) for _ in r.as_iter()])
+    return r.to([optimize_sexp(_, eval) for _ in r.as_iter()])
 
 
-def cons_optimizer(r, eval_cost):
+def cons_optimizer(r, eval):
     """
     This applies the transform
     (f (c A B)) => A
@@ -260,7 +260,7 @@ def cons_optimizer(r, eval_cost):
     return r
 
 
-def optimize_sexp(r, eval_cost):
+def optimize_sexp(r, eval):
     """
     Optimize an s-expression R written for clvm to R_opt where
     (e R args) == (e R_opt args) for ANY args.
@@ -281,7 +281,7 @@ def optimize_sexp(r, eval_cost):
     while True:
         start_r = r
         for opt in OPTIMIZERS:
-            r = opt(r, eval_cost)
+            r = opt(r, eval)
             if start_r != r:
                 break
         if start_r == r:
@@ -291,5 +291,8 @@ def optimize_sexp(r, eval_cost):
                 opt.__name__, start_r, r))
 
 
-def do_opt(args, eval_cost):
-    return optimize_sexp(args.first(), eval_cost)
+def do_opt(args, eval):
+    return optimize_sexp(args.first(), eval)
+
+
+do_opt.needs_eval = 1

@@ -1,8 +1,8 @@
-from clvm import eval_cost
+from clvm import run_program  # noqa
+
+from clvm.runtime_001 import OPERATOR_LOOKUP  # noqa
 
 from clvm_tools import binutils
-
-EVAL_COST = eval_cost
 
 brun = run = binutils.assemble("((c (f (a)) (r (a))))")
 
