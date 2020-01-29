@@ -5,7 +5,7 @@ from setuptools import setup
 
 setup(
     name="clvm_tools",
-    packages=["ir", "clvm_tools", "clvm_tools.setuptools", "stage_2",],
+    packages=["ir", "clvm_tools", "clvm_tools.setuptools", "stage_0", "stage_2",],
     author="Chia Network, Inc.",
     entry_points={
         "console_scripts": [
