@@ -69,7 +69,7 @@ def opd(args=sys.argv):
 
 
 def stage_import(stage):
-    stage_path = "stage_%s" % stage
+    stage_path = "stages.stage_%s" % stage
     try:
         return importlib.import_module(stage_path)
     except ImportError:

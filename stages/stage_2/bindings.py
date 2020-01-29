@@ -1,5 +1,5 @@
-from stage_0 import run_program as run_program_0
-from stage_0 import OPERATOR_LOOKUP
+from stages.stage_0 import run_program as run_program_0
+from stages.stage_0 import OPERATOR_LOOKUP
 
 from clvm_tools import binutils
 
