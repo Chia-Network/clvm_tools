@@ -6,10 +6,9 @@ from distutils.dep_util import newer
 import os
 import pathlib
 
-import stages.stage_2
-
 from ir import reader
 from clvm_tools import binutils
+from stages import stage_2
 
 
 def compile_clvm(input_path, output_path):
