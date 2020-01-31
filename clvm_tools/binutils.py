@@ -1,6 +1,7 @@
 import string
 
 from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
+from clvm.casts import int_from_bytes, int_to_bytes
 
 from ir.reader import read_ir
 from ir.writer import write_ir
@@ -51,7 +52,9 @@ def type_for_atom(atom):
         except UnicodeDecodeError:
             pass
         return Type.HEX
-    return Type.INT
+    if int_to_bytes(int_from_bytes(atom)) == atom:
+        return Type.INT
+    return Type.HEX
 
 
 def disassemble_to_ir(sexp, allow_keyword=None):
