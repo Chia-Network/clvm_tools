@@ -13,9 +13,16 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
 def load_declaration(args, root_node):
-    symbol_table = symbol_table_sexp(args.first())
+    """
+    Parse and compile an anonymous function declaration s-expression.
+
+    This takes a defun or defmacro declaration (with the keyword stripped away)
+    and substitutes all references to local arguments with a drill-down
+    argument path like (f (r (... root_node))).
+    """
+    local_symbol_table = symbol_table_sexp(args.first())
     expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
-        args.rest().first(), symbol_table, root_node)]])
+        args.rest().first(), local_symbol_table, root_node)]])
     from .bindings import run_program
     null = expansion.null()
     cost, r = run_program(expansion, null)
@@ -23,6 +30,11 @@ def load_declaration(args, root_node):
 
 
 def imp_to_defmacro(name, position_sexp):
+    """
+    This function takes a symbol name (which represents a function)
+    and defines a macro to replace it with an invocation in the given
+    position. Then it's added to the macro region and compiled.
+    """
     position = binutils.disassemble(position_sexp)
     body_src = (
         "(defmacro %s ARGS (qq ((c %s (c (f (a))"
@@ -33,6 +45,15 @@ def imp_to_defmacro(name, position_sexp):
 
 
 def build_tree_prog(items):
+    """
+    This function takes a Python list of items and turns it into a program that,
+    when run, will produce a tree of the items within.
+
+    NOTE: It produces a constant program, so there's really no reason not to just
+    immediately execute it.
+
+    TODO: This should probably be revisited.
+    """
     size = len(items)
     if size == 1:
         return items[0]
@@ -43,6 +64,16 @@ def build_tree_prog(items):
 
 
 def build_positions(function_items, to_sexp_f):
+    """
+    Take a list of pairs of (name, function) and build a tree of them.
+    The name is a byte label. The function is an s-expression with local arguments already
+    substituted out (but globals not).
+
+    Return a dictionary and a list.
+
+    The dictionary is a lookup of name to position in the tree (as an s-expression path).
+    The list contains s-expressions implementing the functions.
+    """
 
     null = to_sexp_f([])
 
@@ -68,6 +99,11 @@ def build_positions(function_items, to_sexp_f):
 
 
 def build_mac_wrapper(macros, macro_lookup):
+    """
+    Given a set of new macros and the existing macro lookup table, build a
+    new macro lookup table that includes both the existing ones and the
+    new ones.
+    """
     mlt = "(q %s)" % binutils.disassemble(macro_lookup)
     text = mlt
     for _ in macros:
@@ -80,6 +116,11 @@ def build_mac_wrapper(macros, macro_lookup):
 
 def new_mod(
         macros, functions, constants, main_symbols, uncompiled_main, macro_lookup):
+    """
+    If "mod" declares new macros, we strip them out and simply start again, moving the new
+    macros to the lookup argument of the "com" keyword, and compiled the module free of
+    macros.
+    """
     mod_sexp = (
         [b"mod", main_symbols] +
         [_ for _ in macros[1:]] +
@@ -92,6 +133,9 @@ def new_mod(
 
 
 def compile_mod(args, macro_lookup):
+    """
+    Deal with the "mod" keyword.
+    """
     null = args.null()
 
     functions = []
@@ -227,6 +271,9 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
 
 
 def symbol_replace(sexp, symbol_table, root_node):
+    """
+    Look for unresolved symbols in the symbol table and replace them with paths.
+    """
     if sexp.nullp():
         return sexp
 
@@ -244,6 +291,9 @@ def symbol_replace(sexp, symbol_table, root_node):
 
 
 def compile_defmacro(args, macro_lookup):
+    """
+    Deal with "defmacro" keyword.
+    """
     macro_name = args.first()
     return args.to([
         b"list", macro_name, compile_mod(args.rest(), macro_lookup)])
