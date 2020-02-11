@@ -44,23 +44,18 @@ def imp_to_defmacro(name, position_sexp):
     return body_sexp
 
 
-def build_tree_prog(items):
+def build_tree(items):
     """
-    This function takes a Python list of items and turns it into a program that,
-    when run, will produce a tree of the items within.
-
-    NOTE: It produces a constant program, so there's really no reason not to just
-    immediately execute it.
-
-    TODO: This should probably be revisited.
+    This function takes a Python list of items and turns it into a binary tree
+    of the items, suitable for casting to an s-expression.
     """
     size = len(items)
     if size == 1:
         return items[0]
     half_size = size >> 1
-    left = build_tree_prog(items[:half_size])
-    right = build_tree_prog(items[half_size:])
-    return [CONS_KW, left, right]
+    left = build_tree(items[:half_size])
+    right = build_tree(items[half_size:])
+    return (left, right)
 
 
 def build_positions(function_items, to_sexp_f):
@@ -78,10 +73,8 @@ def build_positions(function_items, to_sexp_f):
     null = to_sexp_f([])
 
     function_pairs = list(function_items)
-    tree_prog = to_sexp_f(build_tree_prog([[
-        QUOTE_KW, _[0]] for _ in function_pairs]))
+    tree = to_sexp_f(build_tree([_[0] for _ in function_pairs]))
     from .bindings import run_program
-    cost, tree = run_program(tree_prog, null)
     symbol_table = symbol_table_sexp(tree)
     root_node = to_sexp_f([FIRST_KW, [ARGS_KW]])
     d = {}
@@ -226,13 +219,10 @@ def compile_mod(args, macro_lookup):
         imps.append(r)
     imps_sexp = args.to(imps)
 
-    imps_tree_prog = build_tree_prog(
-        list([QUOTE_KW, _] for _ in imps_sexp.as_iter()))
-    imps_tree = imps_sexp.to(imps_tree_prog)
-
+    imps_tree = imps_sexp.to(build_tree(imps_sexp.as_python()))
     imps_tree_src = binutils.disassemble(imps_tree)
     expanded_main_src = binutils.disassemble(expanded_main)
-    entry_src = "(opt (q ((c (q %s) (c %s (a)))))))" % (
+    entry_src = "(opt (q ((c (q %s) (c (q %s) (a)))))))" % (
         expanded_main_src, imps_tree_src)
 
     return binutils.assemble(entry_src)
