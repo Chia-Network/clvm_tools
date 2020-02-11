@@ -79,11 +79,11 @@ def build_mac_wrapper(macros, macro_lookup):
 
 
 def new_mod(
-        macros, functions, main_symbols, uncompiled_main, macro_lookup):
+        macros, functions, constants, main_symbols, uncompiled_main, macro_lookup):
     mod_sexp = (
         [b"mod", main_symbols] +
         [_ for _ in macros[1:]] +
-        functions +
+        functions + constants +
         [uncompiled_main.as_python()])
     new_com_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, [
         CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
@@ -95,33 +95,51 @@ def compile_mod(args, macro_lookup):
     null = args.null()
 
     functions = []
+    constants = []
     macros = []
     main_symbols = args.first()
 
+    # stage 1: collect up names of globals (functions, constants, macros)
+
+    namespace = set()
     while True:
         args = args.rest()
         if args.rest().nullp():
             break
         declaration_sexp = args.first()
         op = declaration_sexp.first().as_atom()
+        name = declaration_sexp.rest().first().as_atom()
+        if name in namespace:
+            raise SyntaxError('symbol "%s" redefined' % name.decode())
+        namespace.add(name)
         if op == b"defmacro":
             macros.append(declaration_sexp)
             continue
         if op == b"defun":
             functions.append(declaration_sexp)
             continue
-        raise SyntaxError("expected defun or defmacro")
+        if op == b"defconstant":
+            constants.append(declaration_sexp)
+            continue
+        raise SyntaxError("expected defun, defmacro, or defconstant")
+
+    if constants:
+        raise SyntaxError("defconstant not yet supported")
 
     uncompiled_main = args.first()
 
+    # if we have any macros, restart with the macros parsed as arguments to "com"
+
     if macros:
         return new_mod(
-            macros, functions, main_symbols,
+            macros, functions, constants, main_symbols,
             uncompiled_main, macro_lookup)
 
     root_node = args.to([ARGS_KW])
     if functions:
         root_node = args.to([REST_KW, root_node])
+
+    # build defuns table, with function names as keys
 
     defuns = {}
     for function in functions:
@@ -177,6 +195,14 @@ def compile_mod(args, macro_lookup):
 
 
 def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
+    """
+    This function takes an s-expression sexp and returns a list (as an s-expression)
+    of pairs of the form (label, path-function).
+
+    For a given label, the path function can be called with "run_program" where args
+    is the base s-expression to the root of the tree, and it will generate the
+    program that gives the path to the label.
+    """
     if sexp.nullp():
         return sexp
 
