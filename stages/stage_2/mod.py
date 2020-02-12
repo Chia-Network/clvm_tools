@@ -254,9 +254,8 @@ def compile_mod(args, macro_lookup):
         sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
         cost, r = run_program(sub_sexp, null)
         imps.append(r)
-    imps_sexp = args.to(imps)
 
-    imps_tree = imps_sexp.to(build_tree(imps_sexp.as_python()))
+    imps_tree = args.to(build_tree(imps))
     imps_tree_src = binutils.disassemble(imps_tree)
     expanded_main_src = binutils.disassemble(expanded_main)
     entry_src = "(opt (q ((c (q %s) (c (q %s) (a)))))))" % (
