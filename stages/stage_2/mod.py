@@ -109,6 +109,10 @@ def build_mac_wrapper(macros, macro_lookup):
     return wrapper_sexp
 
 
+def to_defconstant(_):
+    return [b"defconstant", _[0], _[1]]
+
+
 def new_mod(
         macros, functions, constants, main_local_arguments, uncompiled_main, macro_lookup):
     """
@@ -119,7 +123,8 @@ def new_mod(
     mod_sexp = (
         [b"mod", main_local_arguments] +
         [_ for _ in macros[1:]] +
-        functions + constants +
+        functions +
+        list(to_defconstant(_) for _ in constants.items()) +
         [uncompiled_main.as_python()])
     new_com_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, [
         CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
@@ -133,7 +138,7 @@ def compile_mod_stage_1(args):
     """
 
     functions = []
-    constants = []
+    constants = {}
     macros = []
     main_local_arguments = args.first()
 
@@ -155,7 +160,7 @@ def compile_mod_stage_1(args):
             functions.append(declaration_sexp)
             continue
         if op == b"defconstant":
-            constants.append(declaration_sexp)
+            constants[name] = declaration_sexp.rest().rest().first().as_atom()
             continue
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
