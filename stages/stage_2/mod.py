@@ -113,6 +113,10 @@ def to_defconstant(_):
     return [b"defconstant", _[0], _[1]]
 
 
+def to_defun(_):
+    return _[1]
+
+
 def new_mod(
         macros, functions, constants, main_local_arguments, uncompiled_main, macro_lookup):
     """
@@ -123,7 +127,7 @@ def new_mod(
     mod_sexp = (
         [b"mod", main_local_arguments] +
         [_ for _ in macros[1:]] +
-        functions +
+        list(to_defun(_) for _ in functions.items()) +
         list(to_defconstant(_) for _ in constants.items()) +
         [uncompiled_main.as_python()])
     new_com_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, [
@@ -137,7 +141,7 @@ def compile_mod_stage_1(args):
     stage 1: collect up names of globals (functions, constants, macros)
     """
 
-    functions = []
+    functions = {}
     constants = {}
     macros = []
     main_local_arguments = args.first()
@@ -157,7 +161,7 @@ def compile_mod_stage_1(args):
             macros.append(declaration_sexp)
             continue
         if op == b"defun":
-            functions.append(declaration_sexp)
+            functions[name] = declaration_sexp
             continue
         if op == b"defconstant":
             constants[name] = declaration_sexp.rest().rest().first().as_atom()
@@ -177,10 +181,8 @@ def build_function_table(functions, root_node):
     """
 
     defuns = {}
-    for function in functions:
-        declaration_sexp = function.rest()
-        function_name = declaration_sexp.first().as_atom()
-        declaration_sexp = declaration_sexp.rest()
+    for function_name, function in functions.items():
+        declaration_sexp = function.rest().rest()
         imp = load_declaration(declaration_sexp, root_node)
         defuns[function_name] = imp
     position_lookup, pre_substituted_imps = build_positions(
