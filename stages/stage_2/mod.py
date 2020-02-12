@@ -50,6 +50,8 @@ def build_tree(items):
     of the items, suitable for casting to an s-expression.
     """
     size = len(items)
+    if size == 0:
+        return []
     if size == 1:
         return items[0]
     half_size = size >> 1
@@ -108,14 +110,14 @@ def build_mac_wrapper(macros, macro_lookup):
 
 
 def new_mod(
-        macros, functions, constants, main_symbols, uncompiled_main, macro_lookup):
+        macros, functions, constants, main_local_arguments, uncompiled_main, macro_lookup):
     """
     If "mod" declares new macros, we strip them out and simply start again, moving the new
     macros to the lookup argument of the "com" keyword, and compiled the module free of
     macros.
     """
     mod_sexp = (
-        [b"mod", main_symbols] +
+        [b"mod", main_local_arguments] +
         [_ for _ in macros[1:]] +
         functions + constants +
         [uncompiled_main.as_python()])
@@ -125,16 +127,11 @@ def new_mod(
     return total_sexp
 
 
-def compile_mod(args, macro_lookup):
-    """
-    Deal with the "mod" keyword.
-    """
-    null = args.null()
-
+def compile_mod_stage_1(args):
     functions = []
     constants = []
     macros = []
-    main_symbols = args.first()
+    main_local_arguments = args.first()
 
     # stage 1: collect up names of globals (functions, constants, macros)
 
@@ -160,17 +157,30 @@ def compile_mod(args, macro_lookup):
             continue
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
+    uncompiled_main = args.first()
+    return functions, constants, macros, uncompiled_main, main_local_arguments
+
+
+def compile_mod(args, macro_lookup):
+    """
+    Deal with the "mod" keyword.
+    """
+    (functions, constants, macros, uncompiled_main, main_local_arguments) = compile_mod_stage_1(args)
+
     if constants:
         raise SyntaxError("defconstant not yet supported")
 
-    uncompiled_main = args.first()
+    null = args.null()
 
     # if we have any macros, restart with the macros parsed as arguments to "com"
 
     if macros:
         return new_mod(
-            macros, functions, constants, main_symbols,
+            macros, functions, constants, main_local_arguments,
             uncompiled_main, macro_lookup)
+
+    # if we make it this far,
+    # all macros are already applied to the "com" environment
 
     root_node = args.to([ARGS_KW])
     if functions:
@@ -186,7 +196,7 @@ def compile_mod(args, macro_lookup):
         imp = load_declaration(declaration_sexp, root_node)
         defuns[function_name] = imp
 
-    main_lambda = args.to([main_symbols, uncompiled_main])
+    main_lambda = args.to([main_local_arguments, uncompiled_main])
     main_sexp = load_declaration(main_lambda, root_node)
 
     if defuns:
