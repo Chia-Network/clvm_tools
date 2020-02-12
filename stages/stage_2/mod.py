@@ -180,14 +180,15 @@ def build_function_table(functions, root_node):
     """
     Take the function table and build:
 
-    - pre_substituted_imps
-    - function_compilation_macros
+    - pre_substituted_imps: the implementation with local arguments replace with node paths
+
+    - function_compilation_macros: macros to add to the space that will replace function operators
+        with invocations of that function by path
     """
 
     defuns = {}
     for function_name, function in functions.items():
-        declaration_sexp = function.rest().rest()
-        imp = load_declaration(declaration_sexp, root_node)
+        imp = load_declaration(function.rest().rest(), root_node)
         defuns[function_name] = imp
     position_lookup, pre_substituted_imps = build_positions(
         defuns.items(), root_node.to)
