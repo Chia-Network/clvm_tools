@@ -169,7 +169,10 @@ def compile_mod_stage_1(args):
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
     uncompiled_main = args.first()
-    return main_local_arguments, functions, constants, macros, uncompiled_main
+
+    functions[b""] = args.to([b"defun", b"", main_local_arguments, uncompiled_main])
+
+    return functions, constants, macros
 
 
 def build_function_table(functions, root_node):
@@ -200,7 +203,10 @@ def compile_mod(args, macro_lookup):
     """
     Deal with the "mod" keyword.
     """
-    (main_local_arguments, functions, constants, macros, uncompiled_main) = compile_mod_stage_1(args)
+    (functions, constants, macros) = compile_mod_stage_1(args)
+    main_local_arguments = functions[b""].rest().rest().first()
+    uncompiled_main = functions[b""].rest().rest().rest().first()
+    del functions[b""]
 
     if constants:
         raise SyntaxError("defconstant not yet supported")
