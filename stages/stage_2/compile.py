@@ -91,7 +91,7 @@ COMPILE_BINDINGS = {
 }
 
 
-def do_com_prog(prog, macro_lookup):
+def do_com_prog(prog, macro_lookup, symbol_table):
     """
     Turn the given program `prog` into a clvm program using
     the macros to do transformation.
@@ -115,7 +115,7 @@ def do_com_prog(prog, macro_lookup):
     if operator.listp():
         # (com ((OP) . RIGHT)) => ((c (com (q OP)) (a)))
         inner_exp = eval(prog.to([b"com", [
-            QUOTE_KW, operator], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
+            QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
         return prog.to([inner_exp])
 
     as_atom = operator.as_atom()
@@ -125,12 +125,14 @@ def do_com_prog(prog, macro_lookup):
         if macro_name.as_atom() == as_atom:
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
-            return eval(post_prog.to([b"com", post_prog, [QUOTE_KW, macro_lookup]]), [ARGS_KW])
+            return eval(post_prog.to(
+                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup)
-        return eval(post_prog.to([b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
+        return eval(post_prog.to(
+            [b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
 
     if operator == QUOTE_KW:
         return prog
@@ -141,18 +143,21 @@ def do_com_prog(prog, macro_lookup):
             disassemble(prog))
 
     new_args = prog.to([[b"com", [
-        QUOTE_KW, _], [QUOTE_KW, macro_lookup]] for _ in prog.rest().as_iter()])
+        QUOTE_KW, _], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]] for _ in prog.rest().as_iter()])
     return prog.to([operator] + [
         eval(_, [ARGS_KW]) for _ in new_args.as_iter()])
 
 
 def do_com(sexp, eval):
     prog = sexp.first()
+    symbol_table = sexp.null()
     if not sexp.rest().nullp():
         macro_lookup = sexp.rest().first()
+        if not sexp.rest().rest().nullp():
+            symbol_table = sexp.rest().rest().first()
     else:
         macro_lookup = default_macro_lookup(eval)
-    return do_com_prog(prog, macro_lookup)
+    return do_com_prog(prog, macro_lookup, symbol_table)
 
 
 do_com.needs_eval = 1
