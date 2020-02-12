@@ -12,7 +12,7 @@ CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
-def load_declaration(args, root_node):
+def load_declaration(lambda_expression, root_node):
     """
     Parse and compile an anonymous function declaration s-expression.
 
@@ -20,9 +20,9 @@ def load_declaration(args, root_node):
     and substitutes all references to local arguments with a drill-down
     argument path like (f (r (... root_node))).
     """
-    local_symbol_table = symbol_table_sexp(args.first())
-    expansion = args.to([b"com", [QUOTE_KW, symbol_replace(
-        args.rest().first(), local_symbol_table, root_node)]])
+    local_symbol_table = symbol_table_sexp(lambda_expression.first())
+    expansion = lambda_expression.to([b"com", [QUOTE_KW, symbol_replace(
+        lambda_expression.rest().first(), local_symbol_table, root_node)]])
     from .bindings import run_program
     null = expansion.null()
     cost, r = run_program(expansion, null)
@@ -112,8 +112,8 @@ def build_mac_wrapper(macros, macro_lookup):
 def new_mod(
         macros, functions, constants, main_local_arguments, uncompiled_main, macro_lookup):
     """
-    If "mod" declares new macros, we strip them out and simply start again, moving the new
-    macros to the lookup argument of the "com" keyword, and compiled the module free of
+    If "mod" declares new macros, we strip out the first one, moving it to the
+    lookup argument of the "com" keyword, and compiled the module free of the first
     macros.
     """
     mod_sexp = (
@@ -128,12 +128,14 @@ def new_mod(
 
 
 def compile_mod_stage_1(args):
+    """
+    stage 1: collect up names of globals (functions, constants, macros)
+    """
+
     functions = []
     constants = []
     macros = []
     main_local_arguments = args.first()
-
-    # stage 1: collect up names of globals (functions, constants, macros)
 
     namespace = set()
     while True:
@@ -158,14 +160,40 @@ def compile_mod_stage_1(args):
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
     uncompiled_main = args.first()
-    return functions, constants, macros, uncompiled_main, main_local_arguments
+    return main_local_arguments, functions, constants, macros, uncompiled_main
+
+
+def build_function_table(functions, root_node):
+    """
+    Take the function table and build:
+
+    - pre_substituted_imps
+    - function_compilation_macros
+    """
+
+    defuns = {}
+    for function in functions:
+        declaration_sexp = function.rest()
+        function_name = declaration_sexp.first().as_atom()
+        declaration_sexp = declaration_sexp.rest()
+        imp = load_declaration(declaration_sexp, root_node)
+        defuns[function_name] = imp
+    position_lookup, pre_substituted_imps = build_positions(
+        defuns.items(), root_node.to)
+
+    # generate function_compilation_macros
+    function_compilation_macros = []
+    for name, position_sexp in position_lookup.items():
+        function_compilation_macros.append(imp_to_defmacro(
+            name.decode("utf8"), position_sexp))
+    return pre_substituted_imps, function_compilation_macros
 
 
 def compile_mod(args, macro_lookup):
     """
     Deal with the "mod" keyword.
     """
-    (functions, constants, macros, uncompiled_main, main_local_arguments) = compile_mod_stage_1(args)
+    (main_local_arguments, functions, constants, macros, uncompiled_main) = compile_mod_stage_1(args)
 
     if constants:
         raise SyntaxError("defconstant not yet supported")
@@ -179,36 +207,20 @@ def compile_mod(args, macro_lookup):
             macros, functions, constants, main_local_arguments,
             uncompiled_main, macro_lookup)
 
-    # if we make it this far,
-    # all macros are already applied to the "com" environment
+    # all macros have already been moved to the "com" environment
 
     root_node = args.to([ARGS_KW])
     if functions:
         root_node = args.to([REST_KW, root_node])
 
+    main_sexp = load_declaration(
+        args.to([main_local_arguments, uncompiled_main]), root_node)
+
     # build defuns table, with function names as keys
 
-    defuns = {}
-    for function in functions:
-        declaration_sexp = function.rest()
-        function_name = declaration_sexp.first().as_atom()
-        declaration_sexp = declaration_sexp.rest()
-        imp = load_declaration(declaration_sexp, root_node)
-        defuns[function_name] = imp
+    pre_substituted_imps, function_compilation_macros = build_function_table(functions, root_node)
 
-    main_lambda = args.to([main_local_arguments, uncompiled_main])
-    main_sexp = load_declaration(main_lambda, root_node)
-
-    if defuns:
-        position_lookup, pre_subtituted_imps = build_positions(
-            defuns.items(), args.to)
-
-        # add defun macros
-        for name, position_sexp in position_lookup.items():
-            macros.append(imp_to_defmacro(
-                name.decode("utf8"), position_sexp))
-
-    macro_wrapper = build_mac_wrapper(macros, macro_lookup)
+    macro_wrapper = build_mac_wrapper(function_compilation_macros, macro_lookup)
 
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
@@ -218,12 +230,12 @@ def compile_mod(args, macro_lookup):
     compiled_main_src = "(opt (com %s %s))" % (main_src, macro_wrapper_src)
     cost, expanded_main = run_program(binutils.assemble(compiled_main_src), null)
 
-    if not defuns:
+    if not functions:
         # no functions, just macros
         return expanded_main.to([QUOTE_KW, expanded_main])
 
     imps = []
-    for _ in pre_subtituted_imps:
+    for _ in pre_substituted_imps:
         sub_sexp = _.to([b"opt", [b"com", [QUOTE_KW, _], macro_wrapper]])
         cost, r = run_program(sub_sexp, null)
         imps.append(r)
