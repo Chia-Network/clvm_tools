@@ -39,7 +39,7 @@ def imp_to_defmacro(name, position_sexp):
     body_src = (
         "(defmacro %s ARGS (qq ((c %s (c (f (a))"
         " (unquote (c list ARGS)))))))" % (
-            name, position))
+            name.decode("utf8"), position))
     body_sexp = binutils.assemble(body_src)
     return body_sexp
 
@@ -181,9 +181,6 @@ def build_function_table(functions, root_node):
     Take the function table and build:
 
     - pre_substituted_imps: the implementation with local arguments replace with node paths
-
-    - function_compilation_macros: macros to add to the space that will replace function operators
-        with invocations of that function by path
     """
 
     defuns = {}
@@ -193,12 +190,19 @@ def build_function_table(functions, root_node):
     position_lookup, pre_substituted_imps = build_positions(
         defuns.items(), root_node.to)
 
-    # generate function_compilation_macros
+    return pre_substituted_imps, position_lookup
+
+
+def build_function_compilation_macros(position_lookup):
+    """
+    Turn the position_lookup dictionary into a list of function_compilation_macros.
+    These are macros to add to the space that will replace function operators
+    with invocations of that function by path.
+    """
     function_compilation_macros = []
     for name, position_sexp in position_lookup.items():
-        function_compilation_macros.append(imp_to_defmacro(
-            name.decode("utf8"), position_sexp))
-    return pre_substituted_imps, function_compilation_macros
+        function_compilation_macros.append(imp_to_defmacro(name, position_sexp))
+    return function_compilation_macros
 
 
 def compile_mod(args, macro_lookup):
@@ -228,7 +232,8 @@ def compile_mod(args, macro_lookup):
 
     # build defuns table, with function names as keys
 
-    pre_substituted_imps, function_compilation_macros = build_function_table(functions, root_node)
+    pre_substituted_imps, position_lookup = build_function_table(functions, root_node)
+    function_compilation_macros = build_function_compilation_macros(position_lookup)
 
     macro_wrapper = build_mac_wrapper(function_compilation_macros, macro_lookup)
 
