@@ -117,13 +117,14 @@ def to_defun(_):
     return _[1]
 
 
-def new_mod(
-        macros, functions, constants, main_local_arguments, uncompiled_main, macro_lookup):
+def new_mod(macros, functions, constants, macro_lookup):
     """
     If "mod" declares new macros, we strip out the first one, moving it to the
     lookup argument of the "com" keyword, and compiled the module free of the first
     macros.
     """
+    main_local_arguments = functions[b""].rest().rest().first()
+    uncompiled_main = functions[b""].rest().rest().rest().first()
     mod_sexp = (
         [b"mod", main_local_arguments] +
         [_ for _ in macros[1:]] +
@@ -204,9 +205,6 @@ def compile_mod(args, macro_lookup):
     Deal with the "mod" keyword.
     """
     (functions, constants, macros) = compile_mod_stage_1(args)
-    main_local_arguments = functions[b""].rest().rest().first()
-    uncompiled_main = functions[b""].rest().rest().rest().first()
-    del functions[b""]
 
     if constants:
         raise SyntaxError("defconstant not yet supported")
@@ -216,18 +214,16 @@ def compile_mod(args, macro_lookup):
     # if we have any macros, restart with the macros parsed as arguments to "com"
 
     if macros:
-        return new_mod(
-            macros, functions, constants, main_local_arguments,
-            uncompiled_main, macro_lookup)
+        return new_mod(macros, functions, constants, macro_lookup)
 
     # all macros have already been moved to the "com" environment
 
     root_node = args.to([ARGS_KW])
-    if functions:
+    if len(functions) > 1:
         root_node = args.to([REST_KW, root_node])
 
-    main_sexp = load_declaration(
-        args.to([main_local_arguments, uncompiled_main]), root_node)
+    main_sexp = load_declaration(functions[b""].rest().rest(), root_node)
+    del functions[b""]
 
     # build defuns table, with function names as keys
 
