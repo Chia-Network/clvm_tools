@@ -126,12 +126,14 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     as_atom = operator.as_atom()
 
     for macro_pair in macro_lookup.as_iter():
-        macro_name = macro_pair.first()
-        if macro_name.as_atom() == as_atom:
+        macro_name = macro_pair.first().as_atom()
+        if macro_name == as_atom:
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
             return eval(post_prog.to(
                 [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
+
+    # TODO: look for symbol table invocations here
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]

@@ -12,7 +12,7 @@ CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 
-def load_declaration(lambda_expression, root_node):
+def load_declaration(lambda_expression, root_node, macro_lookup):
     """
     Parse and compile an anonymous function declaration s-expression.
 
@@ -176,7 +176,7 @@ def compile_mod_stage_1(args):
     return functions, constants, macros
 
 
-def build_function_table(functions, root_node):
+def build_function_table(functions, root_node, macro_lookup):
     """
     Take the function table and build:
 
@@ -185,7 +185,7 @@ def build_function_table(functions, root_node):
 
     defuns = {}
     for function_name, function in functions.items():
-        imp = load_declaration(function.rest().rest(), root_node)
+        imp = load_declaration(function.rest().rest(), root_node, macro_lookup)
         defuns[function_name] = imp
     position_lookup, pre_substituted_imps = build_positions(
         defuns.items(), root_node.to)
@@ -227,16 +227,17 @@ def compile_mod(args, macro_lookup):
     if len(functions) > 1:
         root_node = args.to([REST_KW, root_node])
 
-    main_sexp = load_declaration(functions[b""].rest().rest(), root_node)
+    main_declaration = functions[b""].rest().rest()
     del functions[b""]
 
     # build defuns table, with function names as keys
 
-    pre_substituted_imps, position_lookup = build_function_table(functions, root_node)
+    pre_substituted_imps, position_lookup = build_function_table(functions, root_node, macro_lookup)
     function_compilation_macros = build_function_compilation_macros(position_lookup)
 
     macro_wrapper = build_mac_wrapper(function_compilation_macros, macro_lookup)
 
+    main_sexp = load_declaration(main_declaration, root_node, macro_lookup)
     main_src = binutils.disassemble(main_sexp)
     macro_wrapper_src = binutils.disassemble(macro_wrapper)
 
