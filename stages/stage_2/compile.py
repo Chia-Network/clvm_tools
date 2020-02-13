@@ -109,6 +109,11 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     # quote atoms
     if prog.nullp() or not prog.listp():
+        atom = prog.as_atom()
+        for (symbol, value) in symbol_table.as_python():
+            if symbol == atom:
+                return prog.to(value)
+
         return prog.to([QUOTE_KW, prog])
 
     operator = prog.first()
