@@ -213,9 +213,6 @@ def compile_mod(args, macro_lookup, symbol_table):
     """
     (functions, constants, macros) = compile_mod_stage_1(args)
 
-    if constants:
-        raise SyntaxError("defconstant not yet supported")
-
     null = args.null()
 
     # if we have any macros, restart with the macros parsed as arguments to "com"
@@ -297,9 +294,6 @@ def compile_mod_alt(args, macro_lookup, symbol_table):
     Deal with the "mod" keyword.
     """
     (functions, constants, macros) = compile_mod_stage_1(args)
-
-    if constants:
-        raise SyntaxError("defconstant not yet supported")
 
     # if we have any macros, restart with the macros parsed as arguments to "com"
 
