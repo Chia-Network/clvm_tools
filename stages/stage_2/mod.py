@@ -11,6 +11,8 @@ REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
+MAIN_NAME = b""
+
 
 def load_declaration(lambda_expression, root_node, macro_lookup):
     """
@@ -123,8 +125,8 @@ def new_mod(macros, functions, constants, macro_lookup):
     lookup argument of the "com" keyword, and compiled the module free of the first
     macros.
     """
-    main_local_arguments = functions[b""].rest().rest().first()
-    uncompiled_main = functions[b""].rest().rest().rest().first()
+    main_local_arguments = functions[MAIN_NAME].rest().rest().first()
+    uncompiled_main = functions[MAIN_NAME].rest().rest().rest().first()
     mod_sexp = (
         [b"mod", main_local_arguments] +
         [_ for _ in macros[1:]] +
@@ -171,7 +173,7 @@ def compile_mod_stage_1(args):
 
     uncompiled_main = args.first()
 
-    functions[b""] = args.to([b"defun", b"", main_local_arguments, uncompiled_main])
+    functions[MAIN_NAME] = args.to([b"defun", MAIN_NAME, main_local_arguments, uncompiled_main])
 
     return functions, constants, macros
 
@@ -227,10 +229,14 @@ def compile_mod(args, macro_lookup, symbol_table):
     if len(functions) > 1:
         root_node = args.to([REST_KW, root_node])
 
-    main_declaration = functions[b""].rest().rest()
-    del functions[b""]
+    main_declaration = functions[MAIN_NAME].rest().rest()
+    del functions[MAIN_NAME]
 
     # build defuns table, with function names as keys
+
+    all_constants = list(functions.keys()) + list(constants.keys())
+    if len(all_constants) >= 1:
+        return compile_mod_alt(args, macro_lookup, symbol_table)
 
     pre_substituted_imps, position_lookup = build_function_table(functions, root_node, macro_lookup)
     function_compilation_macros = build_function_compilation_macros(position_lookup)
@@ -263,6 +269,94 @@ def compile_mod(args, macro_lookup, symbol_table):
         expanded_main_src, imps_tree_src)
 
     return binutils.assemble(entry_src)
+
+
+def symbol_table_for_tree(tree, root_node):
+    symbol_table_programs = symbol_table_sexp(tree)
+
+    from .bindings import run_program
+
+    symbol_table = []
+    for pair in symbol_table_programs.as_iter():
+        (name, prog) = (pair.first(), pair.rest().first())
+        cost, r = run_program(prog, root_node)
+        symbol_table.append((name, (r, [])))
+    return symbol_table_programs.to(symbol_table)
+
+
+def symbol_table_to_dict(symbol_table):
+    d = {}
+    for pair in symbol_table.as_iter():
+        (name, prog) = (pair.first(), pair.rest().first())
+        d[name.as_atom()] = prog
+    return d
+
+
+def compile_mod_alt(args, macro_lookup, symbol_table):
+    """
+    Deal with the "mod" keyword.
+    """
+    (functions, constants, macros) = compile_mod_stage_1(args)
+
+    if constants:
+        raise SyntaxError("defconstant not yet supported")
+
+    # if we have any macros, restart with the macros parsed as arguments to "com"
+
+    if macros:
+        return new_mod(macros, functions, constants, macro_lookup)
+
+    # all macros have already been moved to the "com" environment
+
+    constants_root_node = args.to([FIRST_KW, [ARGS_KW]])
+    args_root_node = args.to([REST_KW, [ARGS_KW]])
+
+    # build defuns table, with function names as keys
+
+    all_constants_names = list(_ for _ in functions.keys() if _ != MAIN_NAME) + list(constants.keys())
+    constants_tree = args.to(build_tree(all_constants_names))
+    constants_symbol_table = symbol_table_for_tree(constants_tree, constants_root_node)
+
+    from .bindings import run_program
+
+    compiled_functions = {}
+    for name, function_sexp in functions.items():
+        lambda_expression = function_sexp.rest().rest()
+        local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
+        all_symbols = local_symbol_table
+        if not constants_symbol_table.nullp():
+            all_symbols = function_sexp.to(
+                local_symbol_table.as_python() + constants_symbol_table.as_python())
+
+        expansion = lambda_expression.to(
+            [b"opt", [b"com",
+                      [QUOTE_KW, lambda_expression.rest().first()],
+                      [QUOTE_KW, macro_lookup],
+                      [QUOTE_KW, all_symbols]]])
+        cost, r = run_program(expansion, args.null())
+        compiled_functions[name] = r
+
+    all_constants_lookup = dict(compiled_functions)
+    all_constants_lookup.update(constants)
+
+    all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
+    all_constants_tree = args.to(build_tree(all_constants_list))
+
+    # check that all is okay
+    cst = symbol_table_to_dict(constants_symbol_table)
+    for name in all_constants_names:
+        if name not in functions:
+            continue
+        final_program = compiled_functions[name]
+        path_program = cst[name]
+        cost, r = run_program(path_program, [all_constants_tree, b"ARGS"])
+        assert r == final_program
+
+    main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
+    all_constants_tree_src = binutils.disassemble(all_constants_tree)
+    main_code = "(opt (q ((c (q %s) (c (q %s) (a))))))" % (main_path_src, all_constants_tree_src)
+    main_sexp = binutils.assemble(main_code)
+    return main_sexp
 
 
 def symbol_table_sexp(sexp, so_far=[ARGS_KW]):

@@ -9,6 +9,7 @@ from .mod import compile_defmacro, compile_mod
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
+FIRST_KW = KEYWORD_TO_ATOM["f"]
 
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
@@ -110,7 +111,8 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     # quote atoms
     if prog.nullp() or not prog.listp():
         atom = prog.as_atom()
-        for (symbol, value) in symbol_table.as_python():
+        for pair in symbol_table.as_iter():
+            symbol, value = pair.first(), pair.rest().first()
             if symbol == atom:
                 return prog.to(value)
 
@@ -133,8 +135,6 @@ def do_com_prog(prog, macro_lookup, symbol_table):
             return eval(post_prog.to(
                 [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
 
-    # TODO: look for symbol table invocations here
-
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup, symbol_table)
@@ -144,15 +144,30 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     if operator == QUOTE_KW:
         return prog
 
-    if as_atom not in PASS_THROUGH_OPERATORS:
-        raise SyntaxError(
-            "can't compile %s, unknown operator" %
-            disassemble(prog))
-
-    new_args = prog.to([[b"com", [
+    compiled_args = prog.to([[b"com", [
         QUOTE_KW, _], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]] for _ in prog.rest().as_iter()])
-    return prog.to([operator] + [
-        eval(_, [ARGS_KW]) for _ in new_args.as_iter()])
+    evaluated_args = [eval(_, [ARGS_KW]) for _ in compiled_args.as_iter()]
+
+    r = prog.to([operator] + evaluated_args)
+
+    if as_atom in PASS_THROUGH_OPERATORS:
+        return r
+
+    for (symbol, value) in symbol_table.as_python():
+        if symbol == b"*":
+            return r
+        if symbol == as_atom:
+            new_args = eval(
+                prog.to([b"opt", [b"com",
+                                  [QUOTE_KW, [b"list"] + list(prog.rest().as_iter())],
+                                  [QUOTE_KW, macro_lookup],
+                                  [QUOTE_KW, symbol_table]]]), [ARGS_KW])
+            r = prog.to([[CONS_KW, value, [CONS_KW, [FIRST_KW, [ARGS_KW]], new_args]]])
+            return r
+
+    raise SyntaxError(
+        "can't compile %s, unknown operator" %
+        disassemble(prog))
 
 
 def do_com(sexp, eval):
