@@ -205,7 +205,7 @@ def build_function_compilation_macros(position_lookup):
     return function_compilation_macros
 
 
-def compile_mod(args, macro_lookup):
+def compile_mod(args, macro_lookup, symbol_table):
     """
     Deal with the "mod" keyword.
     """
@@ -317,10 +317,10 @@ def symbol_replace(sexp, symbol_table, root_node):
         for _ in sexp.as_iter()])
 
 
-def compile_defmacro(args, macro_lookup):
+def compile_defmacro(args, macro_lookup, symbol_table):
     """
     Deal with "defmacro" keyword.
     """
     macro_name = args.first()
     return args.to([
-        b"list", macro_name, compile_mod(args.rest(), macro_lookup)])
+        b"list", macro_name, compile_mod(args.rest(), macro_lookup, symbol_table)])

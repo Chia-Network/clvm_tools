@@ -17,7 +17,7 @@ for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def compile_list(args, macro_lookup):
+def compile_list(args, macro_lookup, symbol_table):
     """
     (list) => ()
     (list (a @B) => (c a (list @B)))
@@ -33,7 +33,7 @@ def compile_list(args, macro_lookup):
         [b"list"] + list(args.rest().as_iter())])
 
 
-def compile_function(args, macro_lookup):
+def compile_function(args, macro_lookup, symbol_table):
     """
     "function" is used in front of a constant uncompiled
     program to indicate we want this program literal to be
@@ -51,10 +51,10 @@ def compile_function(args, macro_lookup):
     goals is to compile PROG as much as possible.
     """
     prog = args.first()
-    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [QUOTE_KW, macro_lookup]]])
+    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]])
 
 
-def compile_qq(args, macro_lookup, level=1):
+def compile_qq(args, macro_lookup, symbol_table, level=1):
     """
     (qq ATOM) => (q ATOM)
     (qq (unquote X)) => X
@@ -68,13 +68,13 @@ def compile_qq(args, macro_lookup, level=1):
     if sexp.listp() and not sexp.first().listp():
         op = sexp.first().as_atom()
         if op == b"qq":
-            subexp = compile_qq(sexp.rest(), macro_lookup, level+1)
+            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level+1)
             return sexp.to([b"list", op, subexp])
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
                 return sexp.rest().first()
-            subexp = compile_qq(sexp.rest(), macro_lookup, level-1)
+            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level-1)
             return sexp.to([b"list", op, subexp])
 
     # (qq (a . B)) => (c (qq a) (qq B))
@@ -137,7 +137,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
-        post_prog = f(prog.rest(), macro_lookup)
+        post_prog = f(prog.rest(), macro_lookup, symbol_table)
         return eval(post_prog.to(
             [b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
 
