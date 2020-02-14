@@ -1,6 +1,7 @@
 from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
+from clvm_tools.NodePath import NodePath
 
 from .helpers import eval
 
@@ -130,11 +131,11 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     constants_tree = args.to(build_tree(all_constants_names))
 
-    constants_root_node = args.to([FIRST_KW, [ARGS_KW]])
+    constants_root_node = args.to(NodePath().first().as_path())
     if has_constants_tree:
-        args_root_node = args.to([REST_KW, [ARGS_KW]])
+        args_root_node = args.to(NodePath().rest().as_path())
     else:
-        args_root_node = args.to([ARGS_KW])
+        args_root_node = args.to(NodePath().as_path())
 
     constants_symbol_table = symbol_table_for_tree(constants_tree, constants_root_node)
 
