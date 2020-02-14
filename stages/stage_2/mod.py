@@ -14,6 +14,26 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 MAIN_NAME = b""
 
 
+def symbol_replace(sexp, symbol_table, root_node):
+    """
+    Look for unresolved symbols in the symbol table and replace them with paths.
+    """
+    if sexp.nullp():
+        return sexp
+
+    if not sexp.listp():
+        for pair in symbol_table.as_iter():
+            symbol = pair.first().as_atom()
+            if symbol == sexp.as_atom():
+                prog = pair.rest().first()
+                return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, root_node])
+        return sexp
+
+    return sexp.to([b"list"] + [
+        symbol_replace(_, symbol_table, root_node)
+        for _ in sexp.as_iter()])
+
+
 def load_declaration(lambda_expression, root_node, macro_lookup):
     """
     Parse and compile an anonymous function declaration s-expression.
@@ -281,14 +301,6 @@ def symbol_table_for_tree(tree, root_node):
     return symbol_table_programs.to(symbol_table)
 
 
-def symbol_table_to_dict(symbol_table):
-    d = {}
-    for pair in symbol_table.as_iter():
-        (name, prog) = (pair.first(), pair.rest().first())
-        d[name.as_atom()] = prog
-    return d
-
-
 def compile_mod_alt(args, macro_lookup, symbol_table):
     """
     Deal with the "mod" keyword.
@@ -336,16 +348,6 @@ def compile_mod_alt(args, macro_lookup, symbol_table):
     all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
     all_constants_tree = args.to(build_tree(all_constants_list))
 
-    # check that all is okay
-    cst = symbol_table_to_dict(constants_symbol_table)
-    for name in all_constants_names:
-        if name not in functions:
-            continue
-        final_program = compiled_functions[name]
-        path_program = cst[name]
-        cost, r = run_program(path_program, [all_constants_tree, b"ARGS"])
-        assert r == final_program
-
     main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
     all_constants_tree_src = binutils.disassemble(all_constants_tree)
     main_code = "(opt (q ((c (q %s) (c (q %s) (a))))))" % (main_path_src, all_constants_tree_src)
@@ -383,26 +385,6 @@ def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
         r.append(_.to([_, node]))
 
     return sexp.to(r)
-
-
-def symbol_replace(sexp, symbol_table, root_node):
-    """
-    Look for unresolved symbols in the symbol table and replace them with paths.
-    """
-    if sexp.nullp():
-        return sexp
-
-    if not sexp.listp():
-        for pair in symbol_table.as_iter():
-            symbol = pair.first().as_atom()
-            if symbol == sexp.as_atom():
-                prog = pair.rest().first()
-                return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, root_node])
-        return sexp
-
-    return sexp.to([b"list"] + [
-        symbol_replace(_, symbol_table, root_node)
-        for _ in sexp.as_iter()])
 
 
 def compile_defmacro(args, macro_lookup, symbol_table):
