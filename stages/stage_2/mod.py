@@ -31,34 +31,6 @@ def build_tree(items):
     return (left, right)
 
 
-def to_defconstant(_):
-    return [b"defconstant", _[0], _[1]]
-
-
-def to_defun(_):
-    return _[1]
-
-
-def new_mod(macros, functions, constants, macro_lookup):
-    """
-    If "mod" declares new macros, we strip out the first one, moving it to the
-    lookup argument of the "com" keyword, and compiled the module free of the first
-    macros.
-    """
-    main_local_arguments = functions[MAIN_NAME].rest().rest().first()
-    uncompiled_main = functions[MAIN_NAME].rest().rest().rest().first()
-    mod_sexp = (
-        [b"mod", main_local_arguments] +
-        [_ for _ in macros[1:]] +
-        list(to_defun(_) for _ in functions.items()) +
-        list(to_defconstant(_) for _ in constants.items()) +
-        [uncompiled_main.as_python()])
-    new_com_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, [
-        CONS_KW, macros[0], [QUOTE_KW, macro_lookup]]], [QUOTE_KW, macro_lookup]]), [ARGS_KW])
-    total_sexp = eval(uncompiled_main.to([b"com", [QUOTE_KW, mod_sexp], new_com_sexp]), [ARGS_KW])
-    return total_sexp
-
-
 def compile_mod_stage_1(args):
     """
     stage 1: collect up names of globals (functions, constants, macros)
@@ -117,12 +89,13 @@ def compile_mod(args, macro_lookup, symbol_table):
     """
     (functions, constants, macros) = compile_mod_stage_1(args)
 
-    # if we have any macros, restart with the macros parsed as arguments to "com"
+    # move macros into the macro lookup
 
-    if macros:
-        return new_mod(macros, functions, constants, macro_lookup)
-
-    # all macros have already been moved to the "com" environment
+    macro_lookup_program = args.to([QUOTE_KW, macro_lookup])
+    for macro in macros:
+        macro_lookup_program = eval(args.to(
+            [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
+            [ARGS_KW])
 
     # build defuns table, with function names as keys
 
@@ -149,7 +122,7 @@ def compile_mod(args, macro_lookup, symbol_table):
         expansion = lambda_expression.to(
             [b"opt", [b"com",
                       [QUOTE_KW, lambda_expression.rest().first()],
-                      [QUOTE_KW, macro_lookup],
+                      macro_lookup_program,
                       [QUOTE_KW, all_symbols]]])
         cost, r = run_program(expansion, args.null())
         compiled_functions[name] = r
