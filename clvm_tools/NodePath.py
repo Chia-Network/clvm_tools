@@ -51,14 +51,14 @@ def compose_paths(path_0, path_1):
     Then OR in 0b001 to yield 0b1010001 = 81, which is right, left, left, left, right, left.
     """
     mask = 1
-    temp_path = path_1
+    temp_path = path_0
     while temp_path > 1:
         path_1 <<= 1
         mask <<= 1
         temp_path >>= 1
 
     mask -= 1
-    path = path_1 | path_0 & mask
+    path = path_1 | (path_0 & mask)
     return path
 
 
@@ -79,10 +79,21 @@ class NodePath:
         return r
 
     def __add__(self, other_node):
-        return self.__class__(compose_paths(self._index, self.other_node._index))
+        return self.__class__(compose_paths(self._index, other_node._index))
 
     def first(self):
         return self.__class__(self._index * 2)
 
     def rest(self):
         return self.__class__(self._index * 2 + 1)
+
+    def __str__(self):
+        return "NodePath: %d" % self._index
+
+    def __repr__(self):
+        return "NodePath: %d" % self._index
+
+
+TOP = NodePath()
+LEFT = TOP.first()
+RIGHT = TOP.rest()

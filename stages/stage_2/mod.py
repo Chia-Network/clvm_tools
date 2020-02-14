@@ -1,7 +1,7 @@
 from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
-from clvm_tools.NodePath import NodePath
+from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
 from .helpers import eval
 
@@ -99,16 +99,16 @@ def compile_mod_stage_1(args):
 
 
 def symbol_table_for_tree(tree, root_node):
-    symbol_table_programs = symbol_table_sexp(tree)
+    if tree.nullp():
+        return []
 
-    from .bindings import run_program
+    if not tree.listp():
+        return [[tree, root_node.as_path()]]
 
-    symbol_table = []
-    for pair in symbol_table_programs.as_iter():
-        (name, prog) = (pair.first(), pair.rest().first())
-        cost, r = run_program(prog, root_node)
-        symbol_table.append((name, (r, [])))
-    return symbol_table_programs.to(symbol_table)
+    left = symbol_table_for_tree(tree.first(), root_node + LEFT)
+    right = symbol_table_for_tree(tree.rest(), root_node + RIGHT)
+
+    return left + right
 
 
 def compile_mod(args, macro_lookup, symbol_table):
@@ -131,11 +131,11 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     constants_tree = args.to(build_tree(all_constants_names))
 
-    constants_root_node = args.to(NodePath().first().as_path())
+    constants_root_node = LEFT
     if has_constants_tree:
-        args_root_node = args.to(NodePath().rest().as_path())
+        args_root_node = RIGHT
     else:
-        args_root_node = args.to(NodePath().as_path())
+        args_root_node = TOP
 
     constants_symbol_table = symbol_table_for_tree(constants_tree, constants_root_node)
 
@@ -145,11 +145,7 @@ def compile_mod(args, macro_lookup, symbol_table):
     for name, function_sexp in functions.items():
         lambda_expression = function_sexp.rest().rest()
         local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
-        all_symbols = local_symbol_table
-        if not constants_symbol_table.nullp():
-            all_symbols = function_sexp.to(
-                local_symbol_table.as_python() + constants_symbol_table.as_python())
-
+        all_symbols = local_symbol_table + constants_symbol_table
         expansion = lambda_expression.to(
             [b"opt", [b"com",
                       [QUOTE_KW, lambda_expression.rest().first()],
@@ -174,38 +170,6 @@ def compile_mod(args, macro_lookup, symbol_table):
     main_code = "(opt (q ((c (q %s) (c (q %s) (a))))))" % (main_path_src, all_constants_tree_src)
     main_sexp = binutils.assemble(main_code)
     return main_sexp
-
-
-def symbol_table_sexp(sexp, so_far=[ARGS_KW]):
-    """
-    This function takes an s-expression sexp and returns a list (as an s-expression)
-    of pairs of the form (label, path-function).
-
-    For a given label, the path function can be called with "run_program" where args
-    is the base s-expression to the root of the tree, and it will generate the
-    program that gives the path to the label.
-    """
-    if sexp.nullp():
-        return sexp
-
-    if not sexp.listp():
-        return sexp.to([[sexp, so_far]])
-
-    r = []
-    for pair in symbol_table_sexp(sexp.first(), [
-            CONS_KW, [QUOTE_KW, FIRST_KW], [
-                CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
-        _ = pair.first()
-        node = pair.rest().first()
-        r.append(_.to([_, node]))
-    for pair in symbol_table_sexp(sexp.rest(), [
-            CONS_KW, [QUOTE_KW, REST_KW], [
-                CONS_KW, so_far, [QUOTE_KW, []]]]).as_iter():
-        _ = pair.first()
-        node = pair.rest().first()
-        r.append(_.to([_, node]))
-
-    return sexp.to(r)
 
 
 def compile_defmacro(args, macro_lookup, symbol_table):
