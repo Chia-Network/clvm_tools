@@ -1,0 +1,2 @@
+run -s2 '(mod (ARGS) (defun add1 (VAL) (+ 1 VAL)) (defun map (func items) (if items (c (func (f items)) (map func (r items))) ())) (map add1 ARGS))'
+((c (q ((c (r (f (a))) (c (f (a)) (c (f (f (a))) (c (f (r (a))) (q ()))))))) (c (q ((+ (q 1) (f (r (a)))) (c (i (f (r (r (a)))) (q (c ((c (f (r (a))) (c (f (a)) (c (f (f (r (r (a))))) (q ()))))) ((c (r (f (a))) (c (f (a)) (c (f (r (a))) (c (r (f (r (r (a))))) (q ())))))))) (q (q ()))) (a)))) (a))))
