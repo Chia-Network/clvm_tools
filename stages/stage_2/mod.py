@@ -7,8 +7,6 @@ from .helpers import eval
 
 
 ARGS_KW = KEYWORD_TO_ATOM["a"]
-FIRST_KW = KEYWORD_TO_ATOM["f"]
-REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
