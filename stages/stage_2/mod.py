@@ -28,6 +28,22 @@ def build_tree(items):
     return (left, right)
 
 
+def build_tree_program(items):
+    """
+    This function takes a Python list of items and turns it into a program that
+    builds a binary tree of the items, suitable for casting to an s-expression.
+    """
+    size = len(items)
+    if size == 0:
+        return [QUOTE_KW, []]
+    if size == 1:
+        return items[0]
+    half_size = size >> 1
+    left = build_tree_program(items[:half_size])
+    right = build_tree_program(items[half_size:])
+    return [CONS_KW, left, right]
+
+
 def compile_mod_stage_1(args):
     """
     stage 1: collect up names of globals (functions, constants, macros)
@@ -137,11 +153,11 @@ def compile_mod(args, macro_lookup, symbol_table):
     all_constants_lookup = dict(compiled_functions)
     all_constants_lookup.update(constants)
 
-    all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
-    all_constants_tree = args.to(build_tree(all_constants_list))
+    all_constants_list = [[QUOTE_KW, all_constants_lookup[_]] for _ in all_constants_names]
+    all_constants_tree_program = args.to(build_tree_program(all_constants_list))
 
-    all_constants_tree_src = binutils.disassemble(all_constants_tree)
-    main_code = "(opt (q ((c (q %s) (c (q %s) (a))))))" % (main_path_src, all_constants_tree_src)
+    all_constants_tree_src = binutils.disassemble(all_constants_tree_program)
+    main_code = "(opt (q ((c (q %s) (c %s (a))))))" % (main_path_src, all_constants_tree_src)
     main_sexp = binutils.assemble(main_code)
     return main_sexp
 
