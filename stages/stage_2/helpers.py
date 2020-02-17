@@ -1,9 +1,9 @@
 from clvm import KEYWORD_TO_ATOM
+from clvm_tools.NodePath import TOP
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-ARGS_KW = KEYWORD_TO_ATOM["a"]
 
 
 def eval(prog, args):
@@ -17,7 +17,7 @@ def run(prog, macro_lookup):
     The result can be evaluated with the stage_com eval
     function.
     """
-    args = [ARGS_KW]
+    args = TOP.as_path()
     mac = [QUOTE_KW, macro_lookup]
     return eval(prog.to([b"com", prog, mac]), args)
 

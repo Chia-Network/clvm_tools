@@ -6,7 +6,6 @@ from clvm_tools.NodePath import LEFT, RIGHT, TOP
 from .helpers import eval
 
 
-ARGS_KW = KEYWORD_TO_ATOM["a"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
@@ -86,7 +85,7 @@ def build_macro_lookup_program(macro_lookup, macros):
     for macro in macros:
         macro_lookup_program = eval(macro_lookup.to(
             [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
-            [ARGS_KW])
+            TOP.as_path())
     return macro_lookup_program
 
 

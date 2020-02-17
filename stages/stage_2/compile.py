@@ -1,5 +1,6 @@
 from clvm import KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
+from clvm_tools.NodePath import LEFT, TOP
 
 from .defaults import default_macro_lookup
 from .helpers import brun, eval
@@ -8,8 +9,6 @@ from .mod import compile_defmacro, compile_mod
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-ARGS_KW = KEYWORD_TO_ATOM["a"]
-FIRST_KW = KEYWORD_TO_ATOM["f"]
 
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
@@ -122,7 +121,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     if operator.listp():
         # (com ((OP) . RIGHT)) => ((c (com (q OP)) (a)))
         inner_exp = eval(prog.to([b"com", [
-            QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
+            QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
         return prog.to([inner_exp])
 
     as_atom = operator.as_atom()
@@ -133,20 +132,20 @@ def do_com_prog(prog, macro_lookup, symbol_table):
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
             return eval(post_prog.to(
-                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
+                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup, symbol_table)
-        return eval(post_prog.to(
-            [b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), [ARGS_KW])
+        return eval(prog.to([b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup],
+                            [QUOTE_KW, symbol_table]]), TOP.as_path())
 
     if operator == QUOTE_KW:
         return prog
 
     compiled_args = prog.to([[b"com", [
         QUOTE_KW, _], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]] for _ in prog.rest().as_iter()])
-    evaluated_args = [eval(_, [ARGS_KW]) for _ in compiled_args.as_iter()]
+    evaluated_args = [eval(_, TOP.as_path()) for _ in compiled_args.as_iter()]
 
     r = prog.to([operator] + evaluated_args)
 
@@ -161,8 +160,8 @@ def do_com_prog(prog, macro_lookup, symbol_table):
                 prog.to([b"opt", [b"com",
                                   [QUOTE_KW, [b"list"] + list(prog.rest().as_iter())],
                                   [QUOTE_KW, macro_lookup],
-                                  [QUOTE_KW, symbol_table]]]), [ARGS_KW])
-            r = prog.to([[CONS_KW, value, [CONS_KW, [FIRST_KW, [ARGS_KW]], new_args]]])
+                                  [QUOTE_KW, symbol_table]]]), TOP.as_path())
+            r = prog.to([[CONS_KW, value, [CONS_KW, LEFT.as_path(), new_args]]])
             return r
 
     raise SyntaxError(
