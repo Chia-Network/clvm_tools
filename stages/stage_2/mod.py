@@ -81,6 +81,15 @@ def symbol_table_for_tree(tree, root_node):
     return left + right
 
 
+def build_macro_lookup_program(macro_lookup, macros):
+    macro_lookup_program = macro_lookup.to([QUOTE_KW, macro_lookup])
+    for macro in macros:
+        macro_lookup_program = eval(macro_lookup.to(
+            [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
+            [ARGS_KW])
+    return macro_lookup_program
+
+
 def compile_mod(args, macro_lookup, symbol_table):
     """
     Deal with the "mod" keyword.
@@ -89,11 +98,7 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     # move macros into the macro lookup
 
-    macro_lookup_program = args.to([QUOTE_KW, macro_lookup])
-    for macro in macros:
-        macro_lookup_program = eval(args.to(
-            [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
-            [ARGS_KW])
+    macro_lookup_program = build_macro_lookup_program(macro_lookup, macros)
 
     # build defuns table, with function names as keys
 
