@@ -225,6 +225,8 @@ def children_optimizer(r, eval):
     """
     Recursively apply optimizations to all non-quoted child nodes.
     """
+    if not r.listp():
+        return r
     operator = r.first()
     if not operator.listp():
         op = operator.as_atom()
