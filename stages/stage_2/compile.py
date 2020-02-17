@@ -102,7 +102,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    (e (com (q PROG) (MACROS)) ARGS) == (e (q PROG_EXP) ARGS)
+    ((c (com (q PROG) (MACROS)) ARGS)) == ((c (q PROG_EXP) ARGS))
     for all ARGS.
 
     Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
