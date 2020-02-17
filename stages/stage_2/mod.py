@@ -53,7 +53,7 @@ def compile_mod_stage_1(args):
             macros.append(declaration_sexp)
             continue
         if op == b"defun":
-            functions[name] = declaration_sexp
+            functions[name] = declaration_sexp.rest().rest()
             continue
         if op == b"defconstant":
             constants[name] = declaration_sexp.rest().rest().first().as_atom()
@@ -62,7 +62,7 @@ def compile_mod_stage_1(args):
 
     uncompiled_main = args.first()
 
-    functions[MAIN_NAME] = args.to([b"defun", MAIN_NAME, main_local_arguments, uncompiled_main])
+    functions[MAIN_NAME] = args.to([main_local_arguments, uncompiled_main])
 
     return functions, constants, macros
 
@@ -117,8 +117,7 @@ def compile_mod(args, macro_lookup, symbol_table):
     from .bindings import run_program
 
     compiled_functions = {}
-    for name, function_sexp in functions.items():
-        lambda_expression = function_sexp.rest().rest()
+    for name, lambda_expression in functions.items():
         local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
         all_symbols = local_symbol_table + constants_symbol_table
         expansion = lambda_expression.to(
