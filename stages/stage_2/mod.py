@@ -72,7 +72,7 @@ def compile_mod_stage_1(args):
             functions[name] = declaration_sexp.rest().rest()
             continue
         if op == b"defconstant":
-            constants[name] = declaration_sexp.rest().rest().first().as_atom()
+            constants[name] = [QUOTE_KW, declaration_sexp.rest().rest().first().as_atom()]
             continue
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
@@ -130,8 +130,6 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     constants_symbol_table = symbol_table_for_tree(constants_tree, constants_root_node)
 
-    from .bindings import run_program
-
     compiled_functions = {}
     for name, lambda_expression in functions.items():
         local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
@@ -141,23 +139,22 @@ def compile_mod(args, macro_lookup, symbol_table):
                       [QUOTE_KW, lambda_expression.rest().first()],
                       macro_lookup_program,
                       [QUOTE_KW, all_symbols]]])
-        cost, r = run_program(expansion, args.null())
-        compiled_functions[name] = r
+        compiled_functions[name] = expansion
 
     main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
 
     if not has_constants_tree:
-        main_code = "(opt (q ((c (q %s) (a)))))" % main_path_src
+        main_code = "(opt (q ((c %s (a)))))" % main_path_src
         return binutils.assemble(main_code)
 
     all_constants_lookup = dict(compiled_functions)
     all_constants_lookup.update(constants)
 
-    all_constants_list = [[QUOTE_KW, all_constants_lookup[_]] for _ in all_constants_names]
+    all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
     all_constants_tree_program = args.to(build_tree_program(all_constants_list))
 
     all_constants_tree_src = binutils.disassemble(all_constants_tree_program)
-    main_code = "(opt (q ((c (q %s) (c %s (a))))))" % (main_path_src, all_constants_tree_src)
+    main_code = "(opt (q ((c %s (c %s (a))))))" % (main_path_src, all_constants_tree_src)
     main_sexp = binutils.assemble(main_code)
     return main_sexp
 
