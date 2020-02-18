@@ -134,26 +134,26 @@ def compile_mod(args, macro_lookup, symbol_table):
     for name, lambda_expression in functions.items():
         local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
         all_symbols = local_symbol_table + constants_symbol_table
-        expansion = lambda_expression.to(
+        compiled_functions[name] = lambda_expression.to(
             [b"opt", [b"com",
                       [QUOTE_KW, lambda_expression.rest().first()],
                       macro_lookup_program,
                       [QUOTE_KW, all_symbols]]])
-        compiled_functions[name] = expansion
 
     main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
 
-    if not has_constants_tree:
-        main_code = "(opt (q ((c %s (a)))))" % main_path_src
-        return binutils.assemble(main_code)
+    if has_constants_tree:
+        all_constants_lookup = dict(compiled_functions)
+        all_constants_lookup.update(constants)
 
-    all_constants_lookup = dict(compiled_functions)
-    all_constants_lookup.update(constants)
+        all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
+        all_constants_tree_program = args.to(build_tree_program(all_constants_list))
 
-    all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
-    all_constants_tree_program = args.to(build_tree_program(all_constants_list))
+        all_constants_tree_src = binutils.disassemble(all_constants_tree_program)
+        arg_tree_src = "(c %s (a))" % all_constants_tree_src
+    else:
+        arg_tree_src = "(a)"
 
-    all_constants_tree_src = binutils.disassemble(all_constants_tree_program)
-    main_code = "(opt (q ((c %s (c %s (a))))))" % (main_path_src, all_constants_tree_src)
-    main_sexp = binutils.assemble(main_code)
-    return main_sexp
+    main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
+
+    return binutils.assemble(main_code)
