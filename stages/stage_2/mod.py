@@ -105,6 +105,19 @@ def build_macro_lookup_program(macro_lookup, macros):
     return macro_lookup_program
 
 
+def compile_functions(functions, macro_lookup_program, constants_symbol_table, args_root_node):
+    compiled_functions = {}
+    for name, lambda_expression in functions.items():
+        local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
+        all_symbols = local_symbol_table + constants_symbol_table
+        compiled_functions[name] = lambda_expression.to(
+            [b"opt", [b"com",
+                      [QUOTE_KW, lambda_expression.rest().first()],
+                      macro_lookup_program,
+                      [QUOTE_KW, all_symbols]]])
+    return compiled_functions
+
+
 def compile_mod(args, macro_lookup, symbol_table):
     """
     Deal with the "mod" keyword.
@@ -130,15 +143,8 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     constants_symbol_table = symbol_table_for_tree(constants_tree, constants_root_node)
 
-    compiled_functions = {}
-    for name, lambda_expression in functions.items():
-        local_symbol_table = symbol_table_for_tree(lambda_expression.first(), args_root_node)
-        all_symbols = local_symbol_table + constants_symbol_table
-        compiled_functions[name] = lambda_expression.to(
-            [b"opt", [b"com",
-                      [QUOTE_KW, lambda_expression.rest().first()],
-                      macro_lookup_program,
-                      [QUOTE_KW, all_symbols]]])
+    compiled_functions = compile_functions(
+        functions, macro_lookup_program, constants_symbol_table, args_root_node)
 
     main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
 
