@@ -157,12 +157,3 @@ def compile_mod(args, macro_lookup, symbol_table):
     main_code = "(opt (q ((c %s (c %s (a))))))" % (main_path_src, all_constants_tree_src)
     main_sexp = binutils.assemble(main_code)
     return main_sexp
-
-
-def compile_defmacro(args, macro_lookup, symbol_table):
-    """
-    Deal with "defmacro" keyword.
-    """
-    macro_name = args.first()
-    return args.to([
-        b"list", macro_name, compile_mod(args.rest(), macro_lookup, symbol_table)])

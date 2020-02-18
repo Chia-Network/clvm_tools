@@ -4,7 +4,7 @@ from clvm_tools.NodePath import LEFT, TOP
 
 from .defaults import default_macro_lookup
 from .helpers import brun, eval
-from .mod import compile_defmacro, compile_mod
+from .mod import compile_mod
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -79,6 +79,15 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
 
     # (qq (a . B)) => (c (qq a) (qq B))
     return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
+
+
+def compile_defmacro(args, macro_lookup, symbol_table):
+    """
+    Deal with "defmacro" keyword.
+    """
+    macro_name = args.first()
+    return args.to([
+        b"list", macro_name, compile_mod(args.rest(), macro_lookup, symbol_table)])
 
 
 COMPILE_BINDINGS = {
