@@ -90,12 +90,22 @@ def compile_defmacro(args, macro_lookup, symbol_table):
         b"list", macro_name, compile_mod(args.rest(), macro_lookup, symbol_table)])
 
 
+def compile_macros(args, macro_lookup, symbol_table):
+    return args.to([QUOTE_KW, macro_lookup])
+
+
+def compile_symbols(args, macro_lookup, symbol_table):
+    return args.to([QUOTE_KW, symbol_table])
+
+
 COMPILE_BINDINGS = {
     b"list": compile_list,
     b"function": compile_function,
     b"qq": compile_qq,
-    b"lambda": compile_mod,
     b"defmacro": compile_defmacro,
+    b"macros": compile_macros,
+    b"symbols": compile_symbols,
+    b"lambda": compile_mod,
     b"mod": compile_mod,
 }
 
