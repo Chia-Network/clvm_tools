@@ -4,7 +4,30 @@ from clvm import to_sexp_f
 from clvm_tools import binutils
 
 
+"""
+"function" is used in front of a constant uncompiled
+program to indicate we want this program literal to be
+compiled and quoted, so it can be passed as an argument
+to a compiled clvm program.
+
+EG: (function (+ 20 (a))) should return (+ (q 20) (a)) when run.
+Thus (opt (com (q (function (+ 20 (a))))))
+should return (q (+ (q 20) (a)))
+
+(function PROG) => (opt (com (q PROG) (q MACROS)))
+
+We have to use "opt" as (com PROG) might leave
+some partial "com" operators in there and our
+goals is to compile PROG as much as possible.
+"""
+
+
 DEFAULT_MACROS_SRC = [
+    """
+    (defmacro function (BODY)
+        (qq (opt (com (q (unquote BODY))
+                 (qq (unquote (macros)))
+                 (qq (unquote (symbols)))))))""",
     """
     (defmacro if (A B C)
         (qq ((c

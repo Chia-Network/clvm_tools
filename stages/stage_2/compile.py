@@ -33,27 +33,6 @@ def compile_list(args, macro_lookup, symbol_table):
         [b"list"] + list(args.rest().as_iter())])
 
 
-def compile_function(args, macro_lookup, symbol_table):
-    """
-    "function" is used in front of a constant uncompiled
-    program to indicate we want this program literal to be
-    compiled and quoted, so it can be passed as an argument
-    to a compiled clvm program.
-
-    EG: (function (+ 20 (a))) should return (+ (q 20) (a)) when run.
-    Thus (opt (com (q (function (+ 20 (a))))))
-    should return (q (+ (q 20) (a)))
-
-    (function PROG) => (opt (com (q PROG) (q MACROS)))
-
-    We have to use "opt" as (com PROG) might leave
-    some partial "com" operators in there and our
-    goals is to compile PROG as much as possible.
-    """
-    prog = args.first()
-    return args.to([b"opt", [b"com", [QUOTE_KW, prog], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]])
-
-
 def compile_qq(args, macro_lookup, symbol_table, level=1):
     """
     (qq ATOM) => (q ATOM)
@@ -100,7 +79,6 @@ def compile_symbols(args, macro_lookup, symbol_table):
 
 COMPILE_BINDINGS = {
     b"list": compile_list,
-    b"function": compile_function,
     b"qq": compile_qq,
     b"defmacro": compile_defmacro,
     b"macros": compile_macros,
