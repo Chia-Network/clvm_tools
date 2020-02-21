@@ -65,8 +65,8 @@ def compile_defmacro(args, macro_lookup, symbol_table):
     Deal with "defmacro" keyword.
     """
     macro_name = args.first()
-    return args.to([
-        b"list", macro_name, compile_mod(args.rest(), macro_lookup, symbol_table)])
+    macro_declaration = list(args.rest().as_iter())
+    return args.to([b"list", macro_name, [b"mod"] + macro_declaration])
 
 
 def compile_macros(args, macro_lookup, symbol_table):
