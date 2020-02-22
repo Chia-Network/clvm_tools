@@ -39,6 +39,28 @@ DEFAULT_MACROS_SRC = [
                 (q ()))))))
     """,
     """
+    ;(defmacro list ARGS
+    ;    ((c (mod args
+    ;        (defun compile-list (args) (if args (qq (c (unquote (f args)) (unquote (compile-list (r args))))) ()))
+    ;            (compile-list args)
+    ;        )
+    ;        ARGS
+    ;    ))
+    ;)
+    (q (list
+        ((c (q ((c (f (a)) (c (f (a)) (c (r (a)) (q ()))))))
+            (c (q ((c (i (f (r (a)))
+                         (q (c (q 5)
+                               (c (f (f (r (a))))
+                                  (c ((c (f (a))
+                                         (c (f (a))
+                                            (c (r (f (r (a))))
+                                               (q ())))))
+                                     (q ())))))
+                         (q (q ()))) (a))))
+               (a))))))
+    """,
+    """
     (defmacro function (BODY)
         (qq (opt (com (q (unquote BODY))
                  (qq (unquote (macros)))

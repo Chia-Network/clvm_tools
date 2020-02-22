@@ -17,22 +17,6 @@ for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def compile_list(args, macro_lookup, symbol_table):
-    """
-    (list) => ()
-    (list (a @B) => (c a (list @B)))
-    """
-    if args.nullp():
-        # (list) => ()
-        return args
-
-    # (list (a @B) => (c a (list @B)))
-    return args.to([
-        CONS_KW,
-        args.first(),
-        [b"list"] + list(args.rest().as_iter())])
-
-
 def compile_qq(args, macro_lookup, symbol_table, level=1):
     """
     (qq ATOM) => (q ATOM)
@@ -69,7 +53,6 @@ def compile_symbols(args, macro_lookup, symbol_table):
 
 
 COMPILE_BINDINGS = {
-    b"list": compile_list,
     b"qq": compile_qq,
     b"macros": compile_macros,
     b"symbols": compile_symbols,
