@@ -60,15 +60,6 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
     return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
 
 
-def compile_defmacro(args, macro_lookup, symbol_table):
-    """
-    Deal with "defmacro" keyword.
-    """
-    macro_name = args.first()
-    macro_declaration = list(args.rest().as_iter())
-    return args.to([b"list", macro_name, [b"mod"] + macro_declaration])
-
-
 def compile_macros(args, macro_lookup, symbol_table):
     return args.to([QUOTE_KW, macro_lookup])
 
@@ -80,7 +71,6 @@ def compile_symbols(args, macro_lookup, symbol_table):
 COMPILE_BINDINGS = {
     b"list": compile_list,
     b"qq": compile_qq,
-    b"defmacro": compile_defmacro,
     b"macros": compile_macros,
     b"symbols": compile_symbols,
     b"lambda": compile_mod,

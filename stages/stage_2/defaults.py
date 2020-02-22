@@ -22,7 +22,22 @@ goals is to compile PROG as much as possible.
 """
 
 
+
 DEFAULT_MACROS_SRC = [
+    """
+    ; we have to compile this externally, since it uses itself
+    ;(defmacro defmacro (name params body)
+    ;    (qq (list (unquote name) (mod (unquote params) (unquote body))))
+    ;)
+    (q ("defmacro"
+       (c (q "list")
+          (c (f (a))
+             (c (c (q "mod")
+                   (c (f (r (a)))
+                      (c (f (r (r (a))))
+                         (q ()))))
+                (q ()))))))
+    """,
     """
     (defmacro function (BODY)
         (qq (opt (com (q (unquote BODY))
