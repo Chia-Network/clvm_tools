@@ -114,22 +114,7 @@ def compile_mod_stage_1(args):
         args = args.rest()
         if args.rest().nullp():
             break
-        declaration_sexp = args.first()
-        op = declaration_sexp.first().as_atom()
-        name = declaration_sexp.rest().first().as_atom()
-        if name in namespace:
-            raise SyntaxError('symbol "%s" redefined' % name.decode())
-        namespace.add(name)
-        if op == b"defmacro":
-            macros.append(declaration_sexp)
-            continue
-        if op == b"defun":
-            functions[name] = declaration_sexp.rest().rest()
-            continue
-        if op == b"defconstant":
-            constants[name] = [QUOTE_KW, declaration_sexp.rest().rest().first().as_atom()]
-            continue
-        raise SyntaxError("expected defun, defmacro, or defconstant")
+        parse_mod_sexp(args.first(), namespace, functions, constants, macros)
 
     uncompiled_main = args.first()
 
