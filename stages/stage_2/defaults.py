@@ -22,7 +22,6 @@ goals is to compile PROG as much as possible.
 """
 
 
-
 DEFAULT_MACROS_SRC = [
     """
     ; we have to compile this externally, since it uses itself
@@ -41,7 +40,12 @@ DEFAULT_MACROS_SRC = [
     """
     ;(defmacro list ARGS
     ;    ((c (mod args
-    ;        (defun compile-list (args) (if args (qq (c (unquote (f args)) (unquote (compile-list (r args))))) ()))
+    ;        (defun compile-list
+    ;               (args)
+    ;               (if args
+    ;                   qq (c (unquote (f args))
+    ;                         (unquote (compile-list (r args)))))
+    ;                   ()))
     ;            (compile-list args)
     ;        )
     ;        ARGS
