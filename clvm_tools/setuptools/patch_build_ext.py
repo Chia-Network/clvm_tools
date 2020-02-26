@@ -63,30 +63,3 @@ def patch_build_ext(build_ext):
         self.distribution.ext_modules = ext_modules
 
     install.finalize_options = finalize_options
-
-    if wheel:
-        # this is for console entries
-        bdist_wheel.orig_finalize_options = bdist_wheel.finalize_options
-
-        def finalize_options(self):
-            scripts = []
-            for ext in self.distribution.clvm_extensions:
-                scripts.extend(ext.entry_points())
-
-            if scripts:
-                if not self.distribution.entry_points:
-                    self.distribution.entry_points = {"console_scripts": scripts}
-                else:
-                    ep_scripts = self.distribution.entry_points.get("console_scripts")
-                    if ep_scripts:
-                        for script in scripts:
-                            if script not in ep_scripts:
-                                ep_scripts.append(scripts)
-                    else:
-                        ep_scripts = scripts
-
-                    self.distribution.entry_points["console_scripts"] = ep_scripts
-
-            self.orig_finalize_options()
-
-        bdist_wheel.finalize_options = finalize_options
