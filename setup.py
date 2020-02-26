@@ -19,7 +19,7 @@ setup(
     author_email="kiss@chia.net",
     install_requires=["setuptools_scm"],
     setup_requires=["setuptools_scm"],
-    use_scm_version=True,
+    use_scm_version={"fallback_version": "unknown"},
     url="https://github.com/Chia-Network",
     license="https://opensource.org/licenses/Apache-2.0",
     description="CLVM compiler.",
