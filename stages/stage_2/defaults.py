@@ -54,7 +54,7 @@ DEFAULT_MACROS_SRC = [
     (q (list
         ((c (q ((c (f (a)) (c (f (a)) (c (r (a)) (q ()))))))
             (c (q ((c (i (f (r (a)))
-                         (q (c (q 5)
+                         (q (c (q #c)
                                (c (f (f (r (a))))
                                   (c ((c (f (a))
                                          (c (f (a))
