@@ -44,6 +44,61 @@ def build_tree_program(items):
     return [CONS_KW, left, right]
 
 
+def flatten(sexp):
+    """
+    Return a (python) list of every atom.
+    """
+    if sexp.listp():
+        r = []
+        r.extend(flatten(sexp.first()))
+        r.extend(flatten(sexp.rest()))
+        return r
+    return [sexp.as_atom()]
+
+
+def build_used_constants_names(functions, constants, macros):
+    """
+    Do a naïve pruning of unused symbols. It may be too big, but it shouldn't
+    be too small. Return a list of all atoms used that are also the names of
+    functions or constants, starting with the MAIN_NAME function.
+    """
+    macros_as_dict = {_.rest().first().as_atom(): _ for _ in macros}
+
+    possible_symbols = set(functions.keys())
+    possible_symbols.update(constants.keys())
+
+    new_names = set([MAIN_NAME])
+    used_names = set(new_names)
+    while new_names:
+        prior_new_names = new_names
+        new_names = set()
+        for _ in prior_new_names:
+            for k in [functions, macros_as_dict]:
+                if _ in k:
+                    new_names.update(flatten(k[_]))
+        new_names.difference_update(used_names)
+        used_names.update(new_names)
+    used_names.intersection_update(possible_symbols)
+    used_names.discard(MAIN_NAME)
+    return sorted(used_names)
+
+
+def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros):
+    op = declaration_sexp.first().as_atom()
+    name = declaration_sexp.rest().first().as_atom()
+    if name in namespace:
+        raise SyntaxError('symbol "%s" redefined' % name.decode())
+    namespace.add(name)
+    if op == b"defmacro":
+        macros.append(declaration_sexp)
+    elif op == b"defun":
+        functions[name] = declaration_sexp.rest().rest()
+    elif op == b"defconstant":
+        constants[name] = [QUOTE_KW, declaration_sexp.rest().rest().first().as_atom()]
+    else:
+        raise SyntaxError("expected defun, defmacro, or defconstant")
+
+
 def compile_mod_stage_1(args):
     """
     stage 1: collect up names of globals (functions, constants, macros)
@@ -128,10 +183,12 @@ def compile_mod(args, macro_lookup, symbol_table):
 
     macro_lookup_program = build_macro_lookup_program(macro_lookup, macros)
 
-    # build defuns table, with function names as keys
+    # get a list of all symbols that are possibly used
 
-    all_constants_names = list(_ for _ in functions.keys() if _ != MAIN_NAME) + list(constants.keys())
+    all_constants_names = build_used_constants_names(functions, constants, macros)
     has_constants_tree = len(all_constants_names) > 0
+
+    # build defuns table, with function names as keys
 
     constants_tree = args.to(build_tree(all_constants_names))
 
