@@ -1,2 +1,2 @@
--e git+git@github.com:Chia-Network/clvm.git@bb538804062c01f999a228c4fc1e17a6e2835851#egg=clvm
+-e git+https://git@github.com/Chia-Network/clvm.git@11387b8811c1ad12186ff86a1ace14063de9d6c6#egg=clvm
 setuptools-scm==3.3.3

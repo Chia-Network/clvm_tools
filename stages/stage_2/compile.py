@@ -188,7 +188,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
         disassemble(prog))
 
 
-def do_com(sexp, eval):
+def do_com(sexp):
     prog = sexp.first()
     symbol_table = sexp.null()
     if not sexp.rest().nullp():
@@ -196,8 +196,6 @@ def do_com(sexp, eval):
         if not sexp.rest().rest().nullp():
             symbol_table = sexp.rest().rest().first()
     else:
-        macro_lookup = default_macro_lookup(eval)
+        from .bindings import run_program
+        macro_lookup = default_macro_lookup(run_program)
     return do_com_prog(prog, macro_lookup, symbol_table)
-
-
-do_com.needs_eval = 1

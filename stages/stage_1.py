@@ -4,16 +4,14 @@ from clvm_tools import binutils
 
 
 def make_invocation(code):
-    def invoke(args, eval):
-        cost, r = eval(code, args)
+    def invoke(args):
+        cost, r = run_program(code, args)
         return r
-
-    invoke.needs_eval = 1
 
     return invoke
 
 
-def make_bindings(bindings_sexp, eval):
+def make_bindings(bindings_sexp):
     binding_table = {}
     for pair in bindings_sexp.as_iter():
         name = pair.first().as_atom()
@@ -21,22 +19,19 @@ def make_bindings(bindings_sexp, eval):
     return binding_table
 
 
-def do_bind(args, eval):
+def do_bind(args):
     if len(args.as_python()) != 3:
         raise SyntaxError("bind requires 3 arguments")
     bindings = args.first()
     sexp = args.rest().first()
     env = args.rest().rest().first()
-    new_bindings = make_bindings(bindings, eval)
-    original_operator_lookup = eval.operator_lookup
-    eval.operator_lookup = dict(original_operator_lookup)
-    eval.operator_lookup.update(new_bindings)
-    cost, r = eval(sexp, env)
-    eval.operator_lookup = original_operator_lookup
+    new_bindings = make_bindings(bindings)
+    original_operator_lookup = run_program.operator_lookup
+    run_program.operator_lookup = dict(original_operator_lookup)
+    run_program.operator_lookup.update(new_bindings)
+    cost, r = run_program(sexp, env)
+    run_program.operator_lookup = original_operator_lookup
     return cost, r
-
-
-do_bind.needs_eval = 1
 
 
 BINDINGS = {
@@ -47,16 +42,21 @@ BINDINGS = {
 brun = run = binutils.assemble("((c (f (a)) (r (a))))")
 
 
-def run_program(
-    program, args, max_cost=None, pre_eval_f=None, post_eval_f=None,
-):
-    operator_lookup = dict(OPERATOR_LOOKUP)
-    operator_lookup.update((k.encode("utf8"), v) for (k, v) in BINDINGS.items())
-    return run_program_0(
-        program,
-        args,
-        operator_lookup=operator_lookup,
-        max_cost=max_cost,
-        pre_eval_f=pre_eval_f,
-        post_eval_f=post_eval_f,
-    )
+class RunProgram:
+    def __init__(self):
+        operator_lookup = dict(OPERATOR_LOOKUP)
+        operator_lookup.update((k.encode("utf8"), v) for (k, v) in BINDINGS.items())
+        self.operator_lookup = operator_lookup
+
+    def __call__(self, program, args, max_cost=None, pre_eval_f=None, post_eval_f=None):
+        return run_program_0(
+            program,
+            args,
+            operator_lookup=self.operator_lookup,
+            max_cost=max_cost,
+            pre_eval_f=pre_eval_f,
+            post_eval_f=post_eval_f,
+        )
+
+
+run_program = RunProgram()

@@ -221,8 +221,6 @@ def optimize_sexp(r, eval):
                 opt.__name__, start_r, r))
 
 
-def do_opt(args, eval):
-    return optimize_sexp(args.first(), eval)
-
-
-do_opt.needs_eval = 1
+def do_opt(args):
+    from .bindings import run_program
+    return optimize_sexp(args.first(), run_program)
