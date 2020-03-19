@@ -198,4 +198,4 @@ def do_com(sexp):
     else:
         from .bindings import run_program
         macro_lookup = default_macro_lookup(run_program)
-    return do_com_prog(prog, macro_lookup, symbol_table)
+    return 1, do_com_prog(prog, macro_lookup, symbol_table)

@@ -5,8 +5,7 @@ from clvm_tools import binutils
 
 def make_invocation(code):
     def invoke(args):
-        cost, r = run_program(code, args)
-        return r
+        return run_program(code, args)
 
     return invoke
 
