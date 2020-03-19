@@ -153,10 +153,10 @@ def launch_tool(args, tool_name, default_stage=0):
         output = str(ex)
         raise
     finally:
+        print(output)
         if args.verbose:
+            print()
             trace_to_text(log_entries, binutils.disassemble)
-        else:
-            print(output)
 
 
 def read_ir(args=sys.argv):

@@ -79,21 +79,24 @@ def trace_to_html(invocations, disassemble):
 
 def trace_to_text(trace, disassemble):
     for item in trace:
-        form, env, cost_before, cost_after, rv = item
+        form, env, r = item
+        if r is None:
+            rv = "(didn't finish)"
+        else:
+            rv = disassemble(r)
         env_str = disassemble(env)
-        print("%s [%s] => %s" % (
-            disassemble(form), env_str, disassemble(rv)))
+        print("%s [%s] => %s" % (disassemble(form), env_str, rv))
         print("")
 
 
 def make_trace_pre_eval(log_entries):
 
-    def pre_eval_f(sexp, args, current_cost, max_cost):
-        log_entry = [sexp, args, current_cost, None, None]
+    def pre_eval_f(sexp, args):
+        log_entry = [sexp, args, None]
         log_entries.append(log_entry)
 
         def callback_f(r):
-            log_entry[-2:] = r
+            log_entry[-1] = r
 
         return callback_f
 
