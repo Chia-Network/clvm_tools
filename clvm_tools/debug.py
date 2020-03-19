@@ -86,15 +86,15 @@ def trace_to_text(trace, disassemble):
         print("")
 
 
-def make_trace_pre_and_post_eval(log_entries):
+def make_trace_pre_eval(log_entries):
 
     def pre_eval_f(sexp, args, current_cost, max_cost):
         log_entry = [sexp, args, current_cost, None, None]
         log_entries.append(log_entry)
-        return log_entry
 
-    def post_eval_f(context, r):
-        log_entry = context
-        log_entry[-2:] = r
+        def callback_f(r):
+            log_entry[-2:] = r
 
-    return pre_eval_f, post_eval_f
+        return callback_f
+
+    return pre_eval_f

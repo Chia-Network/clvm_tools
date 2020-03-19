@@ -18,7 +18,7 @@ run = binutils.assemble("((c (opt (com (f (a)))) (r (a))))")
 
 
 def run_program(
-    program, args, max_cost=None, pre_eval_f=None, post_eval_f=None,
+    program, args, max_cost=None, pre_eval_f=None,
 ):
     operator_lookup = dict(OPERATOR_LOOKUP)
     operator_lookup.update((k.encode("utf8"), v) for (k, v) in BINDINGS.items())
@@ -28,5 +28,4 @@ def run_program(
         operator_lookup=operator_lookup,
         max_cost=max_cost,
         pre_eval_f=pre_eval_f,
-        post_eval_f=post_eval_f,
     )

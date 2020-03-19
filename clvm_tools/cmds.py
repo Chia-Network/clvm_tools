@@ -11,7 +11,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 from ir import reader
 
 from . import binutils, patch_sexp  # noqa
-from .debug import make_trace_pre_and_post_eval, trace_to_text
+from .debug import make_trace_pre_eval, trace_to_text
 
 
 def path_or_code(arg):
@@ -122,11 +122,11 @@ def launch_tool(args, tool_name, default_stage=0):
     src_sexp = reader.read_ir(src_text)
     assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
-    pre_eval_f, post_eval_f = None, None
+    pre_eval_f = None
 
     log_entries = []
     if args.verbose:
-        pre_eval_f, post_eval_f = make_trace_pre_and_post_eval(log_entries)
+        pre_eval_f = make_trace_pre_eval(log_entries)
 
     run_script = getattr(args.stage, tool_name)
 
@@ -136,7 +136,7 @@ def launch_tool(args, tool_name, default_stage=0):
         env = binutils.assemble_from_ir(args.args)
         input_sexp = to_sexp_f((assembled_sexp, env))
         cost, result = run_program(
-            run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f, post_eval_f=post_eval_f)
+            run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
         if args.cost:
             print("cost = %d" % cost)
         if args.dump:
