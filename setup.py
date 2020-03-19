@@ -2,6 +2,9 @@
 
 from setuptools import setup
 
+with open("README.md", "rt") as fh:
+    long_description = fh.read()
+
 
 setup(
     name="clvm_tools",
@@ -22,6 +25,7 @@ setup(
     url="https://github.com/Chia-Network",
     license="https://opensource.org/licenses/Apache-2.0",
     description="CLVM compiler.",
+    long_description=long_description,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
