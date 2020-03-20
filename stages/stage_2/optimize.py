@@ -1,5 +1,8 @@
 from clvm import KEYWORD_TO_ATOM
 
+from clvm_tools.pattern_match import match
+from clvm_tools.binutils import assemble
+
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
@@ -40,37 +43,27 @@ def constant_optimizer(r, eval):
     return r
 
 
+def is_args_call(r):
+    p = r.as_python()
+    if p == [ARGS_KW]:
+        return True
+    if not r.listp() and r.as_int() in (0, 1):
+        return True
+    return False
+
+
+CONS_Q_A_OPTIMIZER_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
+
+
 def cons_q_a_optimizer(r, eval):
     """
     This applies the transform
     ((c (q SEXP) (a))) => SEXP
     """
-    if r.nullp() or not r.listp():
-        return r
-
-    if not r.rest().nullp():
-        return r
-
-    r0 = r.first()
-    if r0.nullp() or not r0.listp():
-        return r
-
-    operator = r0.first()
-    if operator.listp():
-        return r
-
-    as_atom = operator.as_atom()
-    if as_atom != CONS_KW:
-        return r
-    first_arg = r0.rest().first()
-    if not first_arg.listp() or first_arg.nullp():
-        return r
-    op_2 = first_arg.first()
-    if op_2.listp() or op_2.as_atom() != QUOTE_KW:
-        return r
-    if r0.rest().rest().as_python() != [[ARGS_KW]]:
-        return r
-    return first_arg.rest().first()
+    t1 = match(CONS_Q_A_OPTIMIZER_PATTERN, r)
+    if t1 and is_args_call(t1["args"]):
+        return t1["sexp"]
+    return r
 
 
 def sub_args(sexp, new_args):
@@ -136,7 +129,7 @@ def var_change_optimizer_cons_eval(r, eval):
         return r
     # eval_sexp is (q FUNCTION)
     orig_args = r0.rest().rest().first()
-    if orig_args.as_python() == [ARGS_KW]:
+    if is_args_call(orig_args):
         # let eval_q_a_optimizer take care of this
         return r
 
