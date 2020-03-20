@@ -134,6 +134,10 @@ def children_optimizer(r, eval):
     return r.to([optimize_sexp(_, eval) for _ in r.as_iter()])
 
 
+CONS_OPTIMIZER_PATTERN_FIRST = assemble("(f (c (: . first) (: . rest)))")
+CONS_OPTIMIZER_PATTERN_REST = assemble("(r (c (: . first) (: . rest)))")
+
+
 def cons_optimizer(r, eval):
     """
     This applies the transform
@@ -141,23 +145,12 @@ def cons_optimizer(r, eval):
     and
     (r (c A B)) => B
     """
-    if r.nullp() or not r.listp():
-        return r
-    operator = r.first()
-    if operator.listp():
-        return r
-
-    as_atom = operator.as_atom()
-    if as_atom not in (FIRST_KW, REST_KW):
-        return r
-
-    cons_sexp = r.rest().first()
-    if cons_sexp.listp() and not cons_sexp.nullp():
-        operator = cons_sexp.first()
-        if not operator.listp() and operator.as_atom() == CONS_KW:
-            if as_atom == FIRST_KW:
-                return cons_sexp.rest().first()
-            return cons_sexp.rest().rest().first()
+    t1 = match(CONS_OPTIMIZER_PATTERN_FIRST, r)
+    if t1:
+        return t1["first"]
+    t1 = match(CONS_OPTIMIZER_PATTERN_REST, r)
+    if t1:
+        return t1["rest"]
     return r
 
 
