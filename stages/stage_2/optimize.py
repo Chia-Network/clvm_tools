@@ -82,6 +82,9 @@ def sub_args(sexp, new_args):
     return sexp.to([sub_args(_, new_args) for _ in sexp.as_iter()])
 
 
+VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
+
+
 def var_change_optimizer_cons_eval(r, eval):
     """
     This applies the transform
@@ -93,53 +96,26 @@ def var_change_optimizer_cons_eval(r, eval):
     If we end up needing to push the "change of variables" to only one child, keep
     the optimization. Otherwise discard it.
     """
-    if r.nullp() or not r.listp():
+
+    t1 = match(VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN, r)
+
+    if t1 is None:
         return r
 
-    # r is a cons
+    original_args = t1["args"]
 
-    if not r.rest().nullp():
+    if is_args_call(original_args):
         return r
 
-    # r is a cons of the form (XX, ())
+    original_call = t1["sexp"]
 
-    r0 = r.first()
-    if r0.nullp() or not r0.listp():
-        return r
-
-    # r is of the form (r0, ()) and r0 is a cons
-
-    operator = r0.first()
-    if operator.listp():
-        return r
-
-    # (f r0) is an atom
-
-    if operator.as_python() != CONS_KW:
-        return r
-
-    # r0 is (c XXX)
-    cons_args = r0.rest()
-    eval_sexp = cons_args.first()
-
-    # r0 is (c eval_sexp orig_args)
-    if not eval_sexp.listp() or eval_sexp.nullp():
-        return r
-    if eval_sexp.first().as_python() != QUOTE_KW:
-        return r
-    # eval_sexp is (q FUNCTION)
-    orig_args = r0.rest().rest().first()
-    if is_args_call(orig_args):
-        # let eval_q_a_optimizer take care of this
-        return r
-
-    new_eval_sexp_args = sub_args(eval_sexp.rest().first(), orig_args)
+    new_eval_sexp_args = sub_args(original_call, original_args)
 
     new_operands = list(new_eval_sexp_args.as_iter())
     opt_operands = [optimize_sexp(_, eval) for _ in new_operands]
     non_constant_count = sum(1 if _.listp() and _.first() != QUOTE_KW else 0 for _ in opt_operands)
     if non_constant_count < 1:
-        final_sexp = r0.to(opt_operands)
+        final_sexp = r.to(opt_operands)
         return final_sexp
     return r
 
