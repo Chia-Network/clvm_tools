@@ -1,1 +1,6 @@
 __pycache__
+clvm_tools.egg-info
+env
+src
+activate
+pip-wheel-metadata
