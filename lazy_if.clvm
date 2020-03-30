@@ -1,0 +1,12 @@
+(mod (VALUE1 VALUE2)
+       (defmacro my_if (A B C)
+         (qq ((c
+              (i (unquote A)
+                 (function (unquote B))
+                 (function (unquote C)))
+              (a)))
+          )
+        )
+
+       (my_if (= (+ VALUE1 VALUE2) 10) "the sum is 10" (x))
+)

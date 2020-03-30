@@ -1,0 +1,31 @@
+(mod (option_flag new_puzzle new_solution my_parent my_puzzle_hash)
+
+        (defmacro create_outputs (puz solution)
+            (qq ((c (unquote puz) (unquote solution))))
+        )
+
+        (defmacro add_aggsig (APUBKEY puzhash)
+          (qq (c (q 50) (c (q (unquote APUBKEY)) (c (unquote puzhash) (q ())))))
+        )
+
+        (defmacro assert_my_value (my_parent my_puzzle sum)
+          (qq (list 53 (sha256 (unquote my_parent) (unquote my_puzzle) (unquote sum))))
+        )
+
+        (defmacro aggsig_entire_solution SOLUTION
+          (q (c (q 50) (c (q "B_PUBKEY") (c (sha256tree (a)) (q ())))))
+        )
+
+        (defun aggsig_outputs_and_assert_my_value (loop my_output my_parent my_puzzle running_sum)
+          (if (l loop)
+            (if (= (f (f loop)) (q 51))
+              (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) (c (add_aggsig "A_PUBKEY" (f (r (f loop)))) my_output)) my_parent my_puzzle (+ (f (r (r (f loop)))) running_sum))
+              (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) my_output) my_parent my_puzzle running_sum)
+            )
+            (c (list 53 (sha256 my_parent my_puzzle running_sum)) my_output)
+          )
+        )
+
+
+        (c (aggsig_entire_solution (aggsig_outputs_and_assert_my_value (create_outputs new_puzzle new_solution) () my_parent my_puzzle_hash ()))
+)
