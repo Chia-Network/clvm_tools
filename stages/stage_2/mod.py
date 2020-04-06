@@ -137,11 +137,13 @@ def symbol_table_for_tree(tree, root_node):
 
 
 def build_macro_lookup_program(macro_lookup, macros):
+    from .optimize import do_opt
     macro_lookup_program = macro_lookup.to([QUOTE_KW, macro_lookup])
     for macro in macros:
         macro_lookup_program = eval(macro_lookup.to(
             [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
             TOP.as_path())
+        cost, macro_lookup_program = do_opt(macro_lookup_program.to([macro_lookup_program]))
     return macro_lookup_program
 
 
