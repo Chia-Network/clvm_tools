@@ -31,11 +31,6 @@
       (qq ((c (unquote puzreveal) (unquote solution))))
   )
 
-  ;(defun create_fullpuz (innerpuzzlehash core)
-  ;  (qq (r (c (q (unquote innerpuzzlehash)) ((c (q (unquote core)) (a))))))
-    ;(c (q #r) (c (c (q 5) (c (c (q 1) (c (unquote innerpuzzlehash) (q ()))) (c (c (c (q 5) (c (c (q 1) (c (unquote core) (q ()))) (q ((a))))) (q ())) (q ())))) (q ())))
-  ;)
-
   (defun create_fullpuzhash (innerpuzzlehash corehash)
     (sha256tree0 (qq (r (c (q (unquote innerpuzzlehash)) ((c (q (97 (unquote corehash))) (a)))))))
   )
@@ -46,8 +41,6 @@
   )
 
   (defmacro create_e_puz (auditor_ID output_sum)
-    ;this is the function version:
-    ;(qq (r (r (c (q (unquote auditor_ID) (c (q (unquote output_sum) (q ()))))))))
     (qq (c (q #r) (c (c (q #r) (c (c (q #c) (c (c (q #q) (c (unquote auditor_ID) (q ()))) (c (c (q #c) (c (c (q #q) (c (unquote output_sum) (q ()))) (q ((q ()))))) (q ())))) (q ()))) (q ()))))
   )
 
@@ -67,7 +60,7 @@
   )
 
   (defmacro create_auditor_ID ((auditor_parent auditor_innerpuz auditor_amount) corehash)
-    (qq (sha256 (unquote auditor_parent) (create_fullpuzhash (unquote auditor_innerpuz) (unquote core)) (unquote auditor_amount)))
+    (qq (sha256 (unquote auditor_parent) (create_fullpuzhash (unquote auditor_innerpuz) (unquote corehash)) (unquote auditor_amount)))
   )
 
   (defmacro create_my_ID ((parent_parent parent_innerpuz parent_amount) my_innerpuz my_amount corehash)
@@ -120,7 +113,7 @@
 
   (defun normal_case_aggee_checker (corehash my_ID aggees normal_output)
     (if aggees
-      (consume_es_generate_as aggees my_ID core normal_output () ())
+      (consume_es_generate_as aggees my_ID corehash normal_output () ())
       normal_output
     )
   )
@@ -128,61 +121,57 @@
 
   (defun normal_case (loop my_output corehash running_sum my_ID auditor_ID aggees)
       (normal_case_aggee_checker corehash my_ID aggees (normal_case_everybody loop my_output corehash running_sum my_ID auditor_ID))
-      ;we use this so we can actually compile
-      ;(normal_case_aggee_checker corehash my_ID aggees (q ("normal_case")))
   )
 
 
-  ;(defmacro assert_my_parent_is_origin (parent_ID my_fullpuzhash my_amount)
-  ;  (qq (c (q 53) (c (sha256 (unquote parent_ID) (unquote my_fullpuzhash) (unquote my_amount)) (q ()))))
-  ;)
+  (defmacro assert_my_parent_is_origin (parent_ID my_fullpuzhash my_amount)
+    (qq (c (q 53) (c (sha256 (unquote parent_ID) (unquote my_fullpuzhash) (unquote my_amount)) (q ()))))
+  )
 
-  ;(defmacro assert_my_value_is_zero (parent_ID my_fullpuzhash)
-  ;  (qq (c (q 53) (c (sha256 (unquote parent_ID) (unquote my_fullpuzhash) (q 0)) (q ()))))
-  ;)
+  (defmacro assert_my_value_is_zero (parent_ID my_fullpuzhash)
+    (qq (c (q 53) (c (sha256 (unquote parent_ID) (unquote my_fullpuzhash) (q 0)) (q ()))))
+  )
 
-  ;(defmacro create_child_with_my_puzzle (my_fullpuzhash my_amount)
-  ;  (qq (c (q 51) (c (unquote my_fullpuzhash) (c (unquote my_amount) (q ())))))
-  ;)
+  (defmacro create_child_with_my_puzzle (my_fullpuzhash my_amount)
+    (qq (c (q 51) (c (unquote my_fullpuzhash) (c (unquote my_amount) (q ())))))
+  )
 
-  ;(defun eve_case_parent_check (parent_ID my_fullpuzhash my_amount)
-  ;  (if (= parent_ID (q "REPLACE_ME_WITH_GENESIS_ID"))
-  ;    (assert_my_parent_is_origin parent_ID my_fullpuzhash my_amount)
-  ;    (assert_my_value_is_zero parent_ID my_fullpuzhash)
-  ;  )
-  ;)
+  (defun eve_case_parent_check (parent_ID my_fullpuzhash my_amount)
+    (if (= parent_ID (q "REPLACE_ME_WITH_GENESIS_ID"))
+      (assert_my_parent_is_origin parent_ID my_fullpuzhash my_amount)
+      (assert_my_value_is_zero parent_ID my_fullpuzhash)
+    )
+  )
 
-  ;(defmacro eve_case (parent_ID my_fullpuzhash my_amount)
-  ;  (qq (c (create_child_with_my_puzzle (unquote my_fullpuzhash) (unquote my_amount)) (c (eve_case_parent_check (unquote parent_ID) (unquote my_fullpuzhash) (unquote my_amount)) (q ()))))
-  ;)
+  (defmacro eve_case (parent_ID my_fullpuzhash my_amount)
+    (qq (c (create_child_with_my_puzzle (unquote my_fullpuzhash) (unquote my_amount)) (c (eve_case_parent_check (unquote parent_ID) (unquote my_fullpuzhash) (unquote my_amount)) (q ()))))
+  )
 
   ; this will be the final program
-  ;(if (l parent_info)
-  ;    (normal_case (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
-  ;    (eve_case parent_info (create_fullpuzhash (sha256tree puzzle_reveal) corehash) my_amount)
-  ;)
+  (if (l parent_info)
+      (normal_case (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
+      (eve_case parent_info (create_fullpuzhash (sha256tree puzzle_reveal) corehash) my_amount)
+  )
 
   ;HERE BE TESTS
 
-  ;(list (sha256tree (create_fullpuz (sha256tree puzzle_reveal) core)) (create_fullpuzhash (sha256tree puzzle_reveal) (sha256tree core)))
 
-
-  ;(create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core)
-  ;(create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) core)
+  ;(create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash)
+  ;(create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash)
   ;(create_e_coin ((f (f ARGS)) (f (r (f ARGS))) (f (r (r (f ARGS))))) (f (r ARGS)) 100)
   ;(create_a_puz_cn ((f (f ARGS)) (f (r (f ARGS))) (f (r (r (f ARGS))))) (f (r ARGS)) (f (r (r ARGS))) (f (r (r (r ARGS)))))
-  ;(create_e_consume_a_assert_me (create_my_ID (parent_parent parent_innerpuz parent_amount) my_innerpuz my_amount core) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) core) (q 100))
+  ;(create_e_consume_a_assert_me (create_my_ID (parent_parent parent_innerpuz parent_amount) my_innerpuz my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) (q 100))
   ;(create_outputs puzzle_reveal solution)
 
-  ;(eve_case_parent_check parent_info (sha256tree (create_fullpuz (sha256tree puzzle_reveal) core)) my_amount)
-  ;(eve_case parent_info (sha256tree (create_fullpuz (sha256tree puzzle_reveal) core)) my_amount)
+  ;(eve_case_parent_check parent_info (sha256tree (create_fullpuz (sha256tree puzzle_reveal) corehash)) my_amount)
+  ;(eve_case parent_info (sha256tree (create_fullpuz (sha256tree puzzle_reveal) corehash)) my_amount)
 
-  ;(get_first_aggee_ID aggees core)
-  ;(consume_e (get_first_aggee_ID aggees core) (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core) (f (r (r (r (f aggees))))))
-  ;(create_a_and_consume_e (sha256 (f (f aggees)) (sha256tree (create_fullpuz (f (r (f aggees))) core)) (f (r (r (f aggees))))) (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core) (f (r (r (r (f aggees))))))
-  ;(consume_es_generate_as aggees (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core) core () () ())
-  ;(normal_case_aggee_checker (create_outputs puzzle_reveal solution) () core 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) core) aggees)
+  ;(get_first_aggee_ID aggees corehash)
+  ;(consume_e (get_first_aggee_ID aggees corehash) (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (f (r (r (r (f aggees))))))
+  ;(create_a_and_consume_e (sha256 (f (f aggees)) (sha256tree (create_fullpuz (f (r (f aggees))) corehash)) (f (r (r (f aggees))))) (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (f (r (r (r (f aggees))))))
+  ;(consume_es_generate_as aggees (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) corehash () () ())
+  ;(normal_case_aggee_checker (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
 
-  ;(normal_case_everybody (create_outputs puzzle_reveal solution) () core 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount core) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) core))
-  (normal_case (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
+  ;(normal_case_everybody (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash))
+  ;(normal_case (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
 )
