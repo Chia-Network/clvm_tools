@@ -1,3 +1,4 @@
+from clvm import to_sexp_f
 
 from ir import reader, writer
 
@@ -26,6 +27,10 @@ def test_writer_1():
     do_test('foo')
 
     do_test('(100 0x0100)')
+
+    do_test('()')
+
+    do_test('(q ())')
 
     do_test('(c (q 100) (c (q "foo") (q ())))')
 

@@ -1,19 +1,47 @@
 from clvm import casts
-from clvm import to_sexp_f
+from clvm.EvalError import EvalError
 
-from .Type import Type
+from .Type import Type, CONS_TYPES
+
+
+class pair(tuple):
+    def __new__(cls, a, b):
+        return tuple.__new__(cls, (a, b))
+
+    def first(self):
+        return self[0]
+
+    def rest(self):
+        return self[0]
+
+
+def ir_new(type, val):
+    return pair(type, val)
 
 
 def ir_cons(first, rest):
-    return first.to((Type.CONS, (first, rest)))
+    return pair(Type.CONS, pair(first, rest))
 
 
 def ir_null():
-    return to_sexp_f((Type.CONS, []))
+    return pair(Type.NULL, [])
 
 
 def ir_type(ir_sexp):
-    return Type(casts.int_from_bytes(ir_sexp.first().as_atom()))
+    the_type = ir_sexp.first()
+    if the_type.listp():
+        the_type = the_type.first()
+
+    return casts.int_from_bytes(the_type.as_atom())
+
+
+def ir_offset(ir_sexp):
+    the_offset = ir_sexp.first()
+    if the_offset.listp():
+        the_offset = the_offset.rest().as_atom()
+    else:
+        the_offset = b"\xff"
+    return casts.int_from_bytes(the_offset)
 
 
 def ir_val(ir_sexp):
@@ -21,23 +49,27 @@ def ir_val(ir_sexp):
 
 
 def ir_nullp(ir_sexp):
-    return ir_type(ir_sexp) == Type.CONS and ir_sexp.rest().nullp()
+    return ir_type(ir_sexp) == Type.NULL
 
 
 def ir_listp(ir_sexp):
-    return ir_type(ir_sexp) == Type.CONS
+    return ir_type(ir_sexp) in CONS_TYPES
 
 
 def ir_as_sexp(ir_sexp):
     if ir_nullp(ir_sexp):
-        return to_sexp_f([])
+        return []
     if ir_type(ir_sexp) == Type.CONS:
         return ir_as_sexp(ir_first(ir_sexp)).cons(ir_as_sexp(ir_rest(ir_sexp)))
     return ir_sexp.rest()
 
 
 def ir_is_atom(ir_sexp):
-    return ir_type(ir_sexp) != Type.CONS
+    return not ir_listp(ir_sexp)
+
+
+def ir_as_atom(ir_sexp):
+    return ir_sexp.rest().as_atom()
 
 
 def ir_first(ir_sexp):
@@ -49,7 +81,7 @@ def ir_rest(ir_sexp):
 
 
 def ir_symbol(symbol):
-    return to_sexp_f((Type.SYMBOL, symbol.encode("utf8")))
+    return (Type.SYMBOL, symbol.encode("utf8"))
 
 
 def ir_as_symbol(ir_sexp):
@@ -59,7 +91,7 @@ def ir_as_symbol(ir_sexp):
 
 def ir_iter(ir_sexp):
     while True:
-        if ir_type(ir_sexp) != Type.CONS:
+        if ir_is_atom(ir_sexp):
             break
         if ir_nullp(ir_sexp):
             break

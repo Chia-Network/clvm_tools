@@ -2,7 +2,6 @@
 
 from clvm import to_sexp_f
 
-
 from .Type import Type
 
 
@@ -37,7 +36,9 @@ def next_cons_token(stream):
 
 def tokenize_cons(token, offset, stream):
     if token == ")":
-        return []
+        return ((Type.NULL, offset), [])
+
+    initial_offset = offset
 
     first_sexp = tokenize_sexp(token, offset, stream)
 
@@ -50,15 +51,15 @@ def tokenize_cons(token, offset, stream):
         token, offset = next_cons_token(stream)
         if token != ")":
             raise SyntaxError("illegal dot expression at %s" % dot_offset)
-        return first_sexp.cons(rest_sexp)
+        return ((Type.CONS, initial_offset), (first_sexp, rest_sexp))
 
     rest_sexp = tokenize_list_items(token, offset, stream)
-    return first_sexp.cons(rest_sexp)
+    return ((Type.CONS, initial_offset), (first_sexp, rest_sexp))
 
 
 def tokenize_int(token, offset):
     try:
-        return int(token)
+        return ((Type.INT, offset), int(token))
     except (ValueError, TypeError):
         return None
 
@@ -69,7 +70,7 @@ def tokenize_hex(token, offset):
             token = token[2:]
             if len(token) % 2 == 1:
                 token = "0%s" % token
-            return bytes.fromhex(token)
+            return ((Type.HEX, offset), bytes.fromhex(token))
         except Exception:
             raise SyntaxError("invalid hex at %s: 0x%s" % (offset, token))
 
@@ -78,44 +79,41 @@ def tokenize_quotes(token, offset):
     if len(token) < 2:
         return None
     c = token[:1]
-    if c not in "\'\"":
+    if c not in "'\"":
         return None
 
     if token[-1] != c:
-        raise SyntaxError(
-            "unterminated string starting at %s: %s" % (offset, token))
+        raise SyntaxError("unterminated string starting at %s: %s" % (offset, token))
 
-    return token[1:-1].encode("utf8")
+    q_type = Type.SINGLE_QUOTE if c == "'" else Type.DOUBLE_QUOTE
+
+    return ((q_type, offset), token[1:-1].encode("utf8"))
 
 
 def tokenize_symbol(token, offset):
-    return token.encode("utf8")
+    return ((Type.SYMBOL, offset), token.encode("utf8"))
 
 
 def tokenize_list_items(token, offset, stream):
     r = tokenize_cons(token, offset, stream)
-    sexp = to_sexp_f((Type.CONS, r))
-    sexp._offset = offset
-    return sexp
+    return r
 
 
 def tokenize_sexp(token, offset, stream):
 
     if token == "(":
         token, offset = next_cons_token(stream)
-        return tokenize_list_items(token, offset, stream)
+        return tokenize_cons(token, offset, stream)
 
-    for type, f in [
-        (Type.INT, tokenize_int),
-        (Type.HEX, tokenize_hex),
-        (Type.QUOTES, tokenize_quotes),
-        (Type.SYMBOL, tokenize_symbol),
+    for f in [
+        tokenize_int,
+        tokenize_hex,
+        tokenize_quotes,
+        tokenize_symbol,
     ]:
         r = f(token, offset)
         if r is not None:
-            sexp = to_sexp_f((type, r))
-            sexp._offset = offset
-            return sexp
+            return r
 
 
 def token_stream(s: str):
@@ -136,22 +134,22 @@ def token_stream(s: str):
             while offset < len(s) and s[offset] != initial_c:
                 offset += 1
             if offset < len(s):
-                yield s[start:offset+1], initial_c
+                yield s[start : offset + 1], start
                 offset += 1
                 continue
             else:
                 raise SyntaxError(
-                    "unterminated string starting at %s: %s" % (
-                        start, s[start:]))
+                    "unterminated string starting at %s: %s" % (start, s[start:])
+                )
         token, end_offset = consume_until_whitespace(s, offset)
         yield token, offset
         offset = end_offset
 
 
-def read_ir(s: str):
+def read_ir(s: str, to_sexp=to_sexp_f):
     stream = token_stream(s)
 
     for token, offset in stream:
-        return tokenize_sexp(token, offset, stream)
+        return to_sexp(tokenize_sexp(token, offset, stream))
     else:
         raise SyntaxError("unexpected end of stream")
