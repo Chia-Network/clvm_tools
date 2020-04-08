@@ -1,0 +1,97 @@
+;; "IR" means "intermediate representation"... essentially a tagged s-expression
+;; a tagged s-expression (t-exp) is (tag . val) where val is also a t-exp
+;; An "IR" is a t-exp where tag is of the form
+;;  TYPE or (TYPE . offset) if we know the offset (the default value of -1 is returned otherwise, meaning "unknown")
+;;  TYPE is one of "CONS", "NULL", "INT", "HEX", "DQT" (double-quoted string), "SQT" (single-quoted string), "SYM" (symbol)
+
+(mod sexp
+
+  (defun ir_new (type val)
+    (c type val)
+  )
+
+  (defun ir_first ((A . B))
+    ;; do "first" on IR
+    (f B)
+  )
+
+  (defun ir_rest ((A . B))
+    ;; "rest" on an IR
+    (r B)
+  )
+
+  (defun ir_cons (A B)
+    ;; build an IR out of two IRs
+    (c "CONS" (c A B))
+  )
+
+  (defun ir_null ()
+    ;; the "null" ir
+    (c "NULL" ())
+  )
+
+  (defun ir_type ((A . val))
+    ;; return the type of the IR
+    (if (l A)
+      (f A)
+      A
+    )
+  )
+
+  (defun ir_atom ((A . B))
+    B
+  )
+
+  (defun ir_listp (A)
+    (= "CONS" (ir_type A))
+  )
+
+  (defun ir_nullp (A)
+    (= "NULL" (ir_type A))
+  )
+
+
+  (defun ir_offset ((type_offset_pair . val))
+    ;; return the offset of the IR, or -1 if unknown
+    (if (l type_offset_pair)
+      (r type_offset_pair)
+      -1
+    )
+  )
+
+  ;; this section deals with "expansion"
+  ;; When an sexp (in IR) is expanded,
+  ;; it returns a pair (A . B) where A is the
+  ;; recursively sexp and B is a list of all
+  ;; symbols in the sexp (symbols are not unique in the list)
+
+
+  (defun exp_call (op args acc)
+    ;; this is a call
+    (ir_cons (ir_new "OP" (ir_atom (ir_first sexp)))
+      (exp_args (ir_rest sexp acc))
+    )
+  )
+
+  (defun exp_acc (sexp acc_exp acc_sym is_op)
+    (if (ir_nullp sexp)
+      (ir_cons acc_exp acc_sym)
+      (if (ir_listp sexp)
+        "UNKNOWN"
+        (if (= (ir_type sexp) "SYM")
+          (if is_op
+            (ir_cons (ir_new "OP" (ir_atom sexp)) acc_exp)
+            (ir_cons sexp (ir_cons sexp acc_sym))
+          )
+          (ir_cons sexp acc_sym)
+        )
+      )
+    )
+  )
+
+  (defun exp (sexp) (exp_acc sexp (ir_null) (ir_null) 0))
+  
+    (defun foo (bar)
+    "I like cheese")
+    (exp sexp)
+)
