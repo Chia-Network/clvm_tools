@@ -54,7 +54,7 @@
     )
   )
 
-  (defun ir_atom ((A . B))
+  (defun ir_as_atom ((A . B))
     B
   )
 
@@ -89,10 +89,10 @@
   (defun macro_expand_call (operator args macro_lookup macros_remaining)
     (if (or (ir_listp operator) (ir_nullp macros_remaining))
       (ir_cons operator (macro_expand_args args macro_lookup))
-      (if (= (ir_atom operator) (ir_first (ir_first macros_remaining)))
+      (if (= (ir_as_atom operator) (ir_as_atom (ir_first (ir_first macros_remaining))))
         ;; we need to expand this macro
         ;; TODO: rename this nonsense "call" (and have it operate on CODE)
-        ((c (ir_atom (ir_rest (ir_first macros_remaining))) args))
+        ((c (ir_as_atom (ir_rest (ir_first macros_remaining))) args))
         (macro_expand_call (operator args macro_lookup (ir_rest macros_remaining)))
       )
     )
@@ -114,7 +114,7 @@
 
   (defun exp_call (op args acc)
     ;; this is a call
-    (ir_cons (ir_new "OP" (ir_atom (ir_first sexp)))
+    (ir_cons (ir_new "OP" (ir_as_atom (ir_first sexp)))
       (exp_args (ir_rest sexp acc))
     )
   )
@@ -126,7 +126,7 @@
         "UNKNOWN"
         (if (= (ir_type sexp) "SYM")
           (if is_op
-            (ir_cons (ir_new "OP" (ir_atom sexp)) acc_sym)
+            (ir_cons (ir_new "OP" (ir_as_atom sexp)) acc_sym)
             (ir_cons sexp (ir_cons sexp acc_sym))
           )
           (ir_cons sexp acc_sym)
