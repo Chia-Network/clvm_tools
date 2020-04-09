@@ -31,11 +31,14 @@ def iter_ir_format(ir_sexp):
         return
 
     type = ir_type(ir_sexp)
-    atom = ir_as_atom(ir_sexp)
 
     if type == Type.NULL:
         yield "()"
-    elif type == Type.INT:
+        return
+
+    atom = ir_as_atom(ir_sexp)
+
+    if type == Type.INT:
         yield "%d" % casts.int_from_bytes(atom)
     elif type == Type.HEX:
         yield "0x%s" % atom.hex()

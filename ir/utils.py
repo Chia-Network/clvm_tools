@@ -12,7 +12,7 @@ class pair(tuple):
         return self[0]
 
     def rest(self):
-        return self[0]
+        return self[1]
 
 
 def ir_new(type, val):
