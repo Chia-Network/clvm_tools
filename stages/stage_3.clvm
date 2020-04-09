@@ -6,6 +6,22 @@
 
 (mod sexp
 
+  (defmacro not (a)
+      (qq (i (unquote a) 0 1))
+  )
+
+  ; boolean or macro
+  (defmacro or ARGS
+      (if ARGS
+          (qq (if (unquote (f ARGS))
+              1
+              (unquote (c or (r ARGS)))
+          ))
+      0)
+  )
+
+  ;; ir utilities
+
   (defun ir_new (type val)
     (c type val)
   )
@@ -59,6 +75,36 @@
     )
   )
 
+  ;; this section deals with macro expansion
+  ;; macro_lookup is an IR list of elements of the form (symbol . code)
+  ;; where `symbol` is a macro name and `code` is the code to be run to expand this macro
+
+  (defun macro_expand (sexp macro_lookup)
+    (if (ir_listp sexp)
+      (macro_expand_call (macro_expand (ir_first sexp) macro_lookup) (ir_rest sexp) macro_lookup macro_lookup)
+      sexp
+    )
+  )
+
+  (defun macro_expand_call (operator args macro_lookup macros_remaining)
+    (if (or (ir_listp operator) (ir_nullp macros_remaining))
+      (ir_cons operator (macro_expand_args args macro_lookup))
+      (if (= (ir_atom operator) (ir_first (ir_first macros_remaining)))
+        ;; we need to expand this macro
+        ;; TODO: rename this nonsense "call" (and have it operate on CODE)
+        ((c (ir_atom (ir_rest (ir_first macros_remaining))) args))
+        (macro_expand_call (operator args macro_lookup (ir_rest macros_remaining)))
+      )
+    )
+  )
+
+  (defun macro_expand_args (args macro_lookup)
+    (if (ir_listp args)
+      (ir_cons (macro_expand (ir_first args) macro_lookup) (macro_expand_args (ir_rest args) macro_lookup))
+      args
+    )
+  )
+
   ;; this section deals with "expansion"
   ;; When an sexp (in IR) is expanded,
   ;; it returns a pair (A . B) where A is the
@@ -80,7 +126,7 @@
         "UNKNOWN"
         (if (= (ir_type sexp) "SYM")
           (if is_op
-            (ir_cons (ir_new "OP" (ir_atom sexp)) acc_exp)
+            (ir_cons (ir_new "OP" (ir_atom sexp)) acc_sym)
             (ir_cons sexp (ir_cons sexp acc_sym))
           )
           (ir_cons sexp acc_sym)
@@ -89,9 +135,32 @@
     )
   )
 
+  ;; return an IR list of symbols used in an sexp (recursively)
+  ;; the returned values is every symbol, in order, without repeats removed
+
+  (defun flatten-symbols-acc (sexp acc)
+    (if (ir_nullp sexp)
+      acc
+      (if (ir_listp sexp)
+        (flatten-symbols-acc (ir_first sexp) (flatten-symbols-acc (ir_rest sexp) acc))
+        (if
+          (= (ir_type sexp) "SYM")
+          (ir_cons sexp acc)
+          acc
+        )
+      )
+    )
+  )
+
+  (defun flatten-symbols (sexp)
+    (flatten-symbols-acc sexp (ir_null))
+  )
+
+  ;;
+
   (defun exp (sexp) (exp_acc sexp (ir_null) (ir_null) 0))
   
     (defun foo (bar)
     "I like cheese")
-    (exp sexp)
+    (macro_expand sexp (ir_null))
 )
