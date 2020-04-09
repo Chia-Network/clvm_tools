@@ -3,10 +3,10 @@
 import io
 
 from clvm import casts
+from clvm.serialize import sexp_to_stream
 
 from .Type import Type
-from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom
-
+from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom, ir_val
 
 def iter_sexp_format(ir_sexp):
     yield "("
@@ -31,6 +31,14 @@ def iter_ir_format(ir_sexp):
         return
 
     type = ir_type(ir_sexp)
+
+    if type == Type.CODE:
+        bio = io.BytesIO()
+        x = ir_val(ir_sexp)
+        sexp_to_stream(ir_val(ir_sexp), bio)
+        code = bio.getvalue().hex()
+        yield "CODE[%s]" % code
+        return
 
     if type == Type.NULL:
         yield "()"
