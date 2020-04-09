@@ -7,12 +7,18 @@ from ir.reader import read_ir
 from ir.writer import write_ir
 from ir.utils import (
     ir_as_symbol, ir_cons, ir_first, ir_listp, ir_null,
-    ir_nullp, ir_rest, ir_symbol, ir_val, is_ir
+    ir_nullp, ir_rest, ir_symbol, ir_type, ir_val, is_ir
 )
 from ir.Type import Type
 
 
 def assemble_from_ir(ir_sexp, keyword_to_atom=KEYWORD_TO_ATOM):
+    the_type = ir_type(ir_sexp)
+    val = ir_val(ir_sexp)
+
+    if the_type == Type.CODE:
+        return val
+
     keyword = ir_as_symbol(ir_sexp)
     if keyword:
         if keyword[:1] == "#":
