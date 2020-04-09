@@ -12,12 +12,12 @@ from ir.utils import (
 from ir.Type import Type
 
 
-def assemble_from_ir(ir_sexp):
+def assemble_from_ir(ir_sexp, keyword_to_atom=KEYWORD_TO_ATOM):
     keyword = ir_as_symbol(ir_sexp)
     if keyword:
         if keyword[:1] == "#":
             keyword = keyword[1:]
-        atom = KEYWORD_TO_ATOM.get(keyword)
+        atom = keyword_to_atom.get(keyword)
         if atom:
             return to_sexp_f(atom)
         if True:
@@ -57,7 +57,7 @@ def type_for_atom(atom):
     return Type.HEX
 
 
-def disassemble_to_ir(sexp, allow_keyword=None):
+def disassemble_to_ir(sexp, allow_keyword=None, keyword_from_atom=KEYWORD_FROM_ATOM):
     if is_ir(sexp) and allow_keyword is not False:
         return ir_cons(ir_symbol("ir"), sexp)
 
@@ -73,7 +73,7 @@ def disassemble_to_ir(sexp, allow_keyword=None):
 
     as_atom = sexp.as_atom()
     if allow_keyword:
-        v = KEYWORD_FROM_ATOM.get(as_atom)
+        v = keyword_from_atom.get(as_atom)
         if v is not None and v != '.':
             return ir_symbol(v)
 
