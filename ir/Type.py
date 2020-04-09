@@ -15,6 +15,7 @@ class Type(enum.IntEnum):
     DOUBLE_QUOTE = i(b"DQT")
     SINGLE_QUOTE = i(b"SQT")
     SYMBOL = i(b"SYM")
+    OPERATOR = i(b"OP")
     CODE = i(b"CODE")
 
     def listp(self):

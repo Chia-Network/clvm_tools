@@ -105,6 +105,19 @@
     )
   )
 
+  ;; go through and "compile" atoms, by quoting them
+
+  (defun compile-atoms (sexp)
+    (if (ir_listp sexp)
+      (ir_cons (compile-atoms (ir_first sexp)) (compile-atoms (ir_rest sexp)))
+      (if (is-compilable-atom (ir_type sexp)) (ir_cons (ir_new "OP" "q") (ir_cons sexp (ir_null))) sexp)
+    )
+  )
+
+  (defun is-compilable-atom (type)
+    (or (= type "INT") (= type "HEX") (= type "DQT") (= type "SQT") (= type "QT"))
+  )
+
   ;; this section deals with "expansion"
   ;; When an sexp (in IR) is expanded,
   ;; it returns a pair (A . B) where A is the

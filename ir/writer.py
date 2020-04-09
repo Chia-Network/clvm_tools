@@ -56,7 +56,7 @@ def iter_ir_format(ir_sexp):
         yield '"%s"' % atom.decode("utf8")
     elif type == Type.SINGLE_QUOTE:
         yield "'%s'" % atom.decode("utf8")
-    elif type == Type.SYMBOL:
+    elif type in (Type.SYMBOL, Type.OPERATOR):
         try:
             yield atom.decode("utf8")
         except UnicodeDecodeError:
