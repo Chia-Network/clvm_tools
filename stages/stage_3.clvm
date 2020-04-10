@@ -156,6 +156,18 @@
     )
   )
 
+  ;; get rid of "NODE" ir_sexp
+
+  (defun compile-node (ir_sexp)
+    (if (ir_listp ir_sexp)
+      (ir_cons (compile-node (ir_first ir_sexp)) (compile-node (ir_rest ir_sexp)))
+      (if (= (ir_type ir_sexp) "NODE")
+        (ir_new "CODE" (_node_index_to_path ir_sexp))
+        ir_sexp
+      )
+    )
+  )
+
   ;; return an IR list of symbols used in an sexp (recursively)
   ;; the returned values is every symbol, in order, without repeats removed
 
@@ -177,7 +189,7 @@
     (flatten-symbols-acc sexp (ir_null))
   )
 
-  ;;
+  ;; a hack way to invoke the python version of _compile_lambda
 
   (defun com-lamb (args code)
     (_compile_lambda args code (flatten-symbols args) (flatten-symbols code))
@@ -186,5 +198,8 @@
   (defun exp (sexp) (exp_acc sexp (ir_null) (ir_null) 0))
   
   ;(macro_expand sexp (ir_null))
-  (com-lamb (ir_first sexp) (ir_first (ir_rest sexp))) ; -i ((AAA BBB CCC) (+ AAA BBB CCC))
+  ;(compile-node sexp) ; -i ((AAA BBB CCC) (+ AAA BBB CCC))
+  ;(com-lamb (ir_first sexp) (ir_first (ir_rest sexp)))
+  (com-lamb (ir_first sexp) (ir_first (ir_rest sexp)))
+  ;; com -i '((AAA BBB CCC) (+ AAA BBB CCC))'
 )

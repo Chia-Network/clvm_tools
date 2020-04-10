@@ -66,7 +66,7 @@ def com(args=sys.argv):
     src_text = args.path_or_code
     data = reader.read_ir(src_text)
     if not args.use_ir:
-        data = to_sexp_f(data)
+        data = binutils.assemble_from_ir(data)
 
     try:
         cost, r = run_program(prog, data)

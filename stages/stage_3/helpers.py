@@ -80,7 +80,6 @@ def do_compile_lambda(args):
 
     new_parms = parms
     if missing_symbols:
-        breakpoint()
         missing_symbol_tree = build_tree(missing_symbols)
         missing_symbol_code = build_tree_program(missing_symbols)
         new_parms = parms.to(ir_cons(missing_symbol_tree, parms))
@@ -94,8 +93,8 @@ def do_compile_lambda(args):
     # substitute symbols
     r = sub_symbols(code, symbol_table)
     if missing_symbols:
-        r = parms.to(ir_list(CONS, ir_list(QUOTE, r), new_args))
-    return 1, r
+        r = ir_list(CONS, ir_list(QUOTE, r), new_args)
+    return 1, parms.to(r)
 
 
 def sub_symbols(ir_sexp, symbol_table):
@@ -156,6 +155,13 @@ def symbol_table_for_tree(tree, root_node):
     return left + right
 
 
+def do_node_index_to_path(args):
+    v = ir_val(args.first()).as_int()
+    r = args.to(TOP.__class__(v).as_path())
+    return 1, r
+
+
 OPERATOR_LOOKUP[b"com"] = do_com
 OPERATOR_LOOKUP[b"_assemble"] = do_assemble
 OPERATOR_LOOKUP[b"_compile_lambda"] = do_compile_lambda
+OPERATOR_LOOKUP[b"_node_index_to_path"] = do_node_index_to_path
