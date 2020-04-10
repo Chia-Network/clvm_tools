@@ -1,9 +1,10 @@
 import argparse
 import io
+import pathlib
 import pkg_resources
 import sys
 
-from clvm import to_sexp_f
+from clvm import to_sexp_f, run_program
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
@@ -11,7 +12,7 @@ from ir import reader
 
 from . import binutils, patch_sexp  # noqa
 
-from stages.stage_3.helpers import run_program
+from stages.stage_3.helpers import operators_for_context
 
 
 def path_or_code(arg):
@@ -42,7 +43,10 @@ def com(args=sys.argv):
         "-d", "--dump", action="store_true", help="dump hex version of final output"
     )
     parser.add_argument(
-        "-i", "--use-ir", action="store_true", help="use IR mode for data"
+        "-t", "--use-ir", action="store_true", help="use tagged IR mode for data", default=False,
+    )
+    parser.add_argument(
+        "-i", "--include", type=pathlib.Path, help="add a search path for included files", action="append",
     )
     parser.add_argument(
         "path_or_code", type=path_or_code, help="path to clvm script, or literal script"
@@ -68,8 +72,10 @@ def com(args=sys.argv):
     if not args.use_ir:
         data = binutils.assemble_from_ir(data)
 
+    operator_lookup = operators_for_context(args.include)
+
     try:
-        cost, r = run_program(prog, data)
+        cost, r = run_program(prog, data, operator_lookup=operator_lookup)
     except EvalError as ex:
         r = f"failed: {ex} {ex._sexp}"
 

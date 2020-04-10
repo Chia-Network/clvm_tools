@@ -1,7 +1,10 @@
-from ir.writer import write_ir as wi
+import pathlib
+
+from ir.reader import read_ir
+from ir.writer import write_ir
 
 
-from clvm import run_program as original_run_program
+from clvm.EvalError import EvalError
 
 from clvm.runtime_001 import OPERATOR_LOOKUP as ORIGINAL_OPERATOR_LOOKUP
 from clvm.runtime_001 import KEYWORD_TO_ATOM
@@ -31,16 +34,15 @@ from clvm_tools.binutils import assemble_from_ir
 
 from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
-
 CONS = ir_new(Type.OPERATOR, b"c")
 QUOTE = ir_new(Type.OPERATOR, b"q")
+NODE_0 = ir_new(Type.NODE, 0)
+
+# for debugging brevity
+wi = write_ir
 
 
 OPERATOR_LOOKUP = dict(ORIGINAL_OPERATOR_LOOKUP)
-
-
-def run_program(*args, **kwargs):
-    return original_run_program(*args, **kwargs, operator_lookup=OPERATOR_LOOKUP)
 
 
 def do_com(args):
@@ -85,7 +87,6 @@ def do_compile_lambda(args):
         new_parms = parms.to(ir_cons(missing_symbol_tree, parms))
         # new code looks like this
         # code = "(qq (c (unquote CODE) (c (unquote MISSING_SYMBOL_CODE) (a))))"
-        NODE_0 = ir_new(Type.NODE, 0)
         new_args = parms.to(ir_list(CONS, missing_symbol_code, NODE_0))
 
     symbol_table = dict(symbol_table_for_tree(new_parms, TOP))
@@ -161,7 +162,30 @@ def do_node_index_to_path(args):
     return 1, r
 
 
+def do_read_ir(args):
+    filename = ir_as_atom(args.first())
+    s = open(filename).read()
+    ir_sexp = read_ir(s, args.to)
+    return 1, ir_sexp
+
+
 OPERATOR_LOOKUP[b"com"] = do_com
 OPERATOR_LOOKUP[b"_assemble"] = do_assemble
 OPERATOR_LOOKUP[b"_compile_lambda"] = do_compile_lambda
 OPERATOR_LOOKUP[b"_node_index_to_path"] = do_node_index_to_path
+OPERATOR_LOOKUP[b"_read_ir"] = do_read_ir
+
+
+def operators_for_context(search_paths):
+    operator_lookup = dict(OPERATOR_LOOKUP)
+
+    def do_full_path_for_name(args):
+        filename = ir_as_atom(args.first()).decode()
+        for path in search_paths:
+            f_path = pathlib.Path(path) / filename
+            if f_path.is_file():
+                return 1, args.to(ir_new(Type.SYMBOL, str(f_path).encode()))
+        raise EvalError("can't open %s" % filename, args)
+
+    operator_lookup[b"_full_path_for_name"] = do_full_path_for_name
+    return operator_lookup
