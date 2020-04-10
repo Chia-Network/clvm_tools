@@ -54,6 +54,14 @@
     )
   )
 
+  ;;
+  (defun BROKEN_ir_list A
+    (if A
+      (ir_null)
+      (ir_cons (ir_new "HEX" (ir_first A)) (ir_list (ir_rest A)))
+    )
+  )
+
   (defun ir_as_atom ((A . B))
     B
   )
@@ -171,9 +179,12 @@
 
   ;;
 
+  (defun com-lamb (args code)
+    (_compile_lambda args code (flatten-symbols args) (flatten-symbols code))
+  )
+
   (defun exp (sexp) (exp_acc sexp (ir_null) (ir_null) 0))
   
-    (defun foo (bar)
-    "I like cheese")
-    (macro_expand sexp (ir_null))
+  ;(macro_expand sexp (ir_null))
+  (com-lamb (ir_first sexp) (ir_first (ir_rest sexp))) ; -i ((AAA BBB CCC) (+ AAA BBB CCC))
 )

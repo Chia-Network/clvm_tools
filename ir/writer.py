@@ -8,6 +8,7 @@ from clvm.serialize import sexp_to_stream
 from .Type import Type
 from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom, ir_val
 
+
 def iter_sexp_format(ir_sexp):
     yield "("
     is_first = True
@@ -48,6 +49,8 @@ def iter_ir_format(ir_sexp):
 
     if type == Type.INT:
         yield "%d" % casts.int_from_bytes(atom)
+    elif type == Type.NODE:
+        yield "NODE[%d]" % casts.int_from_bytes(atom)
     elif type == Type.HEX:
         yield "0x%s" % atom.hex()
     elif type == Type.QUOTES:

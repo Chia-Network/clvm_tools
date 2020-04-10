@@ -17,6 +17,7 @@ class Type(enum.IntEnum):
     SYMBOL = i(b"SYM")
     OPERATOR = i(b"OP")
     CODE = i(b"CODE")
+    NODE = i(b"NODE")
 
     def listp(self):
         return False

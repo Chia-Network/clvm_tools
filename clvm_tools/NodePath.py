@@ -78,6 +78,9 @@ class NodePath:
             index >>= 1
         return r
 
+    def index(self):
+        return self._index
+
     def __add__(self, other_node):
         return self.__class__(compose_paths(self._index, other_node._index))
 

@@ -23,6 +23,12 @@ def ir_cons(first, rest):
     return pair(Type.CONS, pair(first, rest))
 
 
+def ir_list(*items):
+    if items:
+        return ir_cons(items[0], ir_list(*items[1:]))
+    return ir_null()
+
+
 def ir_null():
     return pair(Type.NULL, [])
 

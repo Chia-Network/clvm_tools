@@ -42,6 +42,9 @@ def com(args=sys.argv):
         "-d", "--dump", action="store_true", help="dump hex version of final output"
     )
     parser.add_argument(
+        "-i", "--use-ir", action="store_true", help="use IR mode for data"
+    )
+    parser.add_argument(
         "path_or_code", type=path_or_code, help="path to clvm script, or literal script"
     )
     parser.add_argument(
@@ -61,8 +64,9 @@ def com(args=sys.argv):
     prog = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
 
     src_text = args.path_or_code
-    src_sexp = reader.read_ir(src_text)
-    data = to_sexp_f(src_sexp)
+    data = reader.read_ir(src_text)
+    if not args.use_ir:
+        data = to_sexp_f(data)
 
     try:
         cost, r = run_program(prog, data)

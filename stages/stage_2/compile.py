@@ -119,7 +119,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     r = prog.to([operator] + evaluated_args)
 
-    if as_atom in PASS_THROUGH_OPERATORS:
+    if as_atom in PASS_THROUGH_OPERATORS or as_atom.startswith(b"_"):
         return r
 
     for (symbol, value) in symbol_table.as_python():
