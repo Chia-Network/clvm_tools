@@ -28,10 +28,11 @@ QUOTE = ir_new(Type.OPERATOR, b"q")
 NODE_0 = ir_new(Type.NODE, 0)
 
 
-def ir_flatten(ir_sexp):
+
+def ir_flatten(ir_sexp, filter=lambda x: ir_type(x) == Type.SYMBOL):
     if ir_listp(ir_sexp):
         return ir_flatten(ir_first(ir_sexp)) + ir_flatten(ir_rest(ir_sexp))
-    if ir_type(ir_sexp) == Type.SYMBOL:
+    if filter(ir_sexp):
         return [ir_val(ir_sexp).as_atom()]
     return []
 
@@ -41,8 +42,8 @@ def do_compile_lambda(args):
 
     parms = args.first()
     code = args.rest().first()
-    symbols_from_parms = ir_flatten(args.rest().rest().first())
-    symbols_from_code = ir_flatten(args.rest().rest().rest().first())
+    symbols_from_parms = ir_flatten(parms)
+    symbols_from_code = ir_flatten(code)
 
     # find missing symbols, rewrite bind code, adjust var look-up
 
