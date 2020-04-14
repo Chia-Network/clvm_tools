@@ -1,0 +1,2 @@
+brun -s3 -t '(_codegen (_compile_lambda (a)))' '((AAA (BBB .  CCC)) (+ AAA BBB CCC))'
+(+ (f (a)) (f (f (r (a)))) (r (f (r (a)))))

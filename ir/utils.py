@@ -29,6 +29,14 @@ def ir_list(*items):
     return ir_null()
 
 
+def ir_to(sexp, atom_type_f=lambda _: Type.SYMBOL):
+    if sexp.listp():
+        return ir_cons(
+            ir_to(sexp.first(), atom_type_f=atom_type_f),
+            ir_to(sexp.rest(), atom_type_f=atom_type_f))
+    return ir_new(atom_type_f(sexp), sexp)
+
+
 def ir_null():
     return pair(Type.NULL, [])
 
@@ -39,6 +47,10 @@ def ir_type(ir_sexp):
         the_type = the_type.first()
 
     return casts.int_from_bytes(the_type.as_atom())
+
+
+def ir_as_int(ir_sexp):
+    return casts.int_from_bytes(ir_as_atom(ir_sexp))
 
 
 def ir_offset(ir_sexp):

@@ -19,6 +19,7 @@ from clvm_tools.binutils import assemble_from_ir
 
 from clvm_tools.NodePath import NodePath
 
+from .codegen import do_codegen
 from .mod import do_compile_lambda
 
 
@@ -56,6 +57,7 @@ OPERATOR_LOOKUP[b"_assemble"] = do_assemble
 OPERATOR_LOOKUP[b"_compile_lambda"] = do_compile_lambda
 OPERATOR_LOOKUP[b"_node_index_to_path"] = do_node_index_to_path
 OPERATOR_LOOKUP[b"_read_ir"] = do_read_ir
+OPERATOR_LOOKUP[b"_codegen"] = do_codegen
 
 
 def operators_for_context(search_paths):
