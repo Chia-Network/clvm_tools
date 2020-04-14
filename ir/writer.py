@@ -63,7 +63,7 @@ def iter_ir_format(ir_sexp):
         try:
             yield atom.decode("utf8")
         except UnicodeDecodeError:
-            yield "(undecypherable symbol: %s)" % atom.hex()
+            yield "(indecipherable symbol: %s)" % atom.hex()
     else:
         raise SyntaxError("bad ir format: %s" % ir_sexp)
 
