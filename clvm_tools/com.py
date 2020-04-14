@@ -43,10 +43,18 @@ def com(args=sys.argv):
         "-d", "--dump", action="store_true", help="dump hex version of final output"
     )
     parser.add_argument(
-        "-t", "--use-ir", action="store_true", help="use tagged IR mode for data", default=False,
+        "-t",
+        "--use-ir",
+        action="store_true",
+        help="use tagged IR mode for data",
+        default=False,
     )
     parser.add_argument(
-        "-i", "--include", type=pathlib.Path, help="add a search path for included files", action="append",
+        "-i",
+        "--include",
+        type=pathlib.Path,
+        help="add a search path for included files",
+        action="append",
     )
     parser.add_argument(
         "path_or_code", type=path_or_code, help="path to clvm script, or literal script"

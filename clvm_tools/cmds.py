@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import importlib
 import io
+import pathlib
 import sys
 
 from clvm import to_sexp_f
@@ -9,6 +10,7 @@ from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from ir import reader
+from ir import writer
 
 from . import binutils, patch_sexp  # noqa
 from .debug import make_trace_pre_eval, trace_to_text
@@ -29,15 +31,16 @@ def stream_to_bin(write_f):
 
 
 def opc(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Compile a clvm script.'
+    parser = argparse.ArgumentParser(description="Compile a clvm script.")
+    parser.add_argument(
+        "-H", "--script_hash", action="store_true", help="Show sha256 script hash"
     )
     parser.add_argument(
-        "-H", "--script_hash", action="store_true",
-        help="Show sha256 script hash")
-    parser.add_argument(
-        "path_or_code", nargs="*", type=path_or_code,
-        help="path to clvm script, or literal script")
+        "path_or_code",
+        nargs="*",
+        type=path_or_code,
+        help="path to clvm script, or literal script",
+    )
 
     args = parser.parse_args(args=args[1:])
 
@@ -55,12 +58,10 @@ def opc(args=sys.argv):
 
 
 def opd(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Disassemble a compiled clvm script.'
-    )
+    parser = argparse.ArgumentParser(description="Disassemble a compiled clvm script.")
     parser.add_argument(
-        "script", nargs="+", type=bytes.fromhex,
-        help="hex version of clvm script")
+        "script", nargs="+", type=bytes.fromhex, help="hex version of clvm script"
+    )
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
@@ -91,28 +92,56 @@ def brun(args=sys.argv):
 
 
 def launch_tool(args, tool_name, default_stage=0):
-    parser = argparse.ArgumentParser(
-        description='Execute a clvm script.'
+    parser = argparse.ArgumentParser(description="Execute a clvm script.")
+    parser.add_argument(
+        "-s",
+        "--stage",
+        type=stage_import,
+        help="stage number to include",
+        default=stage_import(default_stage),
     )
     parser.add_argument(
-        "-s", "--stage", type=stage_import,
-        help="stage number to include", default=stage_import(default_stage))
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Display resolve of all reductions, for debugging",
+    )
+    parser.add_argument("-c", "--cost", action="store_true", help="Show cost")
+    parser.add_argument("-m", "--max-cost", type=int, help="Maximum cost")
     parser.add_argument(
-        "-v", "--verbose", action="store_true",
-        help="Display resolve of all reductions, for debugging")
+        "-d", "--dump", action="store_true", help="dump hex version of final output"
+    )
     parser.add_argument(
-        "-c", "--cost", action="store_true", help="Show cost")
+        "-t",
+        "--use-ir-input",
+        action="store_true",
+        help="use tagged IR mode for input args",
+        default=False,
+    )
     parser.add_argument(
-        "-m", "--max-cost", type=int, help="Maximum cost")
+        "-T",
+        "--use-ir-output",
+        action="store_true",
+        help="use tagged IR mode for output",
+        default=False,
+    )
     parser.add_argument(
-        "-d", "--dump", action="store_true",
-        help="dump hex version of final output")
+        "-i",
+        "--include",
+        type=pathlib.Path,
+        help="add a search path for included files",
+        action="append",
+    )
     parser.add_argument(
-        "path_or_code", type=path_or_code,
-        help="path to clvm script, or literal script")
+        "path_or_code", type=path_or_code, help="path to clvm script, or literal script"
+    )
     parser.add_argument(
-        "args", type=reader.read_ir, help="arguments", nargs="?",
-        default=reader.read_ir("()"))
+        "args",
+        type=reader.read_ir,
+        help="arguments",
+        nargs="?",
+        default=reader.read_ir("()"),
+    )
 
     args = parser.parse_args(args=args[1:])
 
@@ -133,15 +162,20 @@ def launch_tool(args, tool_name, default_stage=0):
     cost = 0
     try:
         output = "(didn't finish)"
-        env = binutils.assemble_from_ir(args.args)
+        env = args.args
+        if not args.use_ir_input:
+            env = binutils.assemble_from_ir(env)
         input_sexp = to_sexp_f((assembled_sexp, env))
         cost, result = run_program(
-            run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
+            run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f
+        )
         if args.cost:
             print("cost = %d" % cost)
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = blob.hex()
+        elif args.use_ir_output:
+            output = writer.write_ir(result)
         else:
             output = binutils.disassemble(result)
     except EvalError as ex:
@@ -160,11 +194,8 @@ def launch_tool(args, tool_name, default_stage=0):
 
 
 def read_ir(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Read script and tokenize to IR.'
-    )
-    parser.add_argument(
-        "script", help="script in hex or uncompiled text")
+    parser = argparse.ArgumentParser(description="Read script and tokenize to IR.")
+    parser.add_argument("script", help="script in hex or uncompiled text")
 
     args = parser.parse_args(args=args[1:])
 
