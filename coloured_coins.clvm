@@ -185,9 +185,10 @@
 
   ; this is the final program
   ; it checks if our parent is a coloured coin, and then calls the normal case if so, otherwise it calls the eve case
+  ; in eve case puzzlereveal is just actually just your full puzzlehash
   (if (l parent_info)
       (normal_case (create_outputs puzzle_reveal solution) () corehash 0 (create_my_ID ((f parent_info) (f (r parent_info)) (f (r (r parent_info)))) (sha256tree1 puzzle_reveal) my_amount corehash) (create_auditor_ID (auditor_parent auditor_innerpuz auditor_amount) corehash) aggees)
-      (eve_case parent_info (create_fullpuzhash (sha256tree1 puzzle_reveal) corehash) my_amount)
+      (eve_case parent_info puzzle_reveal my_amount)
   )
 
   ;HERE BE TESTS
