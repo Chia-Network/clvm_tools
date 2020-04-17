@@ -6,7 +6,8 @@ import sys
 
 from clvm import to_sexp_f, run_program
 from clvm.EvalError import EvalError
-from clvm.serialize import sexp_from_stream, sexp_to_stream
+
+from clvm_tools.clvmc import load_clvm
 
 from ir import reader
 
@@ -69,11 +70,8 @@ def com(args=sys.argv):
 
     args = parser.parse_args(args=args[1:])
 
-    blob_hex_path = pkg_resources.resource_filename("stages", "stage_3.clvm.hex")
-    blob_hex = open(blob_hex_path).read()
-    blob = bytes.fromhex(blob_hex)
-
-    prog = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
+    clvm_source = pkg_resources.resource_filename("stages", "stage_3.clvm")
+    prog = load_clvm(clvm_source, to_sexp_f)
 
     src_text = args.path_or_code
     data = reader.read_ir(src_text)

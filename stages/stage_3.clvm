@@ -199,7 +199,8 @@
   
   ;(macro_expand sexp (ir_null))
   ;(compile-node sexp) ; -i ((AAA BBB CCC) (+ AAA BBB CCC))
-  (com-lamb (ir_first sexp) (ir_first (ir_rest sexp)))
+  (_codegen (_compile_lambda sexp))
+  ;; (com-lamb (ir_first sexp) (ir_first (ir_rest sexp)))
   ;; com -t '((AAA BBB CCC) (+ AAA BBB CCC))'
   ;(_full_path_for_name sexp)
 )

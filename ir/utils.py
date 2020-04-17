@@ -30,6 +30,8 @@ def ir_list(*items):
 
 
 def ir_to(sexp, atom_type_f=lambda _: Type.SYMBOL):
+    if sexp.nullp():
+        return ir_null()
     if sexp.listp():
         return ir_cons(
             ir_to(sexp.first(), atom_type_f=atom_type_f),

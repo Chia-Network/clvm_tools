@@ -70,6 +70,14 @@ class NodePath:
     def __init__(self, index=1):
         self._index = index
 
+    def as_assembly(self):
+        r = [b"a"]
+        index = self._index
+        while index > 1:
+            r = [b"r" if index & 1 else b"f", r]
+            index >>= 1
+        return r
+
     def as_path(self):
         r = [ARGS_KW]
         index = self._index

@@ -3,8 +3,11 @@
 from distutils import log
 from distutils.dep_util import newer
 
+import io
 import os
 import pathlib
+
+from clvm.serialize import sexp_from_stream
 
 from ir import reader
 from clvm_tools import binutils
@@ -29,6 +32,13 @@ def compile_clvm(input_path, output_path):
         log.info("skipping %s, compiled recently" % input_path)
 
     return output_path
+
+
+def load_clvm(source_path, to_sexp_f):
+    obj_path = compile_clvm(source_path, "%s.hex" % source_path)
+    hex = open(obj_path, "r").read()
+    blob = bytes.fromhex(hex)
+    return sexp_from_stream(io.BytesIO(blob), to_sexp_f)
 
 
 def find_files(path=""):

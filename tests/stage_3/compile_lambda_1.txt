@@ -1,2 +1,2 @@
 brun -s3 -tT '(_compile_lambda (a))' '((AAA BBB CCC) (+ AAA BBB QQQ CCC SSS))'
-((+ NODE[2] NODE[5] QQQ NODE[11] SSS))
+((+ NODE[2] NODE[5] QQQ NODE[11] SSS) ())

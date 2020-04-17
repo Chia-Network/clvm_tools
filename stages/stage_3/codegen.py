@@ -15,6 +15,7 @@ from ir.utils import (
     ir_is_atom,
     ir_as_atom,
     ir_as_int,
+    ir_to,
     ir_first,
     ir_rest,
 )
@@ -62,8 +63,8 @@ def build_tree_program(items):
 def do_codegen(args):
     arg = args.first()
     source_code = ir_first(arg)
-    symbol_table = ir_rest(arg)
-    return 1, codegen(source_code, symbol_table)
+    symbol_table = ir_first(ir_rest(arg))
+    return 1, args.to(codegen(source_code, symbol_table))
 
 
 def is_quotable(op):
@@ -88,9 +89,9 @@ def symbol_from_table(symbol, symbol_table):
 
 def codegen_args(args, symbol_table):
     if ir_nullp(args):
-        return args.null()
+        return ir_null()
     if ir_listp(args):
-        return codegen(ir_first(args), symbol_table).cons(
+        return ir_cons(codegen(ir_first(args), symbol_table),
             codegen_args(ir_rest(args), symbol_table)
         )
     return codegen(args, symbol_table)
@@ -104,15 +105,14 @@ def codegen_operator(operator, source_args, symbol_table):
         r = symbol_from_table(op, symbol_table)
         if r:
             breakpoint()
-        opcode = KEYWORD_TO_ATOM.get(op)
-        if opcode is None:
+        if op not in KEYWORD_TO_ATOM:
             raise EvalError("unknown operator", ir_val(operator))
         obj_args = codegen_args(source_args, symbol_table)
-    return operator.to(opcode).cons(obj_args)
+        opcode = operator
+    return ir_cons(opcode, obj_args)
 
 
 def codegen(source_code, symbol_table):
-
     the_type = ir_type(source_code)
 
     if the_type == Type.SYMBOL:
@@ -126,10 +126,10 @@ def codegen(source_code, symbol_table):
         return codegen_operator(operator, source_args, symbol_table)
 
     if the_type == Type.NODE:
-        node = NodePath(ir_as_int(source_code)).as_path()
-        return source_code.to(node)
+        node = NodePath(ir_as_int(source_code)).as_assembly()
+        return ir_to(source_code.to(node))
 
     if is_quotable(the_type):
-        return source_code.to([QUOTE, ir_val(source_code)])
+        return ir_cons(ir_new(Type.SYMBOL, b"q"), ir_cons(source_code, ir_null()))
 
     raise EvalError("unknown type", operator)

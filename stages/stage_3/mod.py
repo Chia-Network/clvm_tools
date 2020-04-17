@@ -121,7 +121,6 @@ def do_compile_lambda(args):
     returns (compiled_code, symbol_table)
     """
 
-    #breakpoint()
     (functions, constants, macros) = compile_mod_stage_1(args.first())
     # for now, ignore constants and macros
 
@@ -146,7 +145,6 @@ def do_compile_lambda(args):
     repeated_symbols = find_repeated(symbols)
     repeated_symbols = args.to(ir_list(*[ir_new(Type.SYMBOL, _) for _ in find_repeated(symbols)]))
 
-    breakpoint()
     r = ir_list(compiled[MAIN_NAME], repeated_symbols)
     return 1, parms.to(r)
 
