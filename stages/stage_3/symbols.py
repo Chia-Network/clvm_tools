@@ -31,7 +31,7 @@ QUOTE = KEYWORD_TO_ATOM["q"]
 
 def ir_flatten(ir_sexp, filter=lambda x: ir_type(x) == Type.SYMBOL):
     if ir_listp(ir_sexp):
-        return ir_flatten(ir_first(ir_sexp)) + ir_flatten(ir_rest(ir_sexp))
+        return ir_flatten(ir_first(ir_sexp), filter) + ir_flatten(ir_rest(ir_sexp), filter)
     if filter(ir_sexp):
         return [ir_val(ir_sexp).as_atom()]
     return []
