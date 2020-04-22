@@ -1,0 +1,2 @@
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((NNN) (defun plus (a) (+ a 9999)) (plus NNN))'
+((c (q ((c (f (a)) (c (f (a)) (c (f (r (a))) (q ())))))) (c (q (+ (f (r (a))) (q 9999))) (a))))

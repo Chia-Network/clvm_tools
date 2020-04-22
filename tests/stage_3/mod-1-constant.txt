@@ -1,0 +1,2 @@
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((NNN) (defun const () 9999) (const))'
+((c (q ((c (f (a)) (c (f (a)) (q ()))))) (c (q (q 9999)) (a))))

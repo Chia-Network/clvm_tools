@@ -1,2 +1,2 @@
-brun -s3 -tT '(_compile_lambda (a))' '((AAA BBB CCC) (+ AAA BBB QQQ CCC SSS))'
-((+ NODE[2] NODE[5] QQQ NODE[11] SSS) ())
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((AAA BBB CCC) (defun QQQ () 100) (defun SSS () 50) (+ AAA BBB (QQQ) CCC (SSS)))'
+((c (q (+ (f (r (a))) (f (r (r (a)))) ((c (r (f (a))) (c (r (f (a))) (q ())))) (f (r (r (r (a))))) ((c (f (f (a))) (c (f (f (a))) (q ())))))) (c (q ((q 50) q 100)) (a))))

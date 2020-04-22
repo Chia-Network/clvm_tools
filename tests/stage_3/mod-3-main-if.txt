@@ -1,0 +1,2 @@
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((NNN) (if (= 2 NNN) 555 666))'
+((c (i (= (q 2) (f (a))) (q (q 555)) (q (q 666))) (a)))

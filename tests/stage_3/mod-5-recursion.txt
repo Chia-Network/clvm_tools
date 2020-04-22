@@ -1,0 +1,2 @@
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((NNN) (defun fact (xxx) (if (= 1 xxx) 1 (* xxx (fact (- xxx 1))))) (fact NNN))'
+((c (q ((c (f (a)) (c (f (a)) (c (f (r (a))) (q ())))))) (c (q ((c (i (= (q 1) (f (r (a)))) (q (q 1)) (q (* (f (r (a))) ((c (f (a)) (c (f (a)) (c (- (f (r (a))) (q 1)) (q ())))))))) (a)))) (a))))

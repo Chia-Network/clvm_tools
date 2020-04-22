@@ -18,9 +18,8 @@ from ir.utils import (
     ir_rest,
 )
 
+from clvm.EvalError import EvalError
 from clvm.runtime_001 import KEYWORD_TO_ATOM
-
-from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
 from .symbols import ir_flatten
 
@@ -67,128 +66,13 @@ def compile_mod_stage_1(args):
 
     uncompiled_main = ir_first(args)
 
-    functions[MAIN_NAME] = ir_cons(main_local_arguments, uncompiled_main)
+    functions[MAIN_NAME] = ir_list(main_local_arguments, uncompiled_main)
 
     return functions, constants, macros
 
 
-def dict_to_ir_lookup(d):
-    ir_sexp = ir_null()
-    for k, v in d.items():
-        ir_sexp = ir_cons(ir_cons(ir_new(Type.SYMBOL, k), v), ir_sexp)
-    return ir_sexp
-
-
-def ir_lookup_to_dict(ir_sexp):
-    d = {}
-    while ir_listp(ir_sexp):
-        kv = ir_first(ir_sexp)
-        k = ir_first(kv)
-        v = ir_rest(kv)
-        d[ir_as_atom(k)] = v
-    return d
-
-
-def from_symbol_table(symbol_table, symbol):
-    while not ir_nullp(symbol_table):
-        if symbol == ir_first(ir_first(symbol_table)):
-            return ir_rest(ir_first(symbol_table))
-        symbol_table = ir_rest(symbol_table)
-    return None
-
-
-def find_symbols_used(code, symbol_table, acc):
-    """
-    Return a list of all symbols used, recursively, each symbols listed
-    at most two times.
-    """
-    if ir_listp(code):
-        return find_symbols_used(
-            ir_first(code), symbol_table, find_symbols_used(
-                ir_rest(code), symbol_table, acc))
-
-    if ir_type(code) == Type.SYMBOL:
-        symbol = ir_val(code)
-        acc = [code] + acc
-        subcode = from_symbol_table(symbol_table, symbol)
-        if subcode and symbol not in [ir_val(_) for _ in acc[1:]]:
-            acc = find_symbols_used(subcode, symbol_table, acc)
-
-    return acc
-
-
-def find_repeated(symbols):
-    names = [ir_as_atom(_) for _ in symbols]
-    d = {_: 0 for _ in names}
-    for _ in names:
-        d[_] += 1
-    return [_ for _ in d.keys() if d[_] > 1]
-
-
 def do_compile_lambda(args):
-    """
-    args = (parms, code)
-    returns (compiled_code, symbol_table)
-    """
-
-    (functions, constants, macros) = compile_mod_stage_1(args.first())
-    # for now, ignore constants and macros
-
-    compiled_mod_functions = {}
-    for name, parms_code in functions.items():
-        parms = ir_first(parms_code)
-        code = ir_rest(parms_code)
-
-        # create lookup of missing symbols to parms
-
-        local_symbol_table = dict(symbol_table_for_tree(parms, TOP))
-
-        # substitute symbols
-        compiled_mod_functions[name] = sub_symbols(code, local_symbol_table)
-
-    ir_bound_symbol_list = ir_null()
-    for k, v in compiled_mod_functions.items():
-        ir_bound_symbol_list = ir_cons((ir_cons(k, v)), ir_bound_symbol_list)
-
-    bound_symbols = find_symbols_used(compiled_mod_functions[MAIN_NAME], ir_bound_symbol_list, [])
-    bound_symbols = [_ for _ in bound_symbols if ir_as_atom(_).decode() not in KEYWORD_TO_ATOM]
-
-    repeated_symbols = find_repeated(bound_symbols)
-
-    ir_symbol_list = args.to(ir_list(*bound_symbols))
-    ir_repeated_symbols = args.to(ir_list(*[ir_new(Type.SYMBOL, _) for _ in repeated_symbols]))
-
-    r = ir_list(compiled_mod_functions[MAIN_NAME], ir_symbol_list, dict_to_ir_lookup(compiled_mod_functions))
-    return 1, parms.to(r)
-
-
-def sub_symbols(ir_sexp, symbol_table):
-    if ir_listp(ir_sexp):
-        return ir_cons(
-            sub_symbols(ir_first(ir_sexp), symbol_table),
-            sub_symbols(ir_rest(ir_sexp), symbol_table),
-        )
-
-    if ir_type(ir_sexp) == Type.SYMBOL:
-        v = symbol_table.get(ir_as_atom(ir_sexp))
-        if v:
-            return v
-
-    return ir_sexp
-
-
-def symbol_table_for_tree(tree, root_node):
-    if ir_nullp(tree):
-        return []
-
-    if not ir_listp(tree):
-        return [[ir_as_atom(tree), ir_new(Type.NODE, tree.to(root_node.index()))]]
-
-    left = symbol_table_for_tree(ir_first(tree), root_node + LEFT)
-    right = symbol_table_for_tree(ir_rest(tree), root_node + RIGHT)
-
-    return left + right
-
+    raise EvalError("unsupported", args)
 
 
 def recurse_used_symbols(name, symbols_for_name, acc=[]):
@@ -206,7 +90,6 @@ def do_mod_context_for_mod(args):
     returns:
         "functions_required" list of (name, parms_code, need-mod-context, in-mod-context) tuples
     """
-
     (functions, constants, macros) = compile_mod_stage_1(args.first())
     # for now, ignore constants and macros
 
@@ -216,7 +99,7 @@ def do_mod_context_for_mod(args):
         parms = ir_first(parms_code)
         code = ir_first(ir_rest(parms_code))
 
-        local_symbol_table = dict(symbol_table_for_tree(parms, TOP))
+        local_symbol_table = set(ir_flatten(parms))
 
         def atom_filter(ir):
             if ir_type(ir) != Type.SYMBOL:

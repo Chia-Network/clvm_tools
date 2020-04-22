@@ -1,2 +1,2 @@
-brun -s3 -tT '(_codegen (_compile_lambda (a)))' '((AAA (BBB .  CCC)) (+ AAA BBB 195 (* 8 AAA) CCC))'
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((AAA (BBB .  CCC)) (+ AAA BBB 195 (* 8 AAA) CCC))'
 (+ (f (a)) (f (f (r (a)))) (q 195) (* (q 8) (f (a))) (r (f (r (a)))))

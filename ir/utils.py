@@ -35,7 +35,8 @@ def ir_to(sexp, atom_type_f=lambda _: Type.SYMBOL):
     if sexp.listp():
         return ir_cons(
             ir_to(sexp.first(), atom_type_f=atom_type_f),
-            ir_to(sexp.rest(), atom_type_f=atom_type_f))
+            ir_to(sexp.rest(), atom_type_f=atom_type_f),
+        )
     return ir_new(atom_type_f(sexp), sexp)
 
 
@@ -110,11 +111,7 @@ def ir_as_symbol(ir_sexp):
 
 
 def ir_iter(ir_sexp):
-    while True:
-        if ir_is_atom(ir_sexp):
-            break
-        if ir_nullp(ir_sexp):
-            break
+    while ir_listp(ir_sexp):
         yield ir_first(ir_sexp)
         ir_sexp = ir_rest(ir_sexp)
 

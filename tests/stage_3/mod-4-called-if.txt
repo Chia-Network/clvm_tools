@@ -1,0 +1,2 @@
+brun -s3 -tT '(_codegen_mod_context (_mod_context_for_mod (a)))' '((NNN) (defun check2 (xxx) (if (= 2 xxx) 555 666)) (check2 NNN))'
+((c (q ((c (f (a)) (c (f (a)) (c (f (r (a))) (q ())))))) (c (q ((c (i (= (q 2) (f (r (a)))) (q (q 555)) (q (q 666))) (a)))) (a))))

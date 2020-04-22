@@ -20,16 +20,30 @@ from ir.utils import (
     ir_rest,
 )
 
-from clvm_tools.NodePath import NodePath, LEFT, RIGHT, TOP
+from clvm_tools.NodePath import NodePath, TOP, LEFT, RIGHT
 
-from clvm.runtime_001 import KEYWORD_TO_ATOM
+from .mod import MAIN_NAME
 
-from .mod import symbol_table_for_tree
-
+SHORT_NODE_PATHS = False
 
 CONS = ir_new(Type.SYMBOL, b"c")
 QUOTE = ir_new(Type.SYMBOL, b"q")
 IF = ir_new(Type.SYMBOL, b"i")
+
+TOP_NODE = ir_new(Type.NODE, TOP.index())
+
+
+def symbol_table_for_tree(tree, root_node):
+    if ir_nullp(tree):
+        return []
+
+    if not ir_listp(tree):
+        return [[ir_as_atom(tree), ir_new(Type.NODE, tree.to(root_node.index()))]]
+
+    left = symbol_table_for_tree(ir_first(tree), root_node + LEFT)
+    right = symbol_table_for_tree(ir_rest(tree), root_node + RIGHT)
+
+    return left + right
 
 
 def build_tree(items):
@@ -48,26 +62,8 @@ def build_tree(items):
     return ir_cons(left, right)
 
 
-def build_tree_program(items):
-    """
-    This function takes a Python list of items and turns it into a program that
-    builds a binary tree of the items, suitable for casting to an s-expression.
-    """
-    size = len(items)
-    if size == 1:
-        return ir_new(Type.SYMBOL, items[0])
-    half_size = size >> 1
-    left = build_tree_program(items[:half_size])
-    right = build_tree_program(items[half_size:])
-    return ir_list(CONS, left, right)
-
-
 def do_codegen(args):
-    arg = args.first()
-    source_code = ir_first(arg)
-    arg = ir_rest(arg)
-    symbol_table = ir_first(arg)
-    return 1, args.to(codegen(source_code, symbol_table))
+    raise EvalError("unsupported", args)
 
 
 def is_quotable(op):
@@ -96,19 +92,33 @@ def codegen_if(operator, args, symbol_table):
     true_branch = ir_first(args)
     args = ir_rest(args)
     false_branch = ir_first(args)
-    code = ir_list(CONS, ir_list(IF, ir_list(QUOTE, cond_code), ir_list(QUOTE, true_branch), ir_list(QUOTE, false_branch)))
+    code = ir_list(
+        ir_list(
+            CONS,
+            ir_list(
+                IF, cond_code, ir_list(QUOTE, true_branch), ir_list(QUOTE, false_branch)
+            ),
+            codegen(args.to(TOP_NODE), symbol_table),
+        )
+    )
     return code
 
 
+def codegen_call(operator, args, symbol_table):
+    # TODO
+    raise EvalError("call not yet supported", operator)
+
+
 def make_codegen(op):
-    operator = ir_new(Type.SYMBOL, op)
     def codegen_special(operator, args, symbol_table):
-        return ir_list(operator, args)
+        return ir_cons(operator, args)
+
     return codegen_special
 
 
 CODEGEN_LOOKUP = {
     b"if": codegen_if,
+    b"call": codegen_call,
     b"first": make_codegen(b"f"),
     b"rest": make_codegen(b"f"),
     b"=": make_codegen(b"="),
@@ -119,42 +129,42 @@ CODEGEN_LOOKUP = {
 
 
 def codegen_args(args, symbol_table):
-    if ir_nullp(args):
-        return ir_null()
     if ir_listp(args):
         return ir_cons(
             codegen(ir_first(args), symbol_table),
             codegen_args(ir_rest(args), symbol_table),
         )
-    return codegen(args, symbol_table)
+    if ir_nullp(args):
+        return args
+    raise EvalError("bad argument list", args)
 
 
-def codegen_list_call(source_args, symbol_table):
-    if ir_listp(source_args):
-        code = ir_list(
-            CONS,
-            codegen(ir_first(source_args), symbol_table),
-            codegen_list_call(ir_rest(source_args), symbol_table),
-        )
-        return code
-    return codegen(source_args, symbol_table)
+def list_to_cons(args):
+    if ir_listp(args):
+        return ir_list(CONS, ir_first(args), list_to_cons(ir_rest(args)))
+    return ir_list(QUOTE, args)
 
 
-def codegen_call(node, obj_args, symbol_table):
-    node_code = codegen(node, symbol_table)
-    code = ir_list(CONS, node_code, obj_args)
+def codegen_call_operator(operator, obj_args, symbol_table):
+    # (fact N) =>
+    # ((c fact[NODE] (c fact[NODE] (c N (q ())))))
+    operator_code = codegen(operator, symbol_table)
+    obj_args_conses = list_to_cons(obj_args)
+    code = ir_list(
+        ir_list(CONS, operator_code, ir_list(CONS, operator_code, obj_args_conses,),),
+    )
     return code
 
 
-def codegen_operator(operator, source_args, symbol_table):
-    obj_args = codegen_args(source_args, symbol_table)
+def codegen_cons(operator, source_args, symbol_table):
+    obj_args = source_args.to(codegen_args(source_args, symbol_table))
     if ir_listp(operator):
         opcode = codegen(operator, symbol_table)
     elif ir_type(operator) == Type.SYMBOL:
         op = ir_as_atom(operator)
         r = symbol_from_table(op, symbol_table)
         if r:
-            return codegen_call(r, obj_args, symbol_table)
+            return codegen_call_operator(operator, obj_args, symbol_table)
         if op not in CODEGEN_LOOKUP:
             raise EvalError("unknown operator", ir_val(operator))
         special_codegen_f = CODEGEN_LOOKUP.get(op)
@@ -170,17 +180,19 @@ def codegen(source_code, symbol_table):
     if the_type == Type.SYMBOL:
         r = symbol_from_table(ir_as_atom(source_code), symbol_table)
         if r:
-            node = NodePath(ir_as_int(r)).as_assembly()
-            return ir_to(source_code.to(node))
+            return codegen(r, symbol_table)
         # TODO: fix this by resolving symbols
         raise EvalError("undefined symbol", ir_val(source_code))
 
     if the_type == Type.CONS:
         operator = ir_first(source_code)
         source_args = ir_rest(source_code)
-        return codegen_operator(operator, source_args, symbol_table)
+        return codegen_cons(operator, source_args, symbol_table)
 
     if the_type == Type.NODE:
+        if SHORT_NODE_PATHS:
+            node = NodePath(ir_as_int(source_code)).index()
+            return ir_new(Type.INT, node)  # source_code.to(node))
         node = NodePath(ir_as_int(source_code)).as_assembly()
         return ir_to(source_code.to(node))
 
@@ -204,19 +216,31 @@ def iter_fnimc(fnimc):
         fnimc = ir_rest(fnimc)
 
 
+def populate_const_tree(tree, compiled_functions):
+    if ir_listp(tree):
+        return ir_cons(
+            populate_const_tree(ir_first(tree), compiled_functions),
+            populate_const_tree(ir_rest(tree), compiled_functions),
+        )
+    name = ir_as_atom(tree)
+    f = compiled_functions[name]
+    return f
+
+
 def do_codegen_mod_context(args):
     # build the const-tree (if we need one)
-    const_tree_items = [_[0] for _ in iter_fnimc(args.first())]
+    const_tree_items = [_[0] for _ in iter_fnimc(args.first()) if _[0] != MAIN_NAME]
 
-    const_tree = args.to(build_tree(const_tree_items))
-    arg_symbol_table = symbol_table_for_tree(const_tree, RIGHT)
+    if const_tree_items:
+        const_tree = args.to(build_tree(const_tree_items))
 
     # compile each function (now that we know the const-tree)
     compiled_functions = {}
     for name, parms_code, need_mod_context, in_mod_context in iter_fnimc(args.first()):
         parms = ir_first(parms_code)
-        code = ir_rest(parms_code)
-        if need_mod_context:
+        code = ir_first(ir_rest(parms_code))
+        if const_tree_items:
+            # TODO: fix this hack where we always have a mod context
             parms = args.to(ir_cons(const_tree, parms))
         # okay, now we compile it!
         symbol_table = symbol_table_for_tree(parms, TOP)
@@ -227,7 +251,22 @@ def do_codegen_mod_context(args):
         assembly = codegen(code, symbol_table)
         compiled_functions[name] = assembly
 
-    assembly = compiled_functions[b"fact"]
-    return 1, args.to(assembly)
-    # invoke main, passing in the const-tree
-    # done!
+    final_code = compiled_functions[MAIN_NAME]
+
+    if const_tree_items:
+        compiled_top = codegen(args.to(ir_new(Type.NODE, TOP.index())), ir_null())
+
+        main_code = final_code
+        # build const-tree
+        populated_const_tree = populate_const_tree(const_tree, compiled_functions)
+
+        augmented_const_tree = ir_list(
+            CONS, ir_list(QUOTE, populated_const_tree), compiled_top,
+        )
+
+        # ((c (q MAIN_CODE) (c (q MOD-CONTEXT) (a))))
+
+        final_code = args.to(
+            ir_list(ir_list(CONS, ir_list(QUOTE, main_code), augmented_const_tree))
+        )
+    return 1, args.to(final_code)
