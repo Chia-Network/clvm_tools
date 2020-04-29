@@ -79,7 +79,7 @@ However it's not just the new solution that we can affect using this, we can als
 
 ## Programs as Parameters
 
-The core CLVM does not allow user defined functions.
+The core CLVM does not have an operator for creating user defined functions.
 It does, however, allow programs to be passed as parameters, which can be used for similar results.
 
 Here is a puzzle that executes the program contained in `(f (a))` with the solution `(12)`.
@@ -150,7 +150,7 @@ It works!
 
 But there is one final step. We need to encode this as part of the puzzle.
 The above example assumes we have control of the solution.
-But in the context of ChiaLisp the puzzle is securing our money, and we cannot trust solution.
+But in the context of ChiaLisp the puzzle is securing our money, and we must be prepared for malicious solutions.
 
 ## Recursion in Puzzles
 
@@ -165,7 +165,7 @@ Notice that we need to run eval `((c () ()))` twice.
 Once to create an environment where the source code exists and once again to run that source code.
 If you compare that pattern with the way we constructed the factorial above, you should see the similarity.
 
-So let's finish our factorial program from above using our new pattern.
+So let's replace `*program*` with our factorial program from above.
 
 ```
 ((c (q ((c (f (a)) (a)))) (c (q ((c (i (= (f (r (a))) (q 1)) (q (q 1)) (q (* (f (r (a))) ((c (f (a)) (c (f (a)) (c (- (f (r (a))) (q 1)) (q ())))))))) (a)))) (c (f (a)) (q ())))))
