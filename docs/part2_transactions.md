@@ -86,7 +86,7 @@ These are returned as a list of lists in the form:
 ```
 ((51 0xabcd1234 200) (50 0x1234abcd) (53 0xdeadbeef))
 ```
-Remember: this is what a puzzle should evaluate to when presented with a solution so that a full-node/ledger-sim can understand it.
+*Remember: this is what a puzzle should evaluate to when presented with a solution so that a full-node/ledger-sim can understand it.*
 
 Let's create a few examples puzzles and solutions to demonstrate how this is used in practice.
 
@@ -127,8 +127,8 @@ $ brun '(i (= (sha256 (f (a))) (q 0x2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7
 There is one final change we need to make before this is a complete smart transaction.
 
 If you want to invalidate a spend then you need to raise an exception using `x`.
-Otherwise you just have a valid spend that isn't returning any OpCodes, and that would destroy our coin and be bad!
-So we need to change the fail condition to be `(x (q "wrong password"))`.
+Otherwise you just have a valid spend that isn't returning any OpCodes, and that would destroy our coin and not create a new one!
+So we need to change the fail condition to be `(x (q "wrong password"))` which means the transaction fails and the coin is not spent.
 
 If we're doing this then we should also change the `(i A B C)` pattern to `((c (i A (q B) (q C)) (a)))`.
 The reason for this is explained in [part 3](./part3_deeperintoCLVM.md). For now don't worry about why.

@@ -181,3 +181,10 @@ $ run square_list.clvm
 $ brun '((c (q ((c (f (a)) (c (f (a)) (c (r (a)) (q ())))))) (c (q ((c (i (f (r (a))) (q (c (* (f (f (r (a)))) (f (f (r (a))))) ((c (f (a)) (c (f (a)) (c (r (f (r (a)))) (q ()))))))) (q (f (r (a))))) (a)))) (a))))' '(10 9 8 7)'
 (100 81 64 49)
 ```
+
+# Conclusion
+
+You should now have the context and knoweldge needed to write your own smart contracts.
+Remember from [part 2](./part2_transactions) that these programs run on the blockchain and instruct the blockchain what to do with the coin's value.
+
+If you have further questions feel free to ask on Keybase.
