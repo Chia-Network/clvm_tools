@@ -23,6 +23,10 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
+
+    def com(sexp):
+        return do_com_prog(sexp, macro_lookup, symbol_table)
+
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
         # (qq ATOM) => (q ATOM)
@@ -32,16 +36,18 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
         op = sexp.first().as_atom()
         if op == b"qq":
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level+1)
-            return sexp.to([b"list", op, subexp])
+            return com(sexp.to([b"list", op, subexp]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
-                return sexp.rest().first()
+                return com(sexp.rest().first())
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level-1)
-            return sexp.to([b"list", op, subexp])
+            return com(sexp.to([b"list", op, subexp]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
-    return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
+    A = do_com_prog(sexp.to([b"qq", sexp.first()]), macro_lookup, symbol_table)
+    B = do_com_prog(sexp.to([b"qq", sexp.rest()]), macro_lookup, symbol_table)
+    return sexp.to([CONS_KW, A, B])
 
 
 def compile_macros(args, macro_lookup, symbol_table):
@@ -107,8 +113,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup, symbol_table)
-        return eval(prog.to([b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup],
-                            [QUOTE_KW, symbol_table]]), TOP.as_path())
+        return eval(prog.to([QUOTE_KW, post_prog]), TOP.as_path())
 
     if operator == QUOTE_KW:
         return prog
