@@ -1,2 +1,2 @@
-run -s2 '(if (= (* (a) (a)) 25) yes nope)' '4'
+run -s2 '(if (= (* @ @) 25) yes nope)' '4'
 "nope"

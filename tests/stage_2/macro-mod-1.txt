@@ -5,7 +5,7 @@ run -s2 '(opt (com (q (mod (ARGS) \
             (i (unquote A) \
                (function (unquote B)) \
                (function (unquote C))) \
-            (a)))) \
+            @))) \
     ) \
     (defmacro and1 ARGS \
         (if1 ARGS \
@@ -15,6 +15,6 @@ run -s2 '(opt (com (q (mod (ARGS) \
             )) \
             1) \
     ) \
-    (and1 (f (a)) 30) \
+    (and1 (f @) 30) \
 ))))'
 (q ((c (i (f (a)) (q (q 1)) (q (q ()))) (a))))

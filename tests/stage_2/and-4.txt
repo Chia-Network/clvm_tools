@@ -1,2 +1,2 @@
-brun -s2 "(opt (com (q (and (= 1 (f (a))) (= 2 (r (a)))))))"
+brun -s2 "(opt (com (q (and (= 1 (f @)) (= 2 (r @))))))"
 ((c (i (= (q 1) (f (a))) (q ((c (i (= (q 2) (r (a))) (q (q 1)) (q (q ()))) (a)))) (q (q ()))) (a)))

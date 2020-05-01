@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (qq (foo (unquote (f (a))) 55 88 99 bar 9999)))))'
+brun -s2 '(opt (com (q (qq (foo (unquote (f @)) 55 88 99 bar 9999)))))'
 (c (q "foo") (c (f (a)) (q (55 88 99 "bar" 9999))))

@@ -10,9 +10,9 @@ program to indicate we want this program literal to be
 compiled and quoted, so it can be passed as an argument
 to a compiled clvm program.
 
-EG: (function (+ 20 (a))) should return (+ (q 20) (a)) when run.
-Thus (opt (com (q (function (+ 20 (a))))))
-should return (q (+ (q 20) (a)))
+EG: (function (+ 20 @)) should return (+ (q 20) 1) when run.
+Thus (opt (com (q (function (+ 20 @)))))
+should return (q (+ (q 20) 1))
 
 (function PROG) => (opt (com (q PROG) (q MACROS)))
 
@@ -75,7 +75,7 @@ DEFAULT_MACROS_SRC = [
             (i (unquote A)
                (function (unquote B))
                (function (unquote C)))
-            (a)))))""",
+            @))))""",
     """
     (defmacro and ARGS
         (if ARGS

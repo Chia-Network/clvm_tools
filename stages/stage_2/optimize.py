@@ -33,7 +33,7 @@ def seems_constant(sexp):
 
 def constant_optimizer(r, eval):
     """
-    If the expression does not depend upon (a) anywhere,
+    If the expression does not depend upon @ anywhere,
     it's a constant. So we can simply evaluate it and
     return the quoted result.
     """
@@ -58,7 +58,7 @@ CONS_Q_A_OPTIMIZER_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
 def cons_q_a_optimizer(r, eval):
     """
     This applies the transform
-    ((c (q SEXP) (a))) => SEXP
+    ((c (q SEXP) @)) => SEXP
     """
     t1 = match(CONS_Q_A_OPTIMIZER_PATTERN, r)
     if t1 and is_args_call(t1["args"]):

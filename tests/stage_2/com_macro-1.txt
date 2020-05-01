@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (add2 (f (f (a))))) (f (r (opt (com (q (list (defmacro add2 (X) (qq (+ 2 (unquote X))))))))))))'
+brun -s2 '(opt (com (q (add2 (f (f @)))) (f (r (opt (com (q (list (defmacro add2 (X) (qq (+ 2 (unquote X))))))))))))'
 (+ (q 2) (f (f (a))))
