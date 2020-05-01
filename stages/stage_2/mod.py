@@ -200,9 +200,9 @@ def compile_mod(args, macro_lookup, symbol_table):
         all_constants_tree_program = args.to(build_tree_program(all_constants_list))
 
         all_constants_tree_src = binutils.disassemble(all_constants_tree_program)
-        arg_tree_src = "(c %s (a))" % all_constants_tree_src
+        arg_tree_src = "(c %s 1)" % all_constants_tree_src
     else:
-        arg_tree_src = "(a)"
+        arg_tree_src = "1"
 
     main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
 

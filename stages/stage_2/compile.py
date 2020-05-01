@@ -95,7 +95,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((OP) . RIGHT)) => ((c (com (q OP)) (a)))
+        # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
         inner_exp = eval(prog.to([b"com", [
             QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
         return prog.to([inner_exp])

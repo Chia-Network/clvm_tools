@@ -30,10 +30,10 @@ DEFAULT_MACROS_SRC = [
     ;)
     (q ("defmacro"
        (c (q "list")
-          (c (f (a))
+          (c (f 1)
              (c (c (q "mod")
-                   (c (f (r (a)))
-                      (c (f (r (r (a))))
+                   (c (f (r 1))
+                      (c (f (r (r 1)))
                          (q ()))))
                 (q ()))))))
     """,
@@ -52,17 +52,17 @@ DEFAULT_MACROS_SRC = [
     ;    ))
     ;)
     (q (list
-        ((c (q ((c (f (a)) (c (f (a)) (c (r (a)) (q ()))))))
-            (c (q ((c (i (f (r (a)))
+        ((c (q ((c (f 1) (c (f 1) (c (r 1) (q ()))))))
+            (c (q ((c (i (f (r 1))
                          (q (c (q #c)
-                               (c (f (f (r (a))))
-                                  (c ((c (f (a))
-                                         (c (f (a))
-                                            (c (r (f (r (a))))
+                               (c (f (f (r 1)))
+                                  (c ((c (f 1)
+                                         (c (f 1)
+                                            (c (r (f (r 1)))
                                                (q ())))))
                                      (q ())))))
-                         (q (q ()))) (a))))
-               (a))))))
+                         (q (q ()))) 1)))
+               1)))))
     """,
     """
     (defmacro function (BODY)
@@ -92,7 +92,7 @@ DEFAULT_MACRO_LOOKUP = None
 
 
 def build_default_macro_lookup(eval):
-    run = binutils.assemble("((c (com (f (a)) (r (a))) (a)))")
+    run = binutils.assemble("((c (com (f 1) (r 1)) 1))")
     global DEFAULT_MACRO_LOOKUP
     for macro_src in DEFAULT_MACROS_SRC:
         macro_sexp = binutils.assemble(macro_src)
