@@ -3,6 +3,8 @@ from clvm import KEYWORD_TO_ATOM
 from clvm_tools.pattern_match import match
 from clvm_tools.binutils import assemble
 
+from clvm_tools.NodePath import NodePath, LEFT, RIGHT
+
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
@@ -67,6 +69,7 @@ def cons_q_a_optimizer(r, eval):
 
 
 CONS_PATTERN = assemble("(c (: . first) (: . rest)))")
+
 
 def cons_f(args):
     t = match(CONS_PATTERN, args)
@@ -182,6 +185,36 @@ def cons_optimizer(r, eval):
     return r
 
 
+FIRST_ATOM_PATTERN = assemble("(f ($ . atom))")
+REST_ATOM_PATTERN = assemble("(r ($ . atom))")
+
+
+def path_optimizer(r, eval):
+    """
+    This applies the transform
+    (a) => 1
+    and
+    (f N) => A
+    and
+    (r N) => B
+    """
+    if is_args_call(r):
+        return r.to(1)
+
+    t1 = match(FIRST_ATOM_PATTERN, r)
+    if t1:
+        node = NodePath(t1["atom"].as_int())
+        node = node + LEFT
+        return r.to(node.as_short_path())
+
+    t1 = match(REST_ATOM_PATTERN, r)
+    if t1:
+        node = NodePath(t1["atom"].as_int())
+        node = node + RIGHT
+        return r.to(node.as_short_path())
+    return r
+
+
 def optimize_sexp(r, eval):
     """
     Optimize an s-expression R written for clvm to R_opt where
@@ -196,6 +229,7 @@ def optimize_sexp(r, eval):
         cons_q_a_optimizer,
         var_change_optimizer_cons_eval,
         children_optimizer,
+        # path_optimizer,
     ]
 
     while True:
