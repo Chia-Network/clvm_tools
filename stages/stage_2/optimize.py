@@ -66,12 +66,40 @@ def cons_q_a_optimizer(r, eval):
     return r
 
 
+CONS_PATTERN = assemble("(c (: . first) (: . rest)))")
+
+def cons_f(args):
+    t = match(CONS_PATTERN, args)
+    if t:
+        return t["first"]
+    return args.to([FIRST_KW, args])
+
+
+def cons_r(args):
+    t = match(CONS_PATTERN, args)
+    if t:
+        return t["rest"]
+    return args.to([REST_KW, args])
+
+
+def path_from_args(sexp, new_args):
+    v = sexp.as_int()
+    if v <= 1:
+        return new_args
+    sexp = sexp.to(v >> 1)
+    if v & 1:
+        return path_from_args(sexp, cons_r(new_args))
+    return path_from_args(sexp, cons_f(new_args))
+
+
 def sub_args(sexp, new_args):
     if sexp.nullp() or not sexp.listp():
-        return sexp
+        return path_from_args(sexp, new_args)
 
     first = sexp.first()
-    if not first.listp():
+    if first.listp():
+        first = sub_args(first, new_args)
+    else:
         op = first.as_atom()
         if op == ARGS_KW:
             return new_args
@@ -79,7 +107,7 @@ def sub_args(sexp, new_args):
         if op == QUOTE_KW:
             return sexp
 
-    return sexp.to([sub_args(_, new_args) for _ in sexp.as_iter()])
+    return sexp.to([first] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
 
 
 VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
@@ -88,7 +116,7 @@ VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)
 def var_change_optimizer_cons_eval(r, eval):
     """
     This applies the transform
-    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != (a)
+    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != @
     via
     (op ((c SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
     In some cases, this can result in a constant in some of the children.
