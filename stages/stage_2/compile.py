@@ -120,11 +120,9 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     if operator == QUOTE_KW:
         return prog
 
-    compiled_args = prog.to([[b"com", [
-        QUOTE_KW, _], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]] for _ in prog.rest().as_iter()])
-    evaluated_args = [eval(_, TOP.as_path()) for _ in compiled_args.as_iter()]
+    compiled_args = [do_com_prog(_, macro_lookup, symbol_table) for _ in prog.rest().as_iter()]
 
-    r = prog.to([operator] + evaluated_args)
+    r = prog.to([operator] + compiled_args)
 
     if as_atom in PASS_THROUGH_OPERATORS:
         return r
