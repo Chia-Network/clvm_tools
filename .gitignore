@@ -1,1 +1,6 @@
 __pycache__
+pip-wheel-metadata
+env
+*.egg-info
+src
+activate
