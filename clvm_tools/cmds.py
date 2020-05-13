@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import importlib
 import io
+import pathlib
 import sys
 
 from clvm import to_sexp_f
@@ -108,6 +109,14 @@ def launch_tool(args, tool_name, default_stage=0):
         "-d", "--dump", action="store_true",
         help="dump hex version of final output")
     parser.add_argument(
+        "-i",
+        "--include",
+        type=pathlib.Path,
+        help="add a search path for included files",
+        action="append",
+        default=[],
+    )
+    parser.add_argument(
         "path_or_code", type=path_or_code,
         help="path to clvm script, or literal script")
     parser.add_argument(
@@ -116,7 +125,10 @@ def launch_tool(args, tool_name, default_stage=0):
 
     args = parser.parse_args(args=args[1:])
 
-    run_program = args.stage.run_program
+    if hasattr(args.stage, "run_program_for_search_paths"):
+        run_program = args.stage.run_program_for_search_paths(args.include)
+    else:
+        run_program = args.stage.run_program
 
     src_text = args.path_or_code
     src_sexp = reader.read_ir(src_text)
