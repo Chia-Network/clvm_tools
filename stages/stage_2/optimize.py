@@ -17,7 +17,7 @@ DEBUG_OPTIMIZATIONS = 0
 
 
 def seems_constant(sexp):
-    if sexp.nullp() or not sexp.listp():
+    if not sexp.listp():
         return False
     operator = sexp.first()
     if not operator.listp():

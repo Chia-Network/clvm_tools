@@ -45,8 +45,8 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
             return com(sexp.to([b"list", op, subexp]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
-    A = do_com_prog(sexp.to([b"qq", sexp.first()]), macro_lookup, symbol_table, run_program)
-    B = do_com_prog(sexp.to([b"qq", sexp.rest()]), macro_lookup, symbol_table, run_program)
+    A = com(sexp.to([b"qq", sexp.first()]))
+    B = com(sexp.to([b"qq", sexp.rest()]))
     return sexp.to([CONS_KW, A, B])
 
 
