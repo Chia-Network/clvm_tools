@@ -1,0 +1,2 @@
+run -i clvm_runtime '(mod (A B) (include "lib.clvm") (sha256tree0 (q (foo (bar baz 100 (383))))))'
+(q 0x6eeb86c37c74918fbaa0ba997bd938a63db7fbcc13e6680b1ea2ac8d6d1f7fb2)

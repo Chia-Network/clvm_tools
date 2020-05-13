@@ -10,7 +10,7 @@ run -s2 '(opt (com (q (mod (ARGS) \
     (defmacro and1 ARGS \
         (if1 ARGS \
             (qq (if1 (unquote (f ARGS)) \
-                (unquote (c and (r ARGS))) \
+                (unquote (c and1 (r ARGS))) \
                 () \
             )) \
             1) \

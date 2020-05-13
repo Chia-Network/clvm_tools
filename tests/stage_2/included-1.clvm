@@ -1,0 +1,4 @@
+(
+    (defun f1 (x y) (+ x y))
+    (defun f2 (x y) (* x y))
+)

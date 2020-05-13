@@ -1,0 +1,2 @@
+run "(defmacro defmacro1 (name params body) (qq (list (unquote name) (mod (unquote params) (unquote body)))))"
+("defmacro1" (c (q "list") (c (f (a)) (c (c (q "mod") (c (f (r (a))) (c (f (r (r (a)))) (q ())))) (q ())))))

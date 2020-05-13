@@ -76,15 +76,6 @@ DEFAULT_MACROS_SRC = [
                (function (unquote B))
                (function (unquote C)))
             @))))""",
-    """
-    (defmacro and ARGS
-        (if ARGS
-            (qq (if (unquote (f ARGS))
-                (unquote (c and (r ARGS)))
-                ()
-                ))
-            1)
-        )""",
 ]
 
 

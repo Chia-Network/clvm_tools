@@ -1,0 +1,2 @@
+run -i clvm_runtime '(mod (A B) (include "lib.clvm") (concat (q (foo)) (q (bar baz)) (q (TOO LONG))))'
+(q ("foo" "bar" "baz" "TOO" "LONG"))

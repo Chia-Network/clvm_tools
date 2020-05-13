@@ -1,0 +1,176 @@
+(
+    ; boolean and macro
+    (defmacro and ARGS
+        (if ARGS
+            (qq (if (unquote (f ARGS))
+                (unquote (c and (r ARGS)))
+                ()
+                ))
+            1)
+    )
+
+    ; concatenate two lists, yield a single new list
+    (defun concat2 (X Y)
+        (if Y
+            (if X
+                (c (f X) (concat2 (r X) Y))
+                Y
+            )
+            X
+        )
+    )
+
+    ; concatenate any number of lists (include 0 or 1)
+    (defmacro concat LISTS
+        (if LISTS
+            (qq (concat2 (unquote (f LISTS)) (unquote (c concat (r LISTS)))))
+            (q ())
+        )
+    )
+
+    ; reverse a list, with accumulator (ie. parts already reversed)
+    (defun reverse-acc (LIST ACC)
+        (if LIST
+            (reverse-acc (r LIST) (c (f LIST) ACC))
+            ACC
+        )
+    )
+
+    ; reverse a list
+    (defmacro reverse (LIST)
+        (qq (reverse-acc (unquote LIST) ()))
+    )
+
+    (defun split-list-acc (LIST1-HEAD LIST2-HEAD FIRST-HALF-ACC)
+        (if (and LIST2-HEAD (r LIST2-HEAD))
+            ; we can advance list1 by one and list2 by two
+            (split-list-acc (r LIST1-HEAD) (r (r LIST2-HEAD)) (c (f LIST1-HEAD) FIRST-HALF-ACC))
+            (list FIRST-HALF-ACC LIST1-HEAD)
+        )
+    )
+
+    ; split a list in half, returning two lists
+    ; of equal size (within one).
+    ;
+    ; WARNING: the first list is reversed
+
+    (defun split-list (LIST)
+        (split-list-acc LIST LIST ())
+    )
+
+    (defun merge-lists (A B)
+        (if (and A B)
+            (if (> (f B) (f A))
+                (c (f A) (merge-lists (r A) B))
+                (c (f B) (merge-lists A (r B)))
+            )
+            (if A
+                A
+                B
+            )
+        )
+    )
+
+    (defun sort-merge-list-pair ((A B))
+        (merge-lists (sort A) (sort B))
+    )
+
+    ; sort a list
+    (defun sort (LIST)
+        (if (and LIST (r LIST))
+            (sort-merge-list-pair (split-list LIST) ())
+            LIST
+        )
+    )
+
+    ; hash a tree
+    (defun sha256tree0 (TREE)
+        (if (l TREE)
+            (sha256 2 (sha256tree0 (f TREE)) (sha256tree0 (r TREE)))
+            (sha256 1 TREE)
+        )
+    )
+
+    ; map
+    (defun map (func items)
+        (if items
+            (c ((c func (list (f items)))) (map func (r items)))
+            ()
+        )
+    )
+
+    ; hashmap-lookup
+    ; native implementation, with list of pairs
+    (defun hashmap-lookup (hashmap key)
+        (if hashmap
+            (if (= key (f (f hashmap)))
+                (r (f hashmap))
+                (hashmap-lookup (r hashmap) key)
+            )
+            ()
+        )
+    )
+
+    (defconstant op_sha256tree 500)
+
+    (defun quote-it (args)
+        (if args
+            (c (qq (q (unquote (f args)))) (quote-it (r args)))
+            ()
+        )
+    )
+
+    ; new opcodes, like op_sha256tree, go here
+    (defun eval-opcode (opcode arguments env)
+        (if (= opcode op_sha256tree)
+            (sha256tree0 (f arguments))
+            ; just do the default thing that the VM would do
+            ; TODO requoting everything is expensive, we need APPLY
+            ; which would take an operator and a single argument, representing
+            ; the list of arguments so we only have to quote one thing
+            ((c (c opcode (quote-it arguments)) env))
+        )
+    )
+
+    ; apply-eval0. Similar to eval0 except it takes just one argument
+    ; which is a pair (sexp . env)
+    (defun apply-eval0 ((sexp . env))
+        (eval0 sexp env)
+    )
+
+    ; default-eval-atom
+    (defun default-eval-atom (opcode env)
+        ; do a top-level eval of the atom
+        ((c opcode env))
+    )
+
+    ; eval0-args
+    (defun eval0-args (arguments env)
+        (if arguments
+            (c (eval0 (f arguments) env) (eval0-args (r arguments) env))
+            ()
+        )
+    )
+
+    ; default-eval-list
+    ; if quote, return arguments
+    ; otherwise, evaluate arguments, then apply opcode
+    (defun default-eval-list (opcode arguments env)
+        (if (l opcode)
+            (apply-eval0 (eval0 opcode env))
+            (if (= opcode #q)
+                (f arguments)
+                (eval-opcode opcode (eval0-args arguments env) env)
+            )
+        )
+    )
+
+    ; eval0. Similar to ((c sexp env)) except it overrides
+    ; some opcodes.
+    (defun eval0 (sexp env)
+        (if (l sexp)
+            (default-eval-list (f sexp) (r sexp) env)
+            (default-eval-atom sexp env)
+        )
+    )
+)
