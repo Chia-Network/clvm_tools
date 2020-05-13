@@ -106,7 +106,7 @@ def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, ru
     elif op == b"defun":
         functions[name] = declaration_sexp.rest().rest()
     elif op == b"defconstant":
-        constants[name] = [QUOTE_KW, declaration_sexp.rest().rest().first().as_atom()]
+        constants[name] = declaration_sexp.to([QUOTE_KW, declaration_sexp.rest().rest().first()])
     else:
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
