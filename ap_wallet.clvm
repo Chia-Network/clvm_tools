@@ -1,56 +1,38 @@
-(mod (x0 x1 x2 x3 x4 x5 x6)
-  ;in mode one args are (option_flag new_puzzle new_solution my_parent my_puzzle_hash)
-  ;in mode two arts are (option_flag my_puzzle_hash consolidating_coin_primary_input consolidating_coin_puzzle_hash consolidating_coin_amount my_primary_input my_amount)
+(mod (new_puzzle new_solution my_parent my_puzzle_hash)
 
-  (defun sha256tree1 (TREE)
-    (if (l TREE)
-        (sha256 2 (sha256tree1 (f TREE)) (sha256tree1 (r TREE)))
-        (sha256 1 TREE)
-    )
-  )
+       ; takes a lisp tree and returns the hash of it
+       (defun sha256tree1 (TREE)
+            (if (l TREE)
+                (sha256 2 (sha256tree1 (f TREE)) (sha256tree1 (r TREE)))
+                (sha256 1 TREE)
+            )
+        )
 
-  (defmacro create_outputs (puz solution)
-      (qq ((c (unquote puz) (unquote solution))))
-  )
+        (defmacro create_outputs (puz solution)
+            (qq ((c (unquote puz) (unquote solution))))
+        )
 
-  (defmacro add_aggsig (APUBKEY puzhash)
-    (qq (c (q 50) (c (q (unquote APUBKEY)) (c (unquote puzhash) (q ())))))
-  )
+        (defmacro add_aggsig (APUBKEY puzhash)
+          (qq (c (q 50) (c (q (unquote APUBKEY)) (c (unquote puzhash) (q ())))))
+        )
 
-  (defmacro assert_my_value (my_parent my_puzzle sum)
-    (qq (list 53 (sha256 (unquote my_parent) (unquote my_puzzle) (unquote sum))))
-  )
+        (defmacro assert_my_value (my_parent my_puzzle sum)
+          (qq (c (q 53) (c (sha256 (unquote my_parent) (unquote my_puzzle) (unquote sum)) (q ()))))
+        )
 
-  (defmacro aggsig_entire_solution SOLUTION
-    (q (c (q 50) (c (q "B_PUBKEY") (c (sha256tree1 (a)) (q ())))))
-  )
+        (defmacro aggsig_entire_solution SOLUTION
+          (q (c (q 57) (c (q "B_PUBKEY") (c (sha256tree1 (a)) (q ())))))
+        )
 
-  (defun aggsig_outputs_and_assert_my_value (loop my_output my_parent my_puzzle running_sum)
-    (if (l loop)
-      (if (= (f (f loop)) (q 51))
-        (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) (c (add_aggsig "A_PUBKEY" (f (r (f loop)))) my_output)) my_parent my_puzzle (+ (f (r (r (f loop)))) running_sum))
-        (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) my_output) my_parent my_puzzle running_sum)
-      )
-      (c (list 53 (sha256 my_parent my_puzzle running_sum)) my_output)
-    )
-  )
+        (defun aggsig_outputs_and_assert_my_value (loop my_output my_parent my_puzzle running_sum)
+          (if loop
+            (if (= (f (f loop)) (q 51))
+              (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) (c (add_aggsig "A_PUBKEY" (f (r (f loop)))) my_output)) my_parent my_puzzle (+ (f (r (r (f loop)))) running_sum))
+              (aggsig_outputs_and_assert_my_value (r loop) (c (f loop) my_output) my_parent my_puzzle running_sum)
+            )
+            (c (assert_my_value my_parent my_puzzle running_sum) my_output)
+          )
+        )
 
-  (defmacro create_consolidated_output (my_puzzle_hash consolidating_coin_amount my_amount)
-      (qq (list 51 (unquote my_puzzle_hash) (+ (unquote consolidating_coin_amount) (unquote my_amount))))
-  )
-
-  (defmacro assert_my_id (my_parent my_puzzle_hash my_amount)
-    (qq (list 53 (sha256 (unquote my_parent) (unquote my_puzzle_hash) (unquote my_amount))))
-  )
-
-  (defmacro create_lock (consolidating_coin_primary_input consolidating_coin_puzzle_hash consolidating_coin_amount)
-    (qq (list 51 (sha256tree1 (c (q 7) (c (c (q 5) (c (c (q 1) (c (sha256 (unquote consolidating_coin_primary_input) (unquote consolidating_coin_puzzle_hash) (unquote consolidating_coin_amount)) (q ()))) (c (q (q ())) (q ())))) (q ())))) 0))
-  )
-
-
-  (c (list 50 "B_PUBKEY" (sha256tree1 (list x0 x1 x2 x3 x4 x5 x6))) (if x0
-      (aggsig_outputs_and_assert_my_value (create_outputs x1 x2) () x3 x4 ())
-      (c (assert_my_id x5 x1 x6) (c (create_lock x2 x3 x4) (c (create_consolidated_output x1 x4 x6) (q ()))))
-  ))
-
+        (c (aggsig_entire_solution (new_puzzle new_solution my_parent my_puzzle_hash)) (aggsig_outputs_and_assert_my_value (create_outputs new_puzzle new_solution) () my_parent my_puzzle_hash ()))
 )
