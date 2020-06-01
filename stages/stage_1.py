@@ -38,7 +38,7 @@ BINDINGS = {
 }
 
 
-brun = run = binutils.assemble("((c (f (a)) (r (a))))")
+brun = run = binutils.assemble("((c (f 1) (r 1)))")
 
 
 class RunProgram:

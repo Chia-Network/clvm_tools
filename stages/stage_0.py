@@ -4,7 +4,7 @@ from clvm.runtime_001 import OPERATOR_LOOKUP  # noqa
 
 from clvm_tools import binutils
 
-brun = run = binutils.assemble("((c (f (a)) (r (a))))")
+brun = run = binutils.assemble("((c (f 1) (r 1)))")
 
 """
 Copyright 2019 Chia Network Inc

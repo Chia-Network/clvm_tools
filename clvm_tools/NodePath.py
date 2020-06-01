@@ -70,13 +70,18 @@ class NodePath:
     def __init__(self, index=1):
         self._index = index
 
-    def as_path(self):
+    def as_short_path(self):
+        return self._index
+
+    def as_long_path(self):
         r = [ARGS_KW]
         index = self._index
         while index > 1:
             r = [REST_KW if index & 1 else FIRST_KW, r]
             index >>= 1
         return r
+
+    as_path = as_long_path
 
     def __add__(self, other_node):
         return self.__class__(compose_paths(self._index, other_node._index))

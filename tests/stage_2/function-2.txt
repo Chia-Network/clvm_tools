@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (function (list 20 30 (a) 40 50 60)))))))'
+brun -s2 '(opt (com (q (function (list 20 30 @ 40 50 60)))))))'
 (q (c (q 20) (c (q 30) (c (a) (q (40 50 60))))))

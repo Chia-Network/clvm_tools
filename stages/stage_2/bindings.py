@@ -13,8 +13,8 @@ BINDINGS = {
 }
 
 
-brun = binutils.assemble("((c (f (a)) (r (a))))")
-run = binutils.assemble("((c (opt (com (f (a)))) (r (a))))")
+brun = binutils.assemble("((c (f 1) (r 1)))")
+run = binutils.assemble("((c (opt (com (f 1))) (r 1)))")
 
 
 def run_program(

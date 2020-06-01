@@ -10,9 +10,9 @@ program to indicate we want this program literal to be
 compiled and quoted, so it can be passed as an argument
 to a compiled clvm program.
 
-EG: (function (+ 20 (a))) should return (+ (q 20) (a)) when run.
-Thus (opt (com (q (function (+ 20 (a))))))
-should return (q (+ (q 20) (a)))
+EG: (function (+ 20 @)) should return (+ (q 20) 1) when run.
+Thus (opt (com (q (function (+ 20 @)))))
+should return (q (+ (q 20) 1))
 
 (function PROG) => (opt (com (q PROG) (q MACROS)))
 
@@ -30,10 +30,10 @@ DEFAULT_MACROS_SRC = [
     ;)
     (q ("defmacro"
        (c (q "list")
-          (c (f (a))
+          (c (f 1)
              (c (c (q "mod")
-                   (c (f (r (a)))
-                      (c (f (r (r (a))))
+                   (c (f (r 1))
+                      (c (f (r (r 1)))
                          (q ()))))
                 (q ()))))))
     """,
@@ -52,17 +52,17 @@ DEFAULT_MACROS_SRC = [
     ;    ))
     ;)
     (q (list
-        ((c (q ((c (f (a)) (c (f (a)) (c (r (a)) (q ()))))))
-            (c (q ((c (i (f (r (a)))
+        ((c (q ((c (f 1) (c (f 1) (c (r 1) (q ()))))))
+            (c (q ((c (i (f (r 1))
                          (q (c (q #c)
-                               (c (f (f (r (a))))
-                                  (c ((c (f (a))
-                                         (c (f (a))
-                                            (c (r (f (r (a))))
+                               (c (f (f (r 1)))
+                                  (c ((c (f 1)
+                                         (c (f 1)
+                                            (c (r (f (r 1)))
                                                (q ())))))
                                      (q ())))))
-                         (q (q ()))) (a))))
-               (a))))))
+                         (q (q ()))) 1)))
+               1)))))
     """,
     """
     (defmacro function (BODY)
@@ -75,7 +75,7 @@ DEFAULT_MACROS_SRC = [
             (i (unquote A)
                (function (unquote B))
                (function (unquote C)))
-            (a)))))""",
+            @))))""",
     """
     (defmacro and ARGS
         (if ARGS
@@ -92,7 +92,7 @@ DEFAULT_MACRO_LOOKUP = None
 
 
 def build_default_macro_lookup(eval):
-    run = binutils.assemble("((c (com (f (a)) (r (a))) (a)))")
+    run = binutils.assemble("((c (com (f 1) (r 1)) 1))")
     global DEFAULT_MACRO_LOOKUP
     for macro_src in DEFAULT_MACROS_SRC:
         macro_sexp = binutils.assemble(macro_src)

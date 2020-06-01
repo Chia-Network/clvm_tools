@@ -1,2 +1,2 @@
-run -s2 '(list (f (a)) (f (r (a))))' '((100 102) "hello")'
+run -s2 '(list (f @) (f (r @)))' '((100 102) "hello")'
 ((100 102) "hello")

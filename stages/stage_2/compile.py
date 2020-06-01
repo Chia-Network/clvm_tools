@@ -23,6 +23,10 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
+
+    def com(sexp):
+        return do_com_prog(sexp, macro_lookup, symbol_table)
+
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
         # (qq ATOM) => (q ATOM)
@@ -32,16 +36,18 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
         op = sexp.first().as_atom()
         if op == b"qq":
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level+1)
-            return sexp.to([b"list", op, subexp])
+            return com(sexp.to([b"list", op, subexp]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
-                return sexp.rest().first()
+                return com(sexp.rest().first())
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level-1)
-            return sexp.to([b"list", op, subexp])
+            return com(sexp.to([b"list", op, subexp]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
-    return sexp.to([CONS_KW, [b"qq", sexp.first()], [b"qq", sexp.rest()]])
+    A = do_com_prog(sexp.to([b"qq", sexp.first()]), macro_lookup, symbol_table)
+    B = do_com_prog(sexp.to([b"qq", sexp.rest()]), macro_lookup, symbol_table)
+    return sexp.to([CONS_KW, A, B])
 
 
 def compile_macros(args, macro_lookup, symbol_table):
@@ -80,6 +86,8 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     # quote atoms
     if prog.nullp() or not prog.listp():
         atom = prog.as_atom()
+        if atom == b"@":
+            return prog.to(TOP.as_path())
         for pair in symbol_table.as_iter():
             symbol, value = pair.first(), pair.rest().first()
             if symbol == atom:
@@ -89,7 +97,7 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((OP) . RIGHT)) => ((c (com (q OP)) (a)))
+        # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
         inner_exp = eval(prog.to([b"com", [
             QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
         return prog.to([inner_exp])
@@ -107,17 +115,14 @@ def do_com_prog(prog, macro_lookup, symbol_table):
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup, symbol_table)
-        return eval(prog.to([b"com", [QUOTE_KW, post_prog], [QUOTE_KW, macro_lookup],
-                            [QUOTE_KW, symbol_table]]), TOP.as_path())
+        return eval(prog.to([QUOTE_KW, post_prog]), TOP.as_path())
 
     if operator == QUOTE_KW:
         return prog
 
-    compiled_args = prog.to([[b"com", [
-        QUOTE_KW, _], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]] for _ in prog.rest().as_iter()])
-    evaluated_args = [eval(_, TOP.as_path()) for _ in compiled_args.as_iter()]
+    compiled_args = [do_com_prog(_, macro_lookup, symbol_table) for _ in prog.rest().as_iter()]
 
-    r = prog.to([operator] + evaluated_args)
+    r = prog.to([operator] + compiled_args)
 
     if as_atom in PASS_THROUGH_OPERATORS:
         return r

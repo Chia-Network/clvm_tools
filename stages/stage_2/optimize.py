@@ -3,6 +3,8 @@ from clvm import KEYWORD_TO_ATOM
 from clvm_tools.pattern_match import match
 from clvm_tools.binutils import assemble
 
+from clvm_tools.NodePath import NodePath, LEFT, RIGHT
+
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
@@ -33,7 +35,7 @@ def seems_constant(sexp):
 
 def constant_optimizer(r, eval):
     """
-    If the expression does not depend upon (a) anywhere,
+    If the expression does not depend upon @ anywhere,
     it's a constant. So we can simply evaluate it and
     return the quoted result.
     """
@@ -58,7 +60,7 @@ CONS_Q_A_OPTIMIZER_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
 def cons_q_a_optimizer(r, eval):
     """
     This applies the transform
-    ((c (q SEXP) (a))) => SEXP
+    ((c (q SEXP) @)) => SEXP
     """
     t1 = match(CONS_Q_A_OPTIMIZER_PATTERN, r)
     if t1 and is_args_call(t1["args"]):
@@ -66,12 +68,41 @@ def cons_q_a_optimizer(r, eval):
     return r
 
 
+CONS_PATTERN = assemble("(c (: . first) (: . rest)))")
+
+
+def cons_f(args):
+    t = match(CONS_PATTERN, args)
+    if t:
+        return t["first"]
+    return args.to([FIRST_KW, args])
+
+
+def cons_r(args):
+    t = match(CONS_PATTERN, args)
+    if t:
+        return t["rest"]
+    return args.to([REST_KW, args])
+
+
+def path_from_args(sexp, new_args):
+    v = sexp.as_int()
+    if v <= 1:
+        return new_args
+    sexp = sexp.to(v >> 1)
+    if v & 1:
+        return path_from_args(sexp, cons_r(new_args))
+    return path_from_args(sexp, cons_f(new_args))
+
+
 def sub_args(sexp, new_args):
     if sexp.nullp() or not sexp.listp():
-        return sexp
+        return path_from_args(sexp, new_args)
 
     first = sexp.first()
-    if not first.listp():
+    if first.listp():
+        first = sub_args(first, new_args)
+    else:
         op = first.as_atom()
         if op == ARGS_KW:
             return new_args
@@ -79,7 +110,7 @@ def sub_args(sexp, new_args):
         if op == QUOTE_KW:
             return sexp
 
-    return sexp.to([sub_args(_, new_args) for _ in sexp.as_iter()])
+    return sexp.to([first] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
 
 
 VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
@@ -88,7 +119,7 @@ VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)
 def var_change_optimizer_cons_eval(r, eval):
     """
     This applies the transform
-    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != (a)
+    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != @
     via
     (op ((c SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
     In some cases, this can result in a constant in some of the children.
@@ -154,6 +185,36 @@ def cons_optimizer(r, eval):
     return r
 
 
+FIRST_ATOM_PATTERN = assemble("(f ($ . atom))")
+REST_ATOM_PATTERN = assemble("(r ($ . atom))")
+
+
+def path_optimizer(r, eval):
+    """
+    This applies the transform
+    (a) => 1
+    and
+    (f N) => A
+    and
+    (r N) => B
+    """
+    if is_args_call(r):
+        return r.to(1)
+
+    t1 = match(FIRST_ATOM_PATTERN, r)
+    if t1:
+        node = NodePath(t1["atom"].as_int())
+        node = node + LEFT
+        return r.to(node.as_short_path())
+
+    t1 = match(REST_ATOM_PATTERN, r)
+    if t1:
+        node = NodePath(t1["atom"].as_int())
+        node = node + RIGHT
+        return r.to(node.as_short_path())
+    return r
+
+
 def optimize_sexp(r, eval):
     """
     Optimize an s-expression R written for clvm to R_opt where
@@ -168,6 +229,7 @@ def optimize_sexp(r, eval):
         cons_q_a_optimizer,
         var_change_optimizer_cons_eval,
         children_optimizer,
+        # path_optimizer,
     ]
 
     while True:
@@ -183,6 +245,10 @@ def optimize_sexp(r, eval):
                 opt.__name__, start_r, r))
 
 
-def do_opt(args):
+def opt(sexp):
     from .bindings import run_program
-    return 1, optimize_sexp(args.first(), run_program)
+    return optimize_sexp(sexp, run_program)
+
+
+def do_opt(args):
+    return 1, opt(args.first())
