@@ -143,6 +143,7 @@ def launch_tool(args, tool_name, default_stage=0):
     run_script = getattr(args.stage, tool_name)
 
     cost = 0
+    failure = src_sexp.null()
     try:
         output = "(didn't finish)"
         env = binutils.assemble_from_ir(args.args)
@@ -159,6 +160,7 @@ def launch_tool(args, tool_name, default_stage=0):
     except EvalError as ex:
         output = "FAIL: %s %s" % (ex, binutils.disassemble(ex._sexp))
         result = ex._sexp
+        failure = to_sexp_f(output.encode())
         return -1
     except Exception as ex:
         result = src_sexp
@@ -168,7 +170,7 @@ def launch_tool(args, tool_name, default_stage=0):
         print(output)
         if args.verbose:
             print()
-            trace_to_text(log_entries, binutils.disassemble)
+            trace_to_text(log_entries, binutils.disassemble, failure)
 
 
 def read_ir(args=sys.argv):
