@@ -229,7 +229,7 @@ def optimize_sexp(r, eval):
         cons_q_a_optimizer,
         var_change_optimizer_cons_eval,
         children_optimizer,
-        # path_optimizer,
+        path_optimizer,
     ]
 
     while r.listp():

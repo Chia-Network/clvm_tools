@@ -1,2 +1,2 @@
 brun -s2 '(opt (com (q (lambda (A B C) (list A B C (list C))))))'
-(q (c (f (a)) (c (f (r (a))) (c (f (r (r (a)))) (c (c (f (r (r (a)))) (q ())) (q ()))))))
+(q (c 2 (c 5 (c 11 (c (c 11 (q ())) (q ()))))))
