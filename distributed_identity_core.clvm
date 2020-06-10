@@ -1,4 +1,7 @@
 (mod (corehash parent_info my_amount puzzle_reveal solution)
+
+;EXAMPLE SOLUTION '(0xfadeddab (0xdeadbeef 0xcafef00d 200) 50 (a) ((51 0xfadeddab 100) (60 "trash") (51 deadbeef 0)))'
+
 ; 51 = CREATE_COIN
 ; 52 = ASSERT_CONSUMED
 ; 53 = ASSERT_MY_ID
@@ -85,11 +88,13 @@
     )
   )
 
-  ;main
+  ;tests
   ;(f (f (create_outputs puzzle_reveal solution)))
   ;(list corehash parent_info my_amount puzzle_reveal (create_outputs puzzle_reveal solution))
   ;(check_outputs_value (create_outputs puzzle_reveal solution) 0)
   ;(check_my_amount_and_ID parent_info puzzle_reveal my_amount corehash)
+
+  ;main
   (check_id_and_check_outputs corehash parent_info my_amount puzzle_reveal (create_outputs puzzle_reveal solution))
 
 )
