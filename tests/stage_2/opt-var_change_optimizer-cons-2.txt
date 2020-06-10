@@ -1,2 +1,2 @@
-brun -s2 '(opt (q ((c (q ((c (f (a)) (a)))) (c (q (+ (q 50) (q 60))) (a))))))'
+brun -s2 '(opt (com (q ((c (function ((c (f (a)) (a)))) (c (q (+ (q 50) (q 60))) (a)))))))'
 ((c (q ((c (f (a)) (a)))) (c (q (+ (q 50) (q 60))) (a))))
