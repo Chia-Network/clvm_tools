@@ -1,0 +1,2 @@
+run '(mod (ARGS) (defun-inline ADD (arg1 arg2) (+ arg1 arg2)) (ADD ARGS 5))'
+(+ 2 (q 5))

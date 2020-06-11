@@ -91,6 +91,30 @@ def parse_include(name, namespace, functions, constants, macros, run_program):
         parse_mod_sexp(sexp, namespace, functions, constants, macros, run_program)
 
 
+def unquote_args(code, args):
+    if code.listp():
+        c1 = code.first()
+        c2 = code.rest()
+        return unquote_args(c1, args).cons(unquote_args(c2, args))
+
+    if code.as_atom() in args:
+        return code.to([b"unquote", code])
+
+    return code
+
+
+def defun_inline_to_macro(declaration_sexp):
+    d2 = declaration_sexp.rest()
+    d3 = d2.rest()
+    r = [b"defmacro", d2.first(), d3.first()]
+    code = d3.rest().first()
+    args = [_ for _ in flatten(d3.first()) if _ != b""]
+    unquoted_code = unquote_args(code, args)
+    r.append([b"qq", unquoted_code])
+    r = d2.to(r)
+    return r
+
+
 def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, run_program):
     op = declaration_sexp.first().as_atom()
     name = declaration_sexp.rest().first()
@@ -105,6 +129,8 @@ def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, ru
         macros.append(declaration_sexp)
     elif op == b"defun":
         functions[name] = declaration_sexp.rest().rest()
+    elif op == b"defun-inline":
+        macros.append(defun_inline_to_macro(declaration_sexp))
     elif op == b"defconstant":
         constants[name] = declaration_sexp.to([QUOTE_KW, declaration_sexp.rest().rest().first()])
     else:
