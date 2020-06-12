@@ -1,6 +1,7 @@
 from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
+from clvm_tools.debug import build_symbol_dump
 from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
 from .helpers import eval
@@ -242,5 +243,8 @@ def compile_mod(args, macro_lookup, symbol_table, run_program):
         arg_tree_src = "1"
 
     main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
+
+    if has_constants_tree:
+        build_symbol_dump(all_constants_lookup, run_program, "main.sym")
 
     return binutils.assemble(main_code)
