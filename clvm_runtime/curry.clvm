@@ -1,0 +1,27 @@
+(
+  ; curry a function
+  (defun curry_args (func args) (qq ((c (q (unquote func)) (unquote (fix_curry_args args (q 1)))))))
+
+  (defun curry (func . args) (curry_args func args))
+
+  (defun fix_curry_args (items core)
+    (if items
+        (qq (c (q (unquote (f items))) (unquote (fix_curry_args (r items) core))))
+        core
+    )
+  )
+
+  ; curry a function, passing in the hash of the origin function,
+  ; and return (c NEW_FUNCTION SHA_TREE_OF_NEW_FUNCTION)
+  ; Since this function knows the hash of the new function, it doesn't need to recurse into that function;
+  ; it just uses the memoized hash.
+
+  (defun curry_sha_args (func func_hash args)
+    (c (curry_args func args) (sha256tree_esc (curry_args func_hash args) func_hash))
+  )
+
+  (defun curry_sha (func func_hash . args)
+    (curry_sha_args func func_hash args)
+  )
+
+)
