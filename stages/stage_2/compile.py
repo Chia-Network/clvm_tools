@@ -36,13 +36,13 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
         op = sexp.first().as_atom()
         if op == b"qq":
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level+1)
-            return com(sexp.to([b"list", op, subexp]))
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
                 return com(sexp.rest().first())
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level-1)
-            return com(sexp.to([b"list", op, subexp]))
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
     A = com(sexp.to([b"qq", sexp.first()]))

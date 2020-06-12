@@ -1,2 +1,2 @@
 run -i tests/stage_2 '(mod (A B) (include included-1.clvm) (f1 (f2 A B) B))'
-((c (q ((c (f (f (a))) (c (f (a)) (c ((c (r (f (a))) (c (f (a)) (c (f (r (a))) (c (f (r (r (a)))) (q ())))))) (c (f (r (r (a)))) (q ()))))))) (c (q ((+ (f (r (a))) (f (r (r (a))))) 14 (f (r (a))) (f (r (r (a)))))) 1)))
+((c (q ((c 4 (c 2 (c ((c 6 (c 2 (c 5 (c 11 (q ())))))) (c 11 (q ()))))))) (c (q ((+ 5 11) 14 5 11)) 1)))

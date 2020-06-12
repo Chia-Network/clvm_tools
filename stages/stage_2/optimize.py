@@ -218,7 +218,7 @@ def path_optimizer(r, eval):
 def optimize_sexp(r, eval):
     """
     Optimize an s-expression R written for clvm to R_opt where
-    (e R args) == (e R_opt args) for ANY args.
+    ((c R args)) == ((c R_opt args)) for ANY args.
     """
     if r.nullp() or not r.listp():
         return r
@@ -229,10 +229,10 @@ def optimize_sexp(r, eval):
         cons_q_a_optimizer,
         var_change_optimizer_cons_eval,
         children_optimizer,
-        # path_optimizer,
+        path_optimizer,
     ]
 
-    while True:
+    while r.listp():
         start_r = r
         for opt in OPTIMIZERS:
             r = opt(r, eval)
@@ -243,6 +243,7 @@ def optimize_sexp(r, eval):
         if DEBUG_OPTIMIZATIONS:
             print("OPT-%s[%s] => %s\n" % (
                 opt.__name__, start_r, r))
+    return r
 
 
 def make_do_opt(run_program):
