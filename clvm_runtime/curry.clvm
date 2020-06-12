@@ -1,0 +1,13 @@
+(
+  ; curry a function
+  (defun curry_args (func args) (qq ((c (q (unquote func)) (unquote (fix_curry_args args (q 1)))))))
+
+  (defun curry (func . args) (curry_args func args))
+
+  (defun fix_curry_args (items core)
+    (if items
+        (qq (c (q (unquote (f items))) (unquote (fix_curry_args (r items) core))))
+        core
+    )
+  )
+)
