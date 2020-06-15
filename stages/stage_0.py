@@ -1,6 +1,8 @@
 from clvm import run_program  # noqa
-
-from clvm.runtime_001 import OPERATOR_LOOKUP  # noqa
+try:
+    from clvm.runtime_001 import OPERATOR_LOOKUP  # noqa
+except ImportError:
+    from clvm.operators import OPERATOR_LOOKUP  # noqa
 
 from clvm_tools import binutils
 
