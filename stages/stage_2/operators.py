@@ -5,14 +5,13 @@ from ir.writer import write_ir_to_stream
 
 
 from clvm.EvalError import EvalError
-try:
-    from clvm.runtime_001 import OPERATOR_LOOKUP as ORIGINAL_OPERATOR_LOOKUP
-except ImportError:
-    from clvm.operators import OPERATOR_LOOKUP as ORIGINAL_OPERATOR_LOOKUP
 
 from clvm_tools.binutils import assemble_from_ir, disassemble_to_ir
 
-from stages.stage_0 import run_program as run_program_0
+from stages.stage_0 import (
+    run_program as run_program_0,
+    OPERATOR_LOOKUP as ORIGINAL_OPERATOR_LOOKUP,
+)
 
 from .compile import make_do_com
 from .optimize import make_do_opt
