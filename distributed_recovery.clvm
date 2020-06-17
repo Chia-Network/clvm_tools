@@ -1,0 +1,35 @@
+(mod SOLUTION
+    (defconstant OP_AGGSIG 50)
+    (defconstant OP_CREATE 51)
+    (defconstant OP_CONSUMED 52)
+    (defconstant OP_MYID 53)
+
+    (defconstant identities ("IDENTITY1" "IDENTITY2"))
+
+    ; takes a lisp tree and returns the hash of it
+    (defun sha256tree1 (TREE)
+        (if (l TREE)
+            (sha256 2 (sha256tree1 (f TREE)) (sha256tree1 (r TREE)))
+            (sha256 1 TREE)
+        )
+    )
+
+    (defun create_consume_message (identity my_id new_innerpuz)
+      (list OP_ASSERT_CONSUMED (sha256 identity (sha256tree1 (create_message my_id new_innerpuz)) 0))
+    )
+
+    (defun assert_my_id (my_id)
+      (list OP_MYID my_id)
+    )
+
+    (defun check_messages_from_identities (id_list my_id output new_innerpuz)
+      (if id_list
+        (check_messages_from_identities (r id_list) my_id (c (create_consume_message (f id_list) my_id new_innerpuz) output) new_innerpuz)
+        (c (assert_my_id my_id) output)
+      )
+    )
+
+    ;main
+    (check_messages_from_identities identities my_id (q ((51 new_innerpuz amount))) new_innerpuz)
+
+)
