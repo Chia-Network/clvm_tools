@@ -1,8 +1,11 @@
-(mod SOLUTION
+(mod (mode amount new_innerpuz my_puz identity)
+  ;identity is either my_id or id_to_attest depending on mode
 
-  (defconstant identities_list (0xdeadbeef 0xcafefood 0xfadeddab))
-  (defconstant OP_CREATE_COIN 50)
+  (defconstant identities_list (0xdeadbeef 0xcafef00d 0xfadeddab))
+  (defconstant OP_AGG_SIG 50)
+  (defconstant OP_CREATE_COIN 51)
   (defconstant OP_ASSERT_CONSUMED 52)
+  (defconstant OP_AGG_SIG_ME 57)
 
   ; takes a lisp tree and returns the hash of it
   (defun sha256tree1 (TREE)
@@ -25,7 +28,7 @@
   )
 
   (defmacro recreate_self (my_puz amount)
-    (qq (c OP_CREATE_COIN (c (unquote my_puz) (c (unquote amount) (q ()))))
+    (qq (c OP_CREATE_COIN (c (unquote my_puz) (c (unquote amount) (q ())))))
   )
 
   (defmacro create_new_coin (amount new_innerpuz)
@@ -39,11 +42,23 @@
     )
   )
 
+  (defun-inline assert_consumed_identity identity
+    (list OP_ASSERT_CONSUMED identity)
+  )
+
   ;Spend modes:
   ;0 = normal spend
   ;1 = attest
+  ;2 (or anything else) = recovery
+
+  ;MAIN
+
   (if mode
-    (c (create_new_coin amount new_innerpuz) (check_messages_from_identities identities my_id output new_innerpuz))
-    (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_puz))
+    (c (create_new_coin amount new_innerpuz) (list (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz)))
+    (if (= mode (q 1))
+      (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz) (assert_consumed_identity identity))
+      (check_messages_from_identities identities_list identity (create_new_coin amount new_innerpuz) new_innerpuz)
+    )
   )
+
 )
