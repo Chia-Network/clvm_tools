@@ -1,9 +1,11 @@
 from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
+from clvm_tools.debug import build_symbol_dump
 from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
 from .helpers import eval
+from .optimize import optimize_sexp
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -83,9 +85,44 @@ def build_used_constants_names(functions, constants, macros):
     return sorted(used_names)
 
 
-def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros):
+def parse_include(name, namespace, functions, constants, macros, run_program):
+    prog = binutils.assemble("(_read (_full_path_for_name 1))")
+    cost, assembled_sexp = run_program(prog, name)
+    for sexp in assembled_sexp.as_iter():
+        parse_mod_sexp(sexp, namespace, functions, constants, macros, run_program)
+
+
+def unquote_args(code, args):
+    if code.listp():
+        c1 = code.first()
+        c2 = code.rest()
+        return unquote_args(c1, args).cons(unquote_args(c2, args))
+
+    if code.as_atom() in args:
+        return code.to([b"unquote", code])
+
+    return code
+
+
+def defun_inline_to_macro(declaration_sexp):
+    d2 = declaration_sexp.rest()
+    d3 = d2.rest()
+    r = [b"defmacro", d2.first(), d3.first()]
+    code = d3.rest().first()
+    args = [_ for _ in flatten(d3.first()) if _ != b""]
+    unquoted_code = unquote_args(code, args)
+    r.append([b"qq", unquoted_code])
+    r = d2.to(r)
+    return r
+
+
+def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, run_program):
     op = declaration_sexp.first().as_atom()
-    name = declaration_sexp.rest().first().as_atom()
+    name = declaration_sexp.rest().first()
+    if op == b"include":
+        parse_include(name, namespace, functions, constants, macros, run_program)
+        return
+    name = name.as_atom()
     if name in namespace:
         raise SyntaxError('symbol "%s" redefined' % name.decode())
     namespace.add(name)
@@ -93,13 +130,15 @@ def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros):
         macros.append(declaration_sexp)
     elif op == b"defun":
         functions[name] = declaration_sexp.rest().rest()
+    elif op == b"defun-inline":
+        macros.append(defun_inline_to_macro(declaration_sexp))
     elif op == b"defconstant":
-        constants[name] = [QUOTE_KW, declaration_sexp.rest().rest().first().as_atom()]
+        constants[name] = declaration_sexp.to([QUOTE_KW, declaration_sexp.rest().rest().first()])
     else:
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
 
-def compile_mod_stage_1(args):
+def compile_mod_stage_1(args, run_program):
     """
     stage 1: collect up names of globals (functions, constants, macros)
     """
@@ -114,7 +153,7 @@ def compile_mod_stage_1(args):
         args = args.rest()
         if args.rest().nullp():
             break
-        parse_mod_sexp(args.first(), namespace, functions, constants, macros)
+        parse_mod_sexp(args.first(), namespace, functions, constants, macros, run_program)
 
     uncompiled_main = args.first()
 
@@ -136,14 +175,13 @@ def symbol_table_for_tree(tree, root_node):
     return left + right
 
 
-def build_macro_lookup_program(macro_lookup, macros):
-    from .optimize import do_opt
+def build_macro_lookup_program(macro_lookup, macros, run_program):
     macro_lookup_program = macro_lookup.to([QUOTE_KW, macro_lookup])
     for macro in macros:
         macro_lookup_program = eval(macro_lookup.to(
             [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
             TOP.as_path())
-        cost, macro_lookup_program = do_opt(macro_lookup_program.to([macro_lookup_program]))
+        macro_lookup_program = optimize_sexp(macro_lookup_program, run_program)
     return macro_lookup_program
 
 
@@ -160,15 +198,15 @@ def compile_functions(functions, macro_lookup_program, constants_symbol_table, a
     return compiled_functions
 
 
-def compile_mod(args, macro_lookup, symbol_table):
+def compile_mod(args, macro_lookup, symbol_table, run_program):
     """
     Deal with the "mod" keyword.
     """
-    (functions, constants, macros) = compile_mod_stage_1(args)
+    (functions, constants, macros) = compile_mod_stage_1(args, run_program)
 
     # move macros into the macro lookup
 
-    macro_lookup_program = build_macro_lookup_program(macro_lookup, macros)
+    macro_lookup_program = build_macro_lookup_program(macro_lookup, macros, run_program)
 
     # get a list of all symbols that are possibly used
 
@@ -193,7 +231,7 @@ def compile_mod(args, macro_lookup, symbol_table):
     main_path_src = binutils.disassemble(compiled_functions[MAIN_NAME])
 
     if has_constants_tree:
-        all_constants_lookup = dict(compiled_functions)
+        all_constants_lookup = {k: v for k, v in compiled_functions.items() if k in all_constants_names}
         all_constants_lookup.update(constants)
 
         all_constants_list = [all_constants_lookup[_] for _ in all_constants_names]
@@ -205,5 +243,8 @@ def compile_mod(args, macro_lookup, symbol_table):
         arg_tree_src = "1"
 
     main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
+
+    if has_constants_tree:
+        build_symbol_dump(all_constants_lookup, run_program, "main.sym")
 
     return binutils.assemble(main_code)

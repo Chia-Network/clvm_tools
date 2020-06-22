@@ -1,0 +1,42 @@
+(
+  ;; This include file defines various forms of `curry`
+  ;; A "curry" binds values to a function, making them constant,
+  ;; and returning a new function that returns fewer arguments (since the
+  ;; arguments are now fixed).
+  ;; Example: (defun add2 (V1 V2) (+ V1 V2))  ; add two values
+  ;; (curry add2 15) ; this yields a function that accepts ONE argument, and adds 15 to it
+
+  ; (curry_args sum (list 50 60)) => returns a function that is like (sum 50 60 ...)
+  (defun curry_args (func list_of_args) (qq ((c (q (unquote func)) (unquote (fix_curry_args list_of_args (q 1)))))))
+
+  ;; (curry sum 50 60) => returns a function that is like (sum 50 60 ...)
+  (defun curry (func . args) (curry_args func args))
+
+  ;; utility function used by `curry_args`
+  (defun fix_curry_args (items core)
+    (if items
+        (qq (c (q (unquote (f items))) (unquote (fix_curry_args (r items) core))))
+        core
+    )
+  )
+
+  ;; `curry_sha_args`: curry a function, passing in the hash of the origin function,
+  ;; and return (NEW_FUNCTION . SHA_TREE_OF_NEW_FUNCTION)
+  ;; Since this function knows the hash of the new function, it doesn't need to recurse into that function;
+  ;; it just uses the memoized hash.
+  ;; If you're going to curry a function multiple times, using this function can save you
+  ;; currying the core muliple times.
+
+  ;; run -i . '(mod (X) (defun add2 (A B) (+ A B)) (include curry.clvm) (include sha256tree.clvm) (curry_sha add2 0x29066ef6b3c159c7c65e47f13609682752588565fa0e86846e3ae63a28f24716 15) )'
+  ;; (q (((c (q (+ 5 11)) (c (q 15) 1))) . 0x16686638d91ec9eea115335ddd52f1f78640f8a504c0caff1f07499a71de6b4d))
+
+  (defun curry_sha_args (func func_hash args)
+    (c (curry_args func args) (sha256tree_esc (curry_args func_hash args) func_hash))
+  )
+
+  ;; return the hash of the curried function
+
+  (defun curry_sha (func func_hash . args)
+    (curry_sha_args func func_hash args)
+  )
+)

@@ -1,2 +1,2 @@
 run '(mod (AA BB) (defconstant FOO 1000) (+ AA BB FOO))'
-((c (q (+ (f (r (a))) (f (r (r (a)))) (f (a)))) (c (q 1000) 1)))
+(+ 2 5 (q 1000))

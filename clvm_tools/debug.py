@@ -1,3 +1,11 @@
+import json
+
+from clvm.more_ops import sha256tree_with_cost
+
+
+def sha256tree(t):
+    return sha256tree_with_cost(t)[1]
+
 
 PRELUDE = '''<html>
 <head>
@@ -77,21 +85,40 @@ def trace_to_html(invocations, disassemble):
     print(TRAILER)
 
 
-def trace_to_text(trace, disassemble):
+def build_symbol_dump(constants_lookup, run_program, path):
+    compiled_lookup = {}
+    for k, v in constants_lookup.items():
+        cost, v1 = run_program(v, [])
+        compiled_lookup[sha256tree(v1).hex()] = k.decode()
+    output = json.dumps(compiled_lookup)
+    with open(path, "w") as f:
+        f.write(output)
+
+
+def trace_to_text(trace, disassemble, symbol_table):
     for item in trace:
-        form, env, r = item
-        if r is None:
+        form, env, rv = item
+        if rv is None:
             rv = "(didn't finish)"
         else:
-            rv = disassemble(r)
-        env_str = disassemble(env)
-        print("%s [%s] => %s" % (disassemble(form), env_str, rv))
+            rv = disassemble(rv)
+        h = sha256tree(form).hex()
+        symbol = symbol_table.get(h) if symbol_table else symbol_table
+        if symbol:
+            env = env.rest()
+            symbol = env.to(symbol.encode()).cons(env)
+        else:
+            symbol = "%s [%s]" % (disassemble(form), disassemble(env))
+        print("%s => %s" % (symbol, rv))
         print("")
 
 
-def make_trace_pre_eval(log_entries):
+def make_trace_pre_eval(log_entries, symbol_table=None):
 
     def pre_eval_f(sexp, args):
+        h = sha256tree(sexp).hex()
+        if symbol_table and h not in symbol_table:
+            return None
         log_entry = [sexp, args, None]
         log_entries.append(log_entry)
 

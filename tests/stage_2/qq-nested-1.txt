@@ -1,2 +1,2 @@
-run '(qq (foo bar (a) (unquote (a)) (qq (unquote (a))) (qq (unquote ((unquote (a)) baz)))))' 'SUBSTITUTE'
-("foo" "bar" (a) "SUBSTITUTE" (29041 ("unquote" (a))) (29041 ("unquote" ("SUBSTITUTE" "baz"))))
+run '((c (lambda ARGS (qq (foo bar ARGS (unquote ARGS) (qq (unquote ARGS)) (qq (unquote ((unquote ARGS) baz)))))) "SUBSTITUTE"))'
+("foo" "bar" "ARGS" "SUBSTITUTE" (29041 ("unquote" "ARGS")) (29041 ("unquote" ("SUBSTITUTE" "baz"))))

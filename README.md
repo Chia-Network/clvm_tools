@@ -25,11 +25,11 @@ The language has two components: the higher level language and the compiled lowe
 To compile the higher level language into the lower level language use:
 
     $ run -s2 '(mod ARGUMENT (+ ARGUMENT 3))'
-    (+ (a) (q 3))
+    (+ 1 (q 3))
 
 To execute this code:
 
-    $ brun '(+ (a) (q 3))' '2'
+    $ brun '(+ 1 (q 3))' '2'
     5
 
 
@@ -47,7 +47,7 @@ The high level language is a superset of [clvm](https://github.com/Chia-Network/
 
 You can copy this to a file `fact.clvm`, then compile it with `run fact.clvm` and you'll see output like
 
-`((c (q ((c (f (a)) (c (f (a)) (c (f (r (a))) (q ())))))) (c (q ((c (i (= (f (r (a))) (q 1)) (q (q 1)) (q (* (f (r (a))) ((c (f (a)) (c (f (a)) (c (- (f (r (a))) (q 1)) (q ())))))))) (a)))) (a))))`
+`((c (q ((c 2 (c 2 (c 5 (q ())))))) (c (q ((c (i (= 5 (q 1)) (q (q 1)) (q (* 5 ((c 2 (c 2 (c (- 5 (q 1)) (q ())))))))) 1))) 1)))`
 
 You can then run this code with `brun`, passing in a parameter. Or pipe it using this `bash` quoting trick:
 
@@ -66,6 +66,7 @@ Note that the `1` is not quoted. The compiler recognizes and auto-quotes constan
     $ brun 15
     FAIL: not a list 15
 
+** WARNING ** You might actually mean `(a)` when you write `1` (or `(f (a))` for `2`, etc.), but `run` will never interpret it that way. Use `(a)`.
 
 ## Known operators
 
@@ -97,7 +98,7 @@ If you have a template expression and you want to substitute values into it, thi
 
 ## Macros
 
-You can also define macros within a module, which act as inline functions. When a previously defined macro operator is encoutered, it "rewrites" the existing statement using the macro, passing along the arguments as literals (ie. they are not evaluated).
+You can also define macros within a module, which act as inline functions. When a previously defined macro operator is encountered, it "rewrites" the existing statement using the macro, passing along the arguments as literals (ie. they are not evaluated).
 
 
 ### A Simple Example
@@ -109,7 +110,7 @@ You can also define macros within a module, which act as inline functions. When 
 
 When `run`, this produces the following output:
 
-`(+ (f (a)) (f (r (a))))`
+`(+ 2 5)`
 
 Compare to the function version:
 
@@ -120,9 +121,23 @@ Compare to the function version:
 
 which produces
 
-`((c (q ((c (f (a)) (c (f (a)) (c (f (r (a))) (c (f (r (r (a)))) (q ()))))))) (c (q (+ (f (r (a))) (f (r (r (a)))))) (a))))`
+`((c (q ((c 2 (c 2 (c 5 (c 11 (q ()))))))) (c (q (+ 5 11)) 1)))`
 
 There's a lot more going on here, setting up an environment where sum would be allowed to call itself recursively.
+
+### Inline functions
+
+If you want to write a function that is always inlined, use `defun-inline`.
+
+
+    (mod (VALUE1 VALUE2)
+         (defun-inline sum (A B) (+ A B))
+         (sum VALUE1 VALUE2)
+         )
+
+This produces the much more compact output `(+ 2 5)`.
+
+Inline functions *must not* be recursive.
 
 
 ### A More Complex Example
@@ -141,7 +156,6 @@ Here's an example, demonstrating how `if` is defined.
 
 This produces
 
-`((c (i (= (+ (f (a)) (f (r (a)))) (q 10)) (q (q "the sum is 10")) (q (q "the sum is not 10"))) (a)))`
+`((c (i (= (+ 2 5) (q 10)) (q (q "the sum is 10")) (q (q "the sum is not 10"))) 1))`
 
-which is not much code, for how much source there is. This also demonstrates the general notion that macros cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.
-
+which is not much code, for how much source there is. This also demonstrates the general notion that macros (and inline functions)cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.

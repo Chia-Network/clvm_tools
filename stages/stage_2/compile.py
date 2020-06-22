@@ -17,7 +17,7 @@ for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
 
-def compile_qq(args, macro_lookup, symbol_table, level=1):
+def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     """
     (qq ATOM) => (q ATOM)
     (qq (unquote X)) => X
@@ -25,7 +25,7 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
     """
 
     def com(sexp):
-        return do_com_prog(sexp, macro_lookup, symbol_table)
+        return do_com_prog(sexp, macro_lookup, symbol_table, run_program)
 
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
@@ -35,26 +35,26 @@ def compile_qq(args, macro_lookup, symbol_table, level=1):
     if sexp.listp() and not sexp.first().listp():
         op = sexp.first().as_atom()
         if op == b"qq":
-            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level+1)
-            return com(sexp.to([b"list", op, subexp]))
+            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level+1)
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
                 return com(sexp.rest().first())
-            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, level-1)
-            return com(sexp.to([b"list", op, subexp]))
+            subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level-1)
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
-    A = do_com_prog(sexp.to([b"qq", sexp.first()]), macro_lookup, symbol_table)
-    B = do_com_prog(sexp.to([b"qq", sexp.rest()]), macro_lookup, symbol_table)
+    A = com(sexp.to([b"qq", sexp.first()]))
+    B = com(sexp.to([b"qq", sexp.rest()]))
     return sexp.to([CONS_KW, A, B])
 
 
-def compile_macros(args, macro_lookup, symbol_table):
+def compile_macros(args, macro_lookup, symbol_table, run_program):
     return args.to([QUOTE_KW, macro_lookup])
 
 
-def compile_symbols(args, macro_lookup, symbol_table):
+def compile_symbols(args, macro_lookup, symbol_table, run_program):
     return args.to([QUOTE_KW, symbol_table])
 
 
@@ -67,7 +67,7 @@ COMPILE_BINDINGS = {
 }
 
 
-def do_com_prog(prog, macro_lookup, symbol_table):
+def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     """
     Turn the given program `prog` into a clvm program using
     the macros to do transformation.
@@ -114,17 +114,17 @@ def do_com_prog(prog, macro_lookup, symbol_table):
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
-        post_prog = f(prog.rest(), macro_lookup, symbol_table)
+        post_prog = f(prog.rest(), macro_lookup, symbol_table, run_program)
         return eval(prog.to([QUOTE_KW, post_prog]), TOP.as_path())
 
     if operator == QUOTE_KW:
         return prog
 
-    compiled_args = [do_com_prog(_, macro_lookup, symbol_table) for _ in prog.rest().as_iter()]
+    compiled_args = [do_com_prog(_, macro_lookup, symbol_table, run_program) for _ in prog.rest().as_iter()]
 
     r = prog.to([operator] + compiled_args)
 
-    if as_atom in PASS_THROUGH_OPERATORS:
+    if as_atom in PASS_THROUGH_OPERATORS or as_atom.startswith(b"_"):
         return r
 
     for (symbol, value) in symbol_table.as_python():
@@ -144,14 +144,17 @@ def do_com_prog(prog, macro_lookup, symbol_table):
         disassemble(prog))
 
 
-def do_com(sexp):
-    prog = sexp.first()
-    symbol_table = sexp.null()
-    if not sexp.rest().nullp():
-        macro_lookup = sexp.rest().first()
-        if not sexp.rest().rest().nullp():
-            symbol_table = sexp.rest().rest().first()
-    else:
-        from .bindings import run_program
-        macro_lookup = default_macro_lookup(run_program)
-    return 1, do_com_prog(prog, macro_lookup, symbol_table)
+def make_do_com(run_program):
+
+    def do_com(sexp):
+        prog = sexp.first()
+        symbol_table = sexp.null()
+        if not sexp.rest().nullp():
+            macro_lookup = sexp.rest().first()
+            if not sexp.rest().rest().nullp():
+                symbol_table = sexp.rest().rest().first()
+        else:
+            macro_lookup = default_macro_lookup(run_program)
+        return 1, do_com_prog(prog, macro_lookup, symbol_table, run_program)
+
+    return do_com

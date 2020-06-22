@@ -1,4 +1,5 @@
-from .bindings import brun, run, run_program  # noqa
+from .bindings import brun, run  # noqa
+from .operators import run_program_for_search_paths  # noqa
 
 
 """

@@ -1,0 +1,24 @@
+# (mod (N) (defun fact (N) (if (= N 1) 1 (* N (fact (- N 1))))) (fact N))
+brun -y tests/stage_2/brun-y-1.sym '((c (q ((c 2 (c 2 (c 5 (q ())))))) (c (q ((c (i (= 5 (q 1)) (q (q 1)) (q (* 5 ((c 2 (c 2 (c (- 5 (q 1)) (q ())))))))) 1))) 1)))' '(10)'
+0x375f00
+
+("fact" 10) => 0x375f00
+
+("fact" 9) => 0x058980
+
+("fact" 8) => 0x009d80
+
+("fact" 7) => 5040
+
+("fact" 6) => 720
+
+("fact" 5) => 120
+
+("fact" 4) => 24
+
+("fact" 3) => 6
+
+("fact" 2) => 2
+
+("fact" 1) => 1
+

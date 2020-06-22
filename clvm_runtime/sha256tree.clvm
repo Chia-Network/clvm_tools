@@ -1,0 +1,25 @@
+(
+  ;; hash a tree
+  ;; This is used to calculate a puzzle hash given a puzzle program.
+  (defun sha256tree
+         (TREE)
+         (if (l TREE)
+             (sha256 2 (sha256tree (f TREE)) (sha256tree (r TREE)))
+             (sha256 1 TREE)
+         )
+  )
+
+  ;; hash a tree with an escape value representing an already-hashed subtree
+  ;; This optimization can be useful if you know the puzzle hash of a sub-expression.
+  ;; You probably actually want to use `curry_sha` though.
+  (defun sha256tree_esc
+         (TREE LITERAL)
+         (if (l TREE)
+             (sha256 2 (sha256tree_esc (f TREE) LITERAL) (sha256tree_esc (r TREE) LITERAL))
+             (if (= TREE LITERAL)
+                 LITERAL
+                 (sha256 1 TREE)
+             )
+         )
+  )
+)

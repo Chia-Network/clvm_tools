@@ -17,7 +17,7 @@ DEBUG_OPTIMIZATIONS = 0
 
 
 def seems_constant(sexp):
-    if sexp.nullp() or not sexp.listp():
+    if not sexp.listp():
         return False
     operator = sexp.first()
     if not operator.listp():
@@ -218,7 +218,7 @@ def path_optimizer(r, eval):
 def optimize_sexp(r, eval):
     """
     Optimize an s-expression R written for clvm to R_opt where
-    (e R args) == (e R_opt args) for ANY args.
+    ((c R args)) == ((c R_opt args)) for ANY args.
     """
     if r.nullp() or not r.listp():
         return r
@@ -229,10 +229,10 @@ def optimize_sexp(r, eval):
         cons_q_a_optimizer,
         var_change_optimizer_cons_eval,
         children_optimizer,
-        # path_optimizer,
+        path_optimizer,
     ]
 
-    while True:
+    while r.listp():
         start_r = r
         for opt in OPTIMIZERS:
             r = opt(r, eval)
@@ -243,12 +243,12 @@ def optimize_sexp(r, eval):
         if DEBUG_OPTIMIZATIONS:
             print("OPT-%s[%s] => %s\n" % (
                 opt.__name__, start_r, r))
+    return r
 
 
-def opt(sexp):
-    from .bindings import run_program
-    return optimize_sexp(sexp, run_program)
+def make_do_opt(run_program):
 
+    def do_opt(args):
+        return 1, optimize_sexp(args.first(), run_program)
 
-def do_opt(args):
-    return 1, opt(args.first())
+    return do_opt

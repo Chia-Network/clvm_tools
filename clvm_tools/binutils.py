@@ -1,6 +1,6 @@
 import string
 
-from clvm.runtime_001 import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
+from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
 from clvm.casts import int_from_bytes, int_to_bytes
 
 from ir.reader import read_ir
