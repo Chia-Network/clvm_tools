@@ -4,3 +4,4 @@ env
 src
 activate
 pip-wheel-metadata
+main.sym
