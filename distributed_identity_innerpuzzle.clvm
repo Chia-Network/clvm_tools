@@ -1,7 +1,8 @@
-(mod (mode amount new_innerpuz my_puz identity)
+(mod (mode amount new_innerpuz identity my_puz)
   ;identity is either my_id or id_to_attest depending on mode
+  ;EXAMPLE SOLUTION (0 100 0xfadeddab 0xdeadbeef 0xcafef00d)
 
-  (defconstant identities_list (0xdeadbeef 0xcafef00d 0xfadeddab))
+  (defconstant identities_list (0x12341234 0x12361236 0xabcdabcd))
   (defconstant OP_AGG_SIG 50)
   (defconstant OP_CREATE_COIN 51)
   (defconstant OP_ASSERT_CONSUMED 52)
@@ -37,13 +38,13 @@
 
   (defun check_messages_from_identities (identities my_id output new_innerpuz)
     (if identities
-      (check_messages_from_identities (r identities) my_id (c (create_consume_message (f identities) my_id new_innerpuz) output new_innerpuz))
+      (check_messages_from_identities (r identities) my_id (c (create_consume_message (f identities) my_id new_innerpuz) output) new_innerpuz)
       output
     )
   )
 
-  (defun-inline assert_consumed_identity identity
-    (list OP_ASSERT_CONSUMED identity)
+  (defmacro assert_consumed_identity identity
+    (qq (c OP_ASSERT_CONSUMED (c identity (q ()))))
   )
 
   ;Spend modes:
@@ -54,11 +55,19 @@
   ;MAIN
 
   (if mode
-    (c (create_new_coin amount new_innerpuz) (list (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz)))
+    (list (create_new_coin amount new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz))
     (if (= mode (q 1))
       (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz) (assert_consumed_identity identity))
       (check_messages_from_identities identities_list identity (create_new_coin amount new_innerpuz) new_innerpuz)
     )
   )
+
+  ;HERE BE TESTS
+  ;(create_new_coin amount new_innerpuz)
+  ;(list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz)
+  ;(list (create_new_coin amount new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz))
+  ;(list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz) (assert_consumed_identity identity))
+  ;(create_consume_message (f identities_list) identity new_innerpuz)
+  ;(check_messages_from_identities identities_list identity (list (create_new_coin amount new_innerpuz)) new_innerpuz)
 
 )
