@@ -1,5 +1,7 @@
-(mod (mode amount new_innerpuz identity my_puz)
+(mod (mode amount new_puz identity my_puz)
   ;identity is either my_id or id_to_attest depending on mode
+  ;new_puz is the puz to attest in the attest case
+
   ;EXAMPLE SOLUTION (0 100 0xfadeddab 0xdeadbeef 0xcafef00d)
 
   (defconstant identities_list (0x12341234 0x12361236 0xabcdabcd))
@@ -32,19 +34,23 @@
     (qq (c OP_CREATE_COIN (c (unquote my_puz) (c (unquote amount) (q ())))))
   )
 
-  (defmacro create_new_coin (amount new_innerpuz)
-    (qq (c OP_CREATE_COIN (c (unquote new_innerpuz) (c (unquote amount) (q ())))))
+  (defmacro create_new_coin (amount new_puz)
+    (qq (c OP_CREATE_COIN (c (unquote new_puz) (c (unquote amount) (q ())))))
   )
 
-  (defun check_messages_from_identities (identities my_id output new_innerpuz)
+  (defun check_messages_from_identities (identities my_id output new_puz)
     (if identities
-      (check_messages_from_identities (r identities) my_id (c (create_consume_message (f identities) my_id new_innerpuz) output) new_innerpuz)
+      (check_messages_from_identities (r identities) my_id (c (create_consume_message (f identities) my_id new_puz) output) new_puz)
       output
     )
   )
 
   (defmacro assert_consumed_identity identity
     (qq (c OP_ASSERT_CONSUMED (c identity (q ()))))
+  )
+
+  (defun create_aggsig_me (message)
+    (list OP_AGG_SIG_ME (q "PUBKEY") message)
   )
 
   ;Spend modes:
@@ -55,19 +61,22 @@
   ;MAIN
 
   (if mode
-    (list (create_new_coin amount new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz))
     (if (= mode (q 1))
-      (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz) (assert_consumed_identity identity))
-      (check_messages_from_identities identities_list identity (create_new_coin amount new_innerpuz) new_innerpuz)
+      ; mode one - attest
+      (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
+      ; mode two - recovery
+      (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz)
     )
+    ; mode zero - normal spend
+    (list (create_new_coin amount new_puz) (create_aggsig_me new_puz))
   )
 
   ;HERE BE TESTS
-  ;(create_new_coin amount new_innerpuz)
-  ;(list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz)
-  ;(list (create_new_coin amount new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz))
-  ;(list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_innerpuz) (list OP_AGG_SIG_ME (q "PUBKEY") new_innerpuz) (assert_consumed_identity identity))
-  ;(create_consume_message (f identities_list) identity new_innerpuz)
-  ;(check_messages_from_identities identities_list identity (list (create_new_coin amount new_innerpuz)) new_innerpuz)
+  ;(create_new_coin amount new_puz)
+  ;(list OP_AGG_SIG_ME (q "PUBKEY") new_puz)
+  ;(list (create_new_coin amount new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz))
+  ;(list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz) (assert_consumed_identity identity))
+  ;(create_consume_message (f identities_list) identity new_puz)
+  ;(check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz)
 
 )
