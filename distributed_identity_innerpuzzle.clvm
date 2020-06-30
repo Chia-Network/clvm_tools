@@ -1,4 +1,4 @@
-(mod (mode amount new_puz identity my_puz)
+(mod (mode amount new_puz identity my_puzhash)
   ;identity is either my_id or id_to_attest depending on mode
   ;new_puz is the puz to attest in the attest case
 
@@ -26,12 +26,12 @@
     (list OP_ASSERT_CONSUMED (sha256 identity (sha256tree1 (create_message my_id new_innerpuz)) 0))
   )
 
-  (defmacro attest_to_id_and_newpuz (identity new_puz)
+  (defmacro attest_to_id_and_newpuz (identity new_innerpuz)
     (qq (c OP_CREATE_COIN (c (sha256tree1 (create_message (unquote identity) (unquote new_innerpuz))) (q (0)))))
   )
 
-  (defmacro recreate_self (my_puz amount)
-    (qq (c OP_CREATE_COIN (c (unquote my_puz) (c (unquote amount) (q ())))))
+  (defmacro recreate_self (my_puzhash amount)
+    (qq (c OP_CREATE_COIN (c (unquote my_puzhash) (c (unquote amount) (q ())))))
   )
 
   (defmacro create_new_coin (amount new_puz)
@@ -63,7 +63,7 @@
   (if mode
     (if (= mode (q 1))
       ; mode one - attest
-      (list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
+      (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
       ; mode two - recovery
       (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz)
     )
@@ -75,7 +75,7 @@
   ;(create_new_coin amount new_puz)
   ;(list OP_AGG_SIG_ME (q "PUBKEY") new_puz)
   ;(list (create_new_coin amount new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz))
-  ;(list (recreate_self my_puz amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz) (assert_consumed_identity identity))
+  ;(list (recreate_self new_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz) (assert_consumed_identity identity))
   ;(create_consume_message (f identities_list) identity new_puz)
   ;(check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz)
 
