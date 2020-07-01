@@ -20,9 +20,9 @@
     )
   )
 
-  ;; `curry_sha_args`: curry a function, passing in the hash of the origin function,
+  ;; `curry_sha_args`: curry a function, passing in the hash of the original function,
   ;; and return (NEW_FUNCTION . SHA_TREE_OF_NEW_FUNCTION)
-  ;; Since this function knows the hash of the new function, it doesn't need to recurse into that function;
+  ;; Since this function knows the hash of the original function, it doesn't need to recurse into that function;
   ;; it just uses the memoized hash.
   ;; If you're going to curry a function multiple times, using this function can save you
   ;; currying the core muliple times.
