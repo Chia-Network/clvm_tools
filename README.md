@@ -7,9 +7,8 @@ This is the in-development version of `clvm_tools` for clvm, which implements, a
 
 Set up your virtual environments
 
-    $ python3 -m venv env
-    $ ln -s env/bin/activate
-    $ . ./activate
+    $ python3 -m venv venv
+    $ . ./venv/bin/activate
     $ pip install -r requirements.txt
     $ pip install -e .
 
@@ -24,7 +23,7 @@ Optionally, run unit tests for a sanity check.
 The language has two components: the higher level language and the compiled lower level language which runs on the clvm.
 To compile the higher level language into the lower level language use:
 
-    $ run -s2 '(mod ARGUMENT (+ ARGUMENT 3))'
+    $ run '(mod ARGUMENT (+ ARGUMENT 3))'
     (+ 1 (q 3))
 
 To execute this code:
