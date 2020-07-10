@@ -1,4 +1,4 @@
-(mod (mode amount new_puz identity my_puzhash)
+(mod (mode amount new_puz identity my_puzhash parent_innerpuz_amounts_for_recovery_ids)
   ;identity is either my_id or id_to_attest depending on mode
   ;new_puz is the puz to attest in the attest case
 
@@ -18,12 +18,16 @@
       )
   )
 
-  (defmacro create_message (my_id new_innerpuz)
-    (qq (r (r (c (q (unquote my_id)) (c (q (unquote new_innerpuz)) (q ()))))))
+  (defmacro create_message (recovering_coin new_innerpuz)
+    (qq (r (r (c (q (unquote recovering_coin)) (c (q (unquote new_innerpuz)) (q ()))))))
   )
 
   (defun create_consume_message (identity my_id new_innerpuz)
     (list OP_ASSERT_CONSUMED (sha256 identity (sha256tree1 (create_message my_id new_innerpuz)) 0))
+  )
+
+  (defun create_coin_id_from_identity (parent innerpuz identity amount)
+    (sha256 parent (create_fullpuz_for_id innerpuz identity) amount)
   )
 
   (defmacro attest_to_id_and_newpuz (identity new_innerpuz)
