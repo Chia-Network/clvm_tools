@@ -18,7 +18,7 @@
       )
   )
 
-  (defmacro create_message (recovering_coin new_innerpuz)
+  (defun create_message (recovering_coin new_innerpuz)
     (qq (r (r (c (q (unquote recovering_coin)) (c (q (unquote new_innerpuz)) (q ()))))))
   )
 
@@ -76,16 +76,16 @@
 
   ;MAIN
 
-  ;(if mode
-  ;  (if (= mode (q 1))
+  (if mode
+    (if (= mode (q 1))
       ; mode one - attest
-  ;    (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
-      ; mode two - recovery
-  ;    (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
-  ;  )
+      (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
+    ; mode two - recovery
+      (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
+    )
     ; mode zero - normal spend
-  ;  (list (create_new_coin amount new_puz) (create_aggsig_me new_puz))
-  ;)
+    (list (create_new_coin amount new_puz) (create_aggsig_me new_puz))
+  )
 
   ;HERE BE TESTS
   ;(create_new_coin amount new_puz)
@@ -93,11 +93,13 @@
   ;(list (create_new_coin amount new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz))
   ;(list (recreate_self new_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz) (assert_consumed_identity identity))
   ;(create_consume_message (create_coin_ID_for_recovery (f identities_list) (f (f parent_innerpuzhash_amounts_for_recovery_ids)) (f (r (f parent_innerpuzhash_amounts_for_recovery_ids))) (f (r (r (f parent_innerpuzhash_amounts_for_recovery_ids))))) identity new_puz)
-  (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
+  ;(check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
   ;(c (create_consume_message (create_coin_ID_for_recovery (f identities_list) (f (f parent_innerpuzhash_amounts_for_recovery_ids)) (f (r (f parent_innerpuzhash_amounts_for_recovery_ids))) (f (r (r (f parent_innerpuzhash_amounts_for_recovery_ids))))) my_id new_puz) (list (create_new_coin amount new_puz)))
   ;(create_core (f identities_list))
   ;(create_fullpuz_for_id 0xdeadbeef (create_core 0xcafef00d))
   ;(list (f (f parent_innerpuzhash_amounts_for_recovery_ids)) (f (r (f parent_innerpuzhash_amounts_for_recovery_ids))) (f (r (r (f parent_innerpuzhash_amounts_for_recovery_ids)))))
   ;(create_coin_ID_for_recovery (f identities_list) (f (f parent_innerpuzhash_amounts_for_recovery_ids)) (f (r (f parent_innerpuzhash_amounts_for_recovery_ids))) (f (r (r (f parent_innerpuzhash_amounts_for_recovery_ids)))))
+  ;(attest_to_id_and_newpuz identity new_puz)
+  ;(create_message identity new_puz)
 
 )
