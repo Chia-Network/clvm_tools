@@ -57,7 +57,7 @@ def type_for_atom(atom):
     return Type.HEX
 
 
-def disassemble_to_ir(sexp, allow_keyword=None):
+def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
     if is_ir(sexp) and allow_keyword is not False:
         return ir_cons(ir_symbol("ir"), sexp)
 
@@ -67,21 +67,21 @@ def disassemble_to_ir(sexp, allow_keyword=None):
     if sexp.listp():
         if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
-        v0 = disassemble_to_ir(sexp.first(), allow_keyword=allow_keyword)
-        v1 = disassemble_to_ir(sexp.rest(), allow_keyword=False)
+        v0 = disassemble_to_ir(sexp.first(), keyword_from_atom, allow_keyword=allow_keyword)
+        v1 = disassemble_to_ir(sexp.rest(), keyword_from_atom, allow_keyword=False)
         return to_sexp_f((Type.CONS, (v0, v1)))
 
     as_atom = sexp.as_atom()
     if allow_keyword:
-        v = KEYWORD_FROM_ATOM.get(as_atom)
+        v = keyword_from_atom.get(as_atom)
         if v is not None and v != '.':
             return ir_symbol(v)
 
     return to_sexp_f((type_for_atom(as_atom), as_atom))
 
 
-def disassemble(sexp):
-    symbols = disassemble_to_ir(sexp)
+def disassemble(sexp, keyword_from_atom=KEYWORD_FROM_ATOM):
+    symbols = disassemble_to_ir(sexp, keyword_from_atom=keyword_from_atom)
     return write_ir(symbols)
 
 
