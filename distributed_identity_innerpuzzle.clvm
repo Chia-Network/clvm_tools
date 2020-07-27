@@ -79,7 +79,7 @@
   (if mode
     (if (= mode (q 1))
       ; mode one - attest
-      (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz) (assert_consumed_identity identity))
+      (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz))
     ; mode two - recovery
       (check_messages_from_identities identities_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
     )
