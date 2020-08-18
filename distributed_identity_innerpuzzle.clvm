@@ -1,6 +1,5 @@
-(mod (mode amount new_puz identity my_puzhash parent_innerpuzhash_amounts_for_recovery_ids)
-  ;identity is either my_id or id_to_attest depending on mode
-  ;new_puz is the puz to attest in the attest case
+(mod (mode amount message my_id my_puzhash parent_innerpuzhash_amounts_for_recovery_ids)
+  ;message is the new puzzle in the recovery and standard spend cases
 
   ;EXAMPLE SOLUTION (0 100 0xfadeddab 0xdeadbeef 0xcafef00d ((0xdadadada 0xdad5dad5 200) (0xfafafafa 0xfaf5faf5 200) (0xbabababa 0xbab5bab5 200)))
 
@@ -82,10 +81,6 @@
     (list OP_ASSERT_CONSUMED identity)
   )
 
-  (defun create_aggsig_me (message)
-    (list OP_AGG_SIG_ME (q "PUBKEY") message)
-  )
-
   ;Spend modes:
   ;0 = normal spend
   ;1 = attest
@@ -95,13 +90,14 @@
 
   (if mode
     (if (= mode (q 1))
-      ; mode one - attest
-      (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz))
+      ; mode one - create message
+      ; formerly (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz))
+      (list (recreate_self my_puzhash amount) (list OP_CREATE_COIN message 0) (list OP_AGG_SIG_ME (q "PUBKEY") message))
     ; mode two - recovery
-      (check_messages_from_identities identities_corehash_list identity (list (create_new_coin amount new_puz)) new_puz parent_innerpuzhash_amounts_for_recovery_ids)
+      (check_messages_from_identities identities_corehash_list my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids)
     )
     ; mode zero - normal spend
-    (list (create_new_coin amount new_puz) (create_aggsig_me new_puz))
+    (list (create_new_coin amount message) (create_aggsig_me new_puz))
   )
 
   ;HERE BE TESTS
