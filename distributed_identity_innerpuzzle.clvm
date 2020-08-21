@@ -94,7 +94,11 @@
       ; formerly (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (create_aggsig_me new_puz))
       (list (recreate_self my_puzhash amount) (list OP_CREATE_COIN message 0) (list OP_AGG_SIG_ME (q "PUBKEY") message))
     ; mode two - recovery
-      (check_messages_from_identities identities_corehash_list my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids)
+    ; check that recovery list is not empty
+      (if identities_corehash_list
+        (check_messages_from_identities identities_corehash_list my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids)
+        (x)
+      )
     )
     ; mode zero - normal spend
     (list (create_new_coin amount message) (create_aggsig_me new_puz))
