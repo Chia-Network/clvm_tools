@@ -81,7 +81,7 @@ class NodePath:
             index >>= 1
         return r
 
-    as_path = as_long_path
+    as_path = as_short_path
 
     def __add__(self, other_node):
         return self.__class__(compose_paths(self._index, other_node._index))

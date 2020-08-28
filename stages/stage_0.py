@@ -1,9 +1,5 @@
 from clvm import run_program as default_run_program  # noqa
-
-try:
-    from clvm.runtime_001 import KEYWORD_TO_ATOM, OPERATOR_LOOKUP  # noqa
-except ImportError:
-    from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP  # noqa
+from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP  # noqa
 
 from clvm_tools import binutils
 
@@ -14,13 +10,12 @@ def run_program(
     program,
     args,
     quote_kw=KEYWORD_TO_ATOM["q"],
-    args_kw=KEYWORD_TO_ATOM["a"],
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
     pre_eval_f=None,
 ):
     return default_run_program(
-        program, args, quote_kw, args_kw, operator_lookup, max_cost, pre_eval_f=pre_eval_f
+        program, args, quote_kw, operator_lookup, max_cost, pre_eval_f=pre_eval_f
     )
 
 

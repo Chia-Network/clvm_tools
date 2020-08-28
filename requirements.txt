@@ -1,1 +1,1 @@
--e git+https://git@github.com/Chia-Network/clvm.git@e71c7dbbdc83b814d90a1505a46854a40294658b#egg=clvm
+-e git+https://git@github.com/Chia-Network/clvm.git@29736255401a58d07b76be029018cfd12324d4e3#egg=clvm
