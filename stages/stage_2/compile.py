@@ -110,7 +110,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
             return eval(post_prog.to(
-                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
+                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_short_path())
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
