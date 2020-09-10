@@ -5,6 +5,9 @@ from setuptools import setup
 with open("README.md", "rt") as fh:
     long_description = fh.read()
 
+dependencies = [
+    "clvm==0.5",
+]
 
 setup(
     name="clvm_tools",
@@ -21,12 +24,13 @@ setup(
     },
     author_email="kiss@chia.net",
     setup_requires=["setuptools_scm"],
+    install_requires=dependencies,
     use_scm_version={"fallback_version": "unknown"},
     url="https://github.com/Chia-Network",
     license="https://opensource.org/licenses/Apache-2.0",
     description="CLVM compiler.",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Programming Language :: Python :: 3",
