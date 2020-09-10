@@ -9,7 +9,6 @@ Set up your virtual environments
 
     $ python3 -m venv venv
     $ . ./venv/bin/activate
-    $ pip install -r requirements.txt
     $ pip install -e .
 
 Optionally, run unit tests for a sanity check.
