@@ -66,12 +66,26 @@ Note that the `1` is not quoted. The compiler recognizes and auto-quotes constan
 
 ** WARNING ** You might actually mean `(a)` when you write `1` (or `(f (a))` for `2`, etc.), but `run` will never interpret it that way. Use `(a)`.
 
+
 ## Known operators
 
 Besides `mod` and `defun`, the compiler has a few more built-in operators:
 
+### (a)
 
-### if
+Instead of evaluating `1` to return the arguments, you should use `(a)` in the higher level language.
+This is easier for humans to read, and calling `(f (a))` will be compiled to 2, etc.
+
+```
+    $ run '(a)' '("example" 200)'
+    ("example" 200)
+    
+    $ $ run '(mod ARGS (f (r (a))))'
+    5
+```
+
+
+### (if)
 
 `(if A B C)`
 This operator is similar to lone condition in clvm `i`, except it actually does a lazy evaluation of either B or C (depending upon A). This allows you to put expensive or failing (like `x`) operator within branches, knowing they won't be executed unless required.
@@ -79,7 +93,7 @@ This operator is similar to lone condition in clvm `i`, except it actually does 
 This is implemented as a macro, and expands out to `((c (i A (q B) (q C)) (a)))`.
 
 
-### qq
+### (qq) and (unquote)
 
 `(qq EXPR)` for expanding templates. This is generally for creating your own operators that end up being inline functions.
 
