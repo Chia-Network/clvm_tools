@@ -1,0 +1,23 @@
+(mod (arg_one)
+  ; function definitions
+  (defun factorial (input)
+    (if (= input 1) 1 (* (factorial (- input 1)) input))
+  )
+
+  ; main
+  (factorial arg_one)
+)(mod args
+
+  (defmacro square (input)
+    (qq (* (unquote input) (unquote input)))
+  )
+
+  (defun sqre_list (my_list)
+    (if my_list
+      (c (square (f my_list)) (sqre_list (r my_list)))
+      my_list
+    )
+  )
+
+  (sqre_list args)
+)
