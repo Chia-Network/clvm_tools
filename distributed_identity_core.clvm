@@ -1,4 +1,4 @@
-(mod (mod_hash mod_hash_hash genesis_id innerpuz parent_info my_amount solution)
+(mod (mod_hash genesis_id innerpuz parent_info my_amount solution)
 
 ;mod_hash, genesis_id, innerpuz are curried in
 
@@ -146,6 +146,6 @@
 
 
   ;main
-  (check_id_and_check_outputs mod_hash mod_hash_hash genesis_id parent_info (sha256tree1 innerpuz) my_amount (create_outputs innerpuz solution))
+  (check_id_and_check_outputs mod_hash (sha256tree1 mod_hash) genesis_id parent_info (sha256tree1 innerpuz) my_amount (create_outputs innerpuz solution))
 
 )
