@@ -103,6 +103,9 @@ def launch_tool(args, tool_name, default_stage=0):
         "-v", "--verbose", action="store_true",
         help="Display resolve of all reductions, for debugging")
     parser.add_argument(
+        "-p", "--print-all", action="store_true",
+        help="Print diagnostics for all reductions, for debugging")
+    parser.add_argument(
         "-c", "--cost", action="store_true", help="Show cost")
     parser.add_argument(
         "-m", "--max-cost", type=int, help="Maximum cost")

@@ -45,7 +45,7 @@ def get_test_cases(path):
 
 
 class TestCmds(unittest.TestCase):
-    def invoke_tool(self, cmd_line):
+    def invoke_tool(self, cmd_line, test_print=False):
 
         # capture io
         stdout_buffer = io.StringIO()
@@ -66,13 +66,30 @@ class TestCmds(unittest.TestCase):
 
         return v, stdout_buffer.getvalue(), stderr_buffer.getvalue()
 
+def adjust_test_output(actual_output, test_print, expected_lines):
+    """When testing the print atom by injecting it into programs,"""
+    """we expect that the final output will be the same, but extra lines"""
+    """are printed first, and must be removed from consideration"""
+    if test_print:
+        actual_output = '\n'.join(actual_output.split('\n')[-expected_lines:])
+        a = '\n'.join(actual_output.split('\n')[-expected_lines:])
+    return actual_output
 
-def make_f(cmd_lines, expected_output, comments, path):
+def add_print_flag_to_cmd(cmd):
+    """Add -p flag to test commands, to simulate prepending "print" to every cons"""
+    c = cmd.split()
+    if c[0] in ('brun', 'run'):
+        c.insert(1, '-p')
+    return ' '.join(c)
 
+def make_f(cmd_lines, expected_output, comments, path, test_print=False):
     def f(self):
         cmd = ''.join(cmd_lines)
         for c in cmd.split(";"):
-            r, actual_output, actual_stderr = self.invoke_tool(c)
+            c = add_print_flag_to_cmd(c)
+            r, actual_output, actual_stderr = self.invoke_tool(c, test_print)
+            expected_lines = len(expected_output.split('\n'))
+            actual_output = adjust_test_output(actual_output, test_print, expected_lines)
         if actual_output != expected_output:
             print(cmd)
             print(actual_output)
@@ -90,12 +107,13 @@ def make_f(cmd_lines, expected_output, comments, path):
         self.assertEqual(expected_output, actual_output)
     return f
 
-
 def inject(*paths):
     for path in paths:
         for idx, (name, i, o, comments, path) in enumerate(get_test_cases(path)):
             name_of_f = "test_%s" % name
             setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
+            name_of_pf = "test_print_%s" % name
+            setattr(TestCmds, name_of_pf, make_f(i, o, comments, path, test_print=True))
 
 
 inject("opc")
