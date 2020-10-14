@@ -13,7 +13,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 from ir import reader
 
 from . import binutils, patch_sexp  # noqa
-from .debug import make_trace_pre_eval, trace_to_text
+from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 
 
 def path_or_code(arg):
@@ -103,6 +103,9 @@ def launch_tool(args, tool_name, default_stage=0):
         "-v", "--verbose", action="store_true",
         help="Display resolve of all reductions, for debugging")
     parser.add_argument(
+        "-t", "--table", action="store_true",
+        help="Print diagnostic table of reductions, for debugging")
+    parser.add_argument(
         "-c", "--cost", action="store_true", help="Show cost")
     parser.add_argument(
         "-m", "--max-cost", type=int, help="Maximum cost")
@@ -147,7 +150,7 @@ def launch_tool(args, tool_name, default_stage=0):
         with open(args.symbol_table) as f:
             symbol_table = json.load(f)
         pre_eval_f = make_trace_pre_eval(log_entries, symbol_table)
-    elif args.verbose:
+    elif args.verbose or args.table:
         pre_eval_f = make_trace_pre_eval(log_entries)
 
     run_script = getattr(args.stage, tool_name)
@@ -179,7 +182,8 @@ def launch_tool(args, tool_name, default_stage=0):
         if args.verbose or symbol_table:
             print()
             trace_to_text(log_entries, binutils.disassemble, symbol_table)
-
+        if args.table:
+            trace_to_table(log_entries, binutils.disassemble, symbol_table)
 
 def read_ir(args=sys.argv):
     parser = argparse.ArgumentParser(
