@@ -94,8 +94,32 @@ def build_symbol_dump(constants_lookup, run_program, path):
     with open(path, "w") as f:
         f.write(output)
 
+def text_trace(disassemble, form, symbol, env, result):
+    if symbol:
+        env = env.rest()
+        symbol = env.to(symbol.encode()).cons(env)
+    else:
+        symbol = "%s [%s]" % (disassemble(form), disassemble(env))
+    print("%s => %s" % (symbol, result))
+    print("")
 
-def trace_to_text(trace, disassemble, symbol_table):
+def table_trace(disassemble, form, symbol, env, result):
+    if form.listp():
+        sexp = form.first()
+        args = form.rest()
+    else:
+        sexp = form
+        args = form.__null__
+    print("exp:", sexp)
+    print("arg:", args)
+    print("env:", env)
+    print("val:", result)
+    print("bexp:", sexp.as_bin())
+    print("barg:", args.as_bin())
+    print("benv:", env.as_bin())
+    print("--")
+
+def display_trace(trace, disassemble, symbol_table, display_fun):
     for item in trace:
         form, env, rv = item
         if rv is None:
@@ -104,13 +128,13 @@ def trace_to_text(trace, disassemble, symbol_table):
             rv = disassemble(rv)
         h = sha256tree(form).hex()
         symbol = symbol_table.get(h) if symbol_table else symbol_table
-        if symbol:
-            env = env.rest()
-            symbol = env.to(symbol.encode()).cons(env)
-        else:
-            symbol = "%s [%s]" % (disassemble(form), disassemble(env))
-        print("%s => %s" % (symbol, rv))
-        print("")
+        display_fun(disassemble, form, symbol, env, rv)
+
+def trace_to_text(trace, disassemble, symbol_table):
+    display_trace(trace, disassemble, symbol_table, text_trace)
+
+def trace_to_table(trace, disassemble, symbol_table):
+    display_trace(trace, disassemble, symbol_table, table_trace)
 
 
 def make_trace_pre_eval(log_entries, symbol_table=None):
