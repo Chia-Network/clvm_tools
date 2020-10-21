@@ -106,6 +106,8 @@ inject("stage_2")
 
 inject("clvm_runtime")
 
+inject("cmd")
+
 #inject("v0_0_2")
 
 
