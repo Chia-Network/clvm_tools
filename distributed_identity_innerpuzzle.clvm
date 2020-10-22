@@ -89,12 +89,12 @@
 
   ;recovery message module - gets values curried in to make the puzzle
   ;TODO - this should probably be imported
-  (defun message_mod (recovering_coin newpuz pubkey)
-    (r (r (c recovering_coin (c newpuz (list (list 57 pubkey newpuz))))))
+  (defun make_message_puzzle (recovering_coin newpuz pubkey)
+    (qq (r (c (q (unquote recovering_coin)) (q ((50 (unquote pubkey) (unquote newpuz)))))))
   )
 
   (defun create_consume_message (coin_id my_id new_innerpuz pubkey)
-    (list OP_ASSERT_CONSUMED (sha256 coin_id (sha256tree1 (curry message_mod my_id new_innerpuz pubkey)) 0))
+    (list OP_ASSERT_CONSUMED (sha256 coin_id (sha256tree1 (make_message_puzzle my_id new_innerpuz pubkey)) 0))
   )
 
   ;; return the puzzle hash for a cc with the given `genesis-coin-checker-hash` & `inner-puzzle`
@@ -163,26 +163,25 @@
 
   ;MAIN
 
-;  (if mode
-;    (if (= mode (q 1))
-;      ; mode one - create message
-;      ; formerly (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME MY_PUBKEY new_puz))
-;      (list (recreate_self my_puzhash amount) (list OP_CREATE_COIN message 0) (list OP_AGG_SIG_ME MY_PUBKEY message))
-;    ; mode two - recovery
-;    ; check that recovery list is not empty
-;      (if RECOVERY_DID_LIST
-;        (check_messages_from_identities MOD_HASH (sha256tree1 MOD_HASH) RECOVERY_DID_LIST my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids pubkey)
-;        (x "DID recovery disabled")
-;      )
-;    )
-;    ; mode zero - normal spend
-;    (list (create_new_coin amount message) (list OP_AGG_SIG_ME MY_PUBKEY message))
-;  )
+  (if mode
+    (if (= mode (q 1))
+      ; mode one - create message
+      ; formerly (list (recreate_self my_puzhash amount) (attest_to_id_and_newpuz identity new_puz) (list OP_AGG_SIG_ME MY_PUBKEY new_puz))
+      (list (recreate_self my_puzhash amount) (list OP_CREATE_COIN message 0) (list OP_AGG_SIG_ME MY_PUBKEY message))
+    ; mode two - recovery
+    ; check that recovery list is not empty
+      (if RECOVERY_DID_LIST
+        (check_messages_from_identities MOD_HASH (sha256tree1 MOD_HASH) RECOVERY_DID_LIST my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids pubkey)
+        (x "DID recovery disabled")
+      )
+    )
+    ; mode zero - normal spend
+    (list (create_new_coin amount message) (list OP_AGG_SIG_ME MY_PUBKEY message))
+  )
 
   ;HERE BE TESTS
 
-  (check_messages_from_identities MOD_HASH (sha256tree1 MOD_HASH) RECOVERY_DID_LIST my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids pubkey)
-
+  ; (check_messages_from_identities MOD_HASH (sha256tree1 MOD_HASH) RECOVERY_DID_LIST my_id (list (create_new_coin amount message)) message parent_innerpuzhash_amounts_for_recovery_ids pubkey)
   ;(create_new_coin amount new_puz)
   ;(list OP_AGG_SIG_ME (q "PUBKEY") new_puz)
   ;(list (create_new_coin amount new_puz) (list OP_AGG_SIG_ME (q "PUBKEY") new_puz))
