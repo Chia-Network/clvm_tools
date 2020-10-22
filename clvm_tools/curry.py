@@ -35,7 +35,6 @@ def curry(program, args):
         CURRY_OBJ_CODE,
         args,
         quote_kw=KEYWORD_TO_ATOM["q"],
-        args_kw=KEYWORD_TO_ATOM["a"],
         operator_lookup=OPERATOR_LOOKUP,
     )
     return r
