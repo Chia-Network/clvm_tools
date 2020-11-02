@@ -30,7 +30,7 @@ def curry(program, args):
     `args`: an SExp that is a list of constants to be bound to `program`
     """
 
-    args = SExp.to((program, args))
+    args = program.to((program, args))
     r = run_program(
         CURRY_OBJ_CODE,
         args,

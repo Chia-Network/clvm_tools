@@ -1,10 +1,17 @@
+import hashlib
 import json
 
-from clvm.more_ops import sha256tree_with_cost
 
-
-def sha256tree(t):
-    return sha256tree_with_cost(t)[1]
+def sha256tree(v):
+    pair = v.as_pair()
+    if pair:
+        left = sha256tree(pair[0])
+        right = sha256tree(pair[1])
+        s = b"\2" + left + right
+    else:
+        atom = v.as_atom()
+        s = b"\1" + atom
+    return hashlib.sha256(s).digest()
 
 
 PRELUDE = '''<html>
