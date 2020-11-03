@@ -46,14 +46,14 @@ def run_program_for_search_paths(search_paths):
     operator_lookup = dict(ORIGINAL_OPERATOR_LOOKUP)
 
     def run_program(
-        program, args, operator_lookup=operator_lookup, max_cost=None, pre_eval_f=None,
+        program, args, operator_lookup=operator_lookup, max_cost=None, pre_eval_op=None,
     ):
         return run_program_0(
             program,
             args,
             operator_lookup=operator_lookup,
             max_cost=max_cost,
-            pre_eval_f=pre_eval_f,
+            pre_eval_op=pre_eval_op,
         )
 
     BINDINGS = {

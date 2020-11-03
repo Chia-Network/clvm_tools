@@ -160,16 +160,23 @@ def trace_to_table(trace, disassemble, symbol_table):
 
 
 def make_trace_pre_eval(log_entries, symbol_table=None):
-    def pre_eval_f(sexp, args):
+
+    def pre_eval_op(op_stack: OpStackType, value_stack: ValStackType):
+        #breakpoint()
+        v = value_stack[-1]
+
+        sexp, args = v.as_pair()
+
         h = sha256tree(sexp).hex()
         if symbol_table and h not in symbol_table:
             return None
         log_entry = [sexp, args, None]
         log_entries.append(log_entry)
 
-        def callback_f(r):
-            log_entry[-1] = r
+        def callback_f(op_stack: OpStackType, value_stack: ValStackType):
+            log_entry[-1] = value_stack[-1]
+            return 0
 
-        return callback_f
+        op_stack.append(callback_f)
 
-    return pre_eval_f
+    return pre_eval_op

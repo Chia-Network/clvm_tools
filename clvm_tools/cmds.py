@@ -141,7 +141,7 @@ def launch_tool(args, tool_name, default_stage=0):
     src_sexp = reader.read_ir(src_text)
     assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
-    pre_eval_f = None
+    pre_eval_op = None
     symbol_table = None
 
     log_entries = []
@@ -149,9 +149,9 @@ def launch_tool(args, tool_name, default_stage=0):
     if args.symbol_table:
         with open(args.symbol_table) as f:
             symbol_table = json.load(f)
-        pre_eval_f = make_trace_pre_eval(log_entries, symbol_table)
+        pre_eval_op = make_trace_pre_eval(log_entries, symbol_table)
     elif args.verbose or args.table:
-        pre_eval_f = make_trace_pre_eval(log_entries)
+        pre_eval_op = make_trace_pre_eval(log_entries)
 
     run_script = getattr(args.stage, tool_name)
 
@@ -161,7 +161,7 @@ def launch_tool(args, tool_name, default_stage=0):
         env = binutils.assemble_from_ir(args.args)
         input_sexp = to_sexp_f((assembled_sexp, env))
         cost, result = run_program(
-            run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
+            run_script, input_sexp, max_cost=args.max_cost, pre_eval_op=pre_eval_op)
         if args.cost:
             print("cost = %d" % cost)
         if args.dump:
