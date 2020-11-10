@@ -1,15 +1,16 @@
 # read strings into Token
 
 import io
+from typing import Iterator
 
-from clvm import casts
+from clvm import casts, SExp
 from clvm.serialize import sexp_to_stream
 
 from .Type import Type
 from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom, ir_val
 
 
-def iter_sexp_format(ir_sexp):
+def iter_sexp_format(ir_sexp: SExp) -> Iterator[str]:
     yield "("
     is_first = True
     while not ir_nullp(ir_sexp):
@@ -26,7 +27,7 @@ def iter_sexp_format(ir_sexp):
     yield ")"
 
 
-def iter_ir_format(ir_sexp):
+def iter_ir_format(ir_sexp: SExp) -> Iterator[str]:
     if ir_listp(ir_sexp):
         yield from iter_sexp_format(ir_sexp)
         return
@@ -67,12 +68,12 @@ def iter_ir_format(ir_sexp):
         raise SyntaxError("bad ir format: %s" % ir_sexp)
 
 
-def write_ir_to_stream(ir_sexp, f):
+def write_ir_to_stream(ir_sexp: SExp, f):
     for _ in iter_ir_format(ir_sexp):
         f.write(_)
 
 
-def write_ir(ir_sexp):
+def write_ir(ir_sexp: SExp) -> str:
     s = io.StringIO()
     write_ir_to_stream(ir_sexp, s)
     return s.getvalue()

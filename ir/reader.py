@@ -1,11 +1,18 @@
 # read strings into Token
 
+from typing import Iterator, Optional, Tuple
+
 from clvm import to_sexp_f
+from clvm.BaseSExp import BaseSExp
 
 from .Type import Type
+from .utils import ir_new, ir_cons
+
+Token = Tuple[str, int]
+Stream = Iterator[Token]
 
 
-def consume_whitespace(s: str, offset):
+def consume_whitespace(s: str, offset: int) -> int:
     """
     This also deals with comments.
     """
@@ -19,14 +26,14 @@ def consume_whitespace(s: str, offset):
     return offset
 
 
-def consume_until_whitespace(s: str, offset):
+def consume_until_whitespace(s: str, offset: int) -> Token:
     start = offset
     while offset < len(s) and not s[offset].isspace() and s[offset] != ")":
         offset += 1
     return s[start:offset], offset
 
 
-def next_cons_token(stream):
+def next_cons_token(stream: Stream) -> Token:
     for token, offset in stream:
         break
     else:
@@ -34,9 +41,9 @@ def next_cons_token(stream):
     return token, offset
 
 
-def tokenize_cons(token, offset, stream):
+def tokenize_cons(token: str, offset: int, stream: Stream) -> BaseSExp:
     if token == ")":
-        return ((Type.NULL, offset), [])
+        return ir_new(Type.NULL, 0, offset)
 
     initial_offset = offset
 
@@ -51,31 +58,32 @@ def tokenize_cons(token, offset, stream):
         token, offset = next_cons_token(stream)
         if token != ")":
             raise SyntaxError("illegal dot expression at %s" % dot_offset)
-        return ((Type.CONS, initial_offset), (first_sexp, rest_sexp))
+    else:
+        rest_sexp = tokenize_cons(token, offset, stream)
+    return ir_cons(first_sexp, rest_sexp, initial_offset)
 
-    rest_sexp = tokenize_list_items(token, offset, stream)
-    return ((Type.CONS, initial_offset), (first_sexp, rest_sexp))
 
-
-def tokenize_int(token, offset):
+def tokenize_int(token: str, offset: int) -> Optional[BaseSExp]:
     try:
-        return ((Type.INT, offset), int(token))
+        return ir_new(Type.INT, int(token), offset)
     except (ValueError, TypeError):
-        return None
+        pass
+    return None
 
 
-def tokenize_hex(token, offset):
+def tokenize_hex(token: str, offset: int) -> Optional[BaseSExp]:
     if token[:2].upper() == "0X":
         try:
             token = token[2:]
             if len(token) % 2 == 1:
                 token = "0%s" % token
-            return ((Type.HEX, offset), bytes.fromhex(token))
+            return ir_new(Type.HEX, bytes.fromhex(token), offset)
         except Exception:
             raise SyntaxError("invalid hex at %s: 0x%s" % (offset, token))
+    return None
 
 
-def tokenize_quotes(token, offset):
+def tokenize_quotes(token: str, offset: int):
     if len(token) < 2:
         return None
     c = token[:1]
@@ -90,16 +98,11 @@ def tokenize_quotes(token, offset):
     return ((q_type, offset), token[1:-1].encode("utf8"))
 
 
-def tokenize_symbol(token, offset):
+def tokenize_symbol(token: str, offset: int):
     return ((Type.SYMBOL, offset), token.encode("utf8"))
 
 
-def tokenize_list_items(token, offset, stream):
-    r = tokenize_cons(token, offset, stream)
-    return r
-
-
-def tokenize_sexp(token, offset, stream):
+def tokenize_sexp(token: str, offset: int, stream: Stream):
 
     if token == "(":
         token, offset = next_cons_token(stream)
@@ -116,7 +119,7 @@ def tokenize_sexp(token, offset, stream):
             return r
 
 
-def token_stream(s: str):
+def token_stream(s: str) -> Stream:
     offset = 0
     while offset < len(s):
         offset = consume_whitespace(s, offset)
@@ -134,7 +137,7 @@ def token_stream(s: str):
             while offset < len(s) and s[offset] != initial_c:
                 offset += 1
             if offset < len(s):
-                yield s[start:offset + 1], start
+                yield s[start : offset + 1], start
                 offset += 1
                 continue
             else:

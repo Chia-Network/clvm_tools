@@ -1,4 +1,4 @@
-from clvm import run_program, SExp, KEYWORD_TO_ATOM
+from clvm import run_program, KEYWORD_TO_ATOM
 from clvm.operators import OPERATOR_LOOKUP
 
 from clvm_tools.binutils import assemble

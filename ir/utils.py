@@ -1,46 +1,30 @@
-from clvm import casts
+import typing
+
+from clvm import casts, SExp
 
 from .Type import Type, CONS_TYPES
 
-
-class pair(tuple):
-    def __new__(cls, a, b):
-        return tuple.__new__(cls, (a, b))
-
-    def first(self):
-        return self[0]
-
-    def rest(self):
-        return self[1]
+CastableType = typing.Any
 
 
-def ir_new(type, val):
-    return pair(type, val)
+def ir_new(type: int, val: CastableType, offset: typing.Optional[int] = None) -> SExp:
+    if offset is not None:
+        type = SExp.to((type, offset))
+    return SExp.to((type, val))
 
 
-def ir_cons(first, rest):
-    return pair(Type.CONS, pair(first, rest))
+def ir_cons(first: SExp, rest: SExp, offset: typing.Optional[int] = None) -> SExp:
+    return ir_new(Type.CONS, ir_new(first, rest), offset)
 
 
-def ir_list(*items):
+def ir_list(*items) -> SExp:
     if items:
         return ir_cons(items[0], ir_list(*items[1:]))
     return ir_null()
 
 
-def ir_to(sexp, atom_type_f=lambda _: Type.SYMBOL):
-    if sexp.nullp():
-        return ir_null()
-    if sexp.listp():
-        return ir_cons(
-            ir_to(sexp.first(), atom_type_f=atom_type_f),
-            ir_to(sexp.rest(), atom_type_f=atom_type_f),
-        )
-    return ir_new(atom_type_f(sexp), sexp)
-
-
 def ir_null():
-    return pair(Type.NULL, [])
+    return ir_new(Type.NULL, 0)
 
 
 def ir_type(ir_sexp):

@@ -1,6 +1,6 @@
 import string
 
-from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, to_sexp_f
+from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
 from clvm.casts import int_from_bytes, int_to_bytes
 
 from ir.reader import read_ir
@@ -19,7 +19,7 @@ def assemble_from_ir(ir_sexp):
             keyword = keyword[1:]
         atom = KEYWORD_TO_ATOM.get(keyword)
         if atom:
-            return to_sexp_f(atom)
+            return ir_sexp.to(atom)
         if True:
             return ir_val(ir_sexp)
         raise SyntaxError(
@@ -29,7 +29,7 @@ def assemble_from_ir(ir_sexp):
         return ir_val(ir_sexp)
 
     if ir_nullp(ir_sexp):
-        return to_sexp_f([])
+        return ir_sexp.to([])
 
     # handle "q"
     first = ir_first(ir_sexp)
@@ -43,7 +43,7 @@ def assemble_from_ir(ir_sexp):
     return sexp_1.cons(sexp_2)
 
 
-def type_for_atom(atom):
+def type_for_atom(atom) -> Type:
     if len(atom) > 2:
         try:
             v = atom.decode("utf8")
@@ -69,7 +69,7 @@ def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
             allow_keyword = True
         v0 = disassemble_to_ir(sexp.first(), keyword_from_atom, allow_keyword=allow_keyword)
         v1 = disassemble_to_ir(sexp.rest(), keyword_from_atom, allow_keyword=False)
-        return to_sexp_f((Type.CONS, (v0, v1)))
+        return ir_cons(v0, v1)
 
     as_atom = sexp.as_atom()
     if allow_keyword:
@@ -77,7 +77,7 @@ def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
         if v is not None and v != '.':
             return ir_symbol(v)
 
-    return to_sexp_f((type_for_atom(as_atom), as_atom))
+    return sexp.to((type_for_atom(as_atom), as_atom))
 
 
 def disassemble(sexp, keyword_from_atom=KEYWORD_FROM_ATOM):

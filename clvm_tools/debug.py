@@ -1,6 +1,16 @@
 import hashlib
 import json
 
+from typing import Any, Callable, List
+
+from clvm import SExp
+
+
+OpCallable = Callable[[Any, "ValStackType"], int]
+
+ValStackType = List[SExp]
+OpStackType = List[OpCallable]
+
 
 def sha256tree(v):
     pair = v.as_pair()
@@ -101,6 +111,7 @@ def build_symbol_dump(constants_lookup, run_program, path):
     with open(path, "w") as f:
         f.write(output)
 
+
 def text_trace(disassemble, form, symbol, env, result):
     if symbol:
         env = env.rest()
@@ -109,6 +120,7 @@ def text_trace(disassemble, form, symbol, env, result):
         symbol = "%s [%s]" % (disassemble(form), disassemble(env))
     print("%s => %s" % (symbol, result))
     print("")
+
 
 def table_trace(disassemble, form, symbol, env, result):
     if form.listp():
@@ -126,6 +138,7 @@ def table_trace(disassemble, form, symbol, env, result):
     print("benv:", env.as_bin())
     print("--")
 
+
 def display_trace(trace, disassemble, symbol_table, display_fun):
     for item in trace:
         form, env, rv = item
@@ -137,15 +150,16 @@ def display_trace(trace, disassemble, symbol_table, display_fun):
         symbol = symbol_table.get(h) if symbol_table else symbol_table
         display_fun(disassemble, form, symbol, env, rv)
 
+
 def trace_to_text(trace, disassemble, symbol_table):
     display_trace(trace, disassemble, symbol_table, text_trace)
+
 
 def trace_to_table(trace, disassemble, symbol_table):
     display_trace(trace, disassemble, symbol_table, table_trace)
 
 
 def make_trace_pre_eval(log_entries, symbol_table=None):
-
     def pre_eval_f(sexp, args):
         h = sha256tree(sexp).hex()
         if symbol_table and h not in symbol_table:
