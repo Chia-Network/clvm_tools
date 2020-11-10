@@ -1,7 +1,6 @@
 # read strings into Token
 
 import io
-
 from typing import Iterator
 
 from clvm import casts, SExp
