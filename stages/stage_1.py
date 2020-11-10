@@ -48,13 +48,13 @@ class RunProgram:
         operator_lookup.update((k.encode("utf8"), v) for (k, v) in BINDINGS.items())
         self.operator_lookup = operator_lookup
 
-    def __call__(self, program, args, max_cost=None, pre_eval_op=None):
+    def __call__(self, program, args, max_cost=None, pre_eval_f=None):
         return run_program_0(
             program,
             args,
             operator_lookup=self.operator_lookup,
             max_cost=max_cost,
-            pre_eval_op=pre_eval_op,
+            pre_eval_f=pre_eval_f,
         )
 
 
