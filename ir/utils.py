@@ -28,11 +28,11 @@ def ir_null():
 
 
 def ir_type(ir_sexp):
-    the_type = ir_sexp.first()
-    if the_type.listp():
-        the_type = the_type.first()
+    the_type = ir_sexp.pair[0]
+    if the_type.pair:
+        the_type = the_type.pair[0]
 
-    return casts.int_from_bytes(the_type.as_atom())
+    return casts.int_from_bytes(the_type.atom)
 
 
 def ir_as_int(ir_sexp):
@@ -40,16 +40,16 @@ def ir_as_int(ir_sexp):
 
 
 def ir_offset(ir_sexp):
-    the_offset = ir_sexp.first()
-    if the_offset.listp():
-        the_offset = the_offset.rest().as_atom()
+    the_offset = ir_sexp.pair[0]
+    if the_offset.pair:
+        the_offset = the_offset.pair[1].atom
     else:
         the_offset = b"\xff"
     return casts.int_from_bytes(the_offset)
 
 
 def ir_val(ir_sexp):
-    return ir_sexp.rest()
+    return ir_sexp.pair[1]
 
 
 def ir_nullp(ir_sexp):
@@ -65,7 +65,7 @@ def ir_as_sexp(ir_sexp):
         return []
     if ir_type(ir_sexp) == Type.CONS:
         return ir_as_sexp(ir_first(ir_sexp)).cons(ir_as_sexp(ir_rest(ir_sexp)))
-    return ir_sexp.rest()
+    return ir_sexp.pair[1]
 
 
 def ir_is_atom(ir_sexp):
@@ -73,15 +73,15 @@ def ir_is_atom(ir_sexp):
 
 
 def ir_as_atom(ir_sexp):
-    return ir_sexp.rest().as_atom()
+    return ir_sexp.pair[1].atom
 
 
 def ir_first(ir_sexp):
-    return ir_sexp.rest().first()
+    return ir_sexp.pair[1].pair[0]
 
 
 def ir_rest(ir_sexp):
-    return ir_sexp.rest().rest()
+    return ir_sexp.pair[1].pair[1]
 
 
 def ir_symbol(symbol):
@@ -89,8 +89,8 @@ def ir_symbol(symbol):
 
 
 def ir_as_symbol(ir_sexp):
-    if ir_sexp.listp() and ir_type(ir_sexp) == Type.SYMBOL:
-        return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
+    if ir_sexp.pair and ir_type(ir_sexp) == Type.SYMBOL:
+        return ir_as_sexp(ir_sexp).atom.decode("utf8")
 
 
 def ir_iter(ir_sexp):
@@ -100,13 +100,13 @@ def ir_iter(ir_sexp):
 
 
 def is_ir(sexp):
-    if sexp.nullp() or not sexp.listp():
+    if sexp.nullp() or not sexp.pair:
         return False
 
-    if sexp.first().listp():
+    if sexp.pair[0].pair:
         return False
 
-    f = sexp.first().as_atom()
+    f = sexp.pair[0].atom
     if len(f) > 1:
         return False
 
@@ -116,12 +116,12 @@ def is_ir(sexp):
     except ValueError:
         return False
 
-    r = sexp.rest()
+    r = sexp.pair[1]
     if t == Type.CONS:
         if r.nullp():
             return True
-        if r.listp():
-            return is_ir(r.first()) and is_ir(r.rest())
+        if r.pair:
+            return is_ir(r.pair[0]) and is_ir(r.pair[1])
         return False
 
-    return not r.listp()
+    return not r.pair

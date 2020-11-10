@@ -160,9 +160,8 @@ def trace_to_table(trace, disassemble, symbol_table):
 
 
 def make_trace_pre_eval(log_entries, symbol_table=None):
-
     def pre_eval_op(op_stack: OpStackType, value_stack: ValStackType):
-        #breakpoint()
+        # breakpoint()
         v = value_stack[-1]
 
         sexp, args = v.as_pair()

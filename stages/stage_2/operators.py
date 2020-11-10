@@ -5,6 +5,7 @@ from ir.writer import write_ir_to_stream
 
 
 from clvm.EvalError import EvalError
+from clvm.operators import OperatorDict
 
 from clvm_tools.binutils import assemble_from_ir, disassemble_to_ir
 
@@ -43,7 +44,7 @@ def run_program_for_search_paths(search_paths):
                 return 1, args.to(str(f_path).encode())
         raise EvalError("can't open %s" % filename, args)
 
-    operator_lookup = dict(ORIGINAL_OPERATOR_LOOKUP)
+    operator_lookup = OperatorDict(ORIGINAL_OPERATOR_LOOKUP)
 
     def run_program(
         program, args, operator_lookup=operator_lookup, max_cost=None, pre_eval_op=None,

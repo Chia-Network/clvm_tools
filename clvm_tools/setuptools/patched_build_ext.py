@@ -3,7 +3,6 @@ from setuptools.command.build_ext import build_ext as _build_ext
 
 
 class build_ext(_build_ext):
-
     def __init__(self, *args):
         _build_ext.__init__(self, *args)
 

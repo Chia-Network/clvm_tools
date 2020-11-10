@@ -1,6 +1,7 @@
 from stages.stage_0 import run_program as run_program_0
 from stages.stage_0 import OPERATOR_LOOKUP
 from clvm_tools import binutils
+from clvm.operators import OperatorDict
 
 
 def make_invocation(code):
@@ -26,7 +27,7 @@ def do_bind(args):
     env = args.rest().rest().first()
     new_bindings = make_bindings(bindings)
     original_operator_lookup = run_program.operator_lookup
-    run_program.operator_lookup = dict(original_operator_lookup)
+    run_program.operator_lookup = OperatorDict(original_operator_lookup)
     run_program.operator_lookup.update(new_bindings)
     cost, r = run_program(sexp, env)
     run_program.operator_lookup = original_operator_lookup
@@ -43,7 +44,7 @@ brun = run = binutils.assemble("((c (f 1) (r 1)))")
 
 class RunProgram:
     def __init__(self):
-        operator_lookup = dict(OPERATOR_LOOKUP)
+        operator_lookup = OperatorDict(OPERATOR_LOOKUP)
         operator_lookup.update((k.encode("utf8"), v) for (k, v) in BINDINGS.items())
         self.operator_lookup = operator_lookup
 
