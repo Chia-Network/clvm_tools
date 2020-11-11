@@ -1,7 +1,7 @@
 from stages.stage_0 import run_program as run_program_0
 from stages.stage_0 import OPERATOR_LOOKUP
 from clvm_tools import binutils
-from clvm.operators import OperatorDict
+from clvm_tools.operator_dict import OperatorDict
 
 
 def make_invocation(code):

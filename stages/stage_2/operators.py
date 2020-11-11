@@ -5,7 +5,7 @@ from ir.writer import write_ir_to_stream
 
 
 from clvm.EvalError import EvalError
-from clvm.operators import OperatorDict
+from clvm_tools.operator_dict import OperatorDict
 
 from clvm_tools.binutils import assemble_from_ir, disassemble_to_ir
 
