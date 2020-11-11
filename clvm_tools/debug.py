@@ -115,7 +115,7 @@ def build_symbol_dump(constants_lookup, run_program, path):
 def text_trace(disassemble, form, symbol, env, result):
     if symbol:
         env = env.rest()
-        symbol = env.to(symbol.encode()).cons(env)
+        symbol = disassemble(env.to(symbol.encode()).cons(env))
     else:
         symbol = "%s [%s]" % (disassemble(form), disassemble(env))
     print("%s => %s" % (symbol, result))
@@ -129,9 +129,9 @@ def table_trace(disassemble, form, symbol, env, result):
     else:
         sexp = form
         args = form.__null__
-    print("exp:", sexp)
-    print("arg:", args)
-    print("env:", env)
+    print("exp:", disassemble(sexp))
+    print("arg:", disassemble(args))
+    print("env:", disassemble(env))
     print("val:", result)
     print("bexp:", sexp.as_bin())
     print("barg:", args.as_bin())

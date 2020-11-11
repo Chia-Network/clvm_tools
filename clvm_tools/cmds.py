@@ -12,7 +12,7 @@ from clvm.serialize import sexp_from_stream, sexp_to_stream
 
 from ir import reader
 
-from . import binutils, patch_sexp  # noqa
+from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 
 
