@@ -161,14 +161,16 @@ def trace_to_table(trace, disassemble, symbol_table):
 
 def make_trace_pre_eval(log_entries, symbol_table=None):
     def pre_eval_f(sexp, args):
-        h = sha256tree(sexp).hex()
-        if symbol_table and h not in symbol_table:
-            return None
+        sexp, args = [SExp.to(_) for _ in [sexp, args]]
+        if symbol_table:
+            h = sha256tree(sexp).hex()
+            if h not in symbol_table:
+                return None
         log_entry = [sexp, args, None]
         log_entries.append(log_entry)
 
         def callback_f(r):
-            log_entry[-1] = r
+            log_entry[-1] = SExp.to(r)
 
         return callback_f
 

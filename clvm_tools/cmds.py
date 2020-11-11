@@ -170,8 +170,8 @@ def launch_tool(args, tool_name, default_stage=0):
         else:
             output = binutils.disassemble(result)
     except EvalError as ex:
-        output = "FAIL: %s %s" % (ex, binutils.disassemble(ex._sexp))
-        result = ex._sexp
+        result = to_sexp_f(ex._sexp)
+        output = "FAIL: %s %s" % (ex, binutils.disassemble(result))
         return -1
     except Exception as ex:
         result = src_sexp
