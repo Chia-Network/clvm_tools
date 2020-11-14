@@ -105,7 +105,7 @@ def trace_to_html(invocations, disassemble):
 def build_symbol_dump(constants_lookup, run_program, path):
     compiled_lookup = {}
     for k, v in constants_lookup.items():
-        cost, v1 = run_program(v, [])
+        cost, v1 = run_program(v, SExp.null())
         compiled_lookup[sha256tree(v1).hex()] = k.decode()
     output = json.dumps(compiled_lookup)
     with open(path, "w") as f:
