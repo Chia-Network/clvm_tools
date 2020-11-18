@@ -5,6 +5,7 @@ import io
 import json
 import pathlib
 import sys
+import time
 
 from clvm import to_sexp_f
 from clvm.EvalError import EvalError
@@ -14,7 +15,6 @@ from ir import reader
 
 from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
-
 
 def path_or_code(arg):
     try:
@@ -93,6 +93,7 @@ def brun(args=sys.argv):
 
 
 def launch_tool(args, tool_name, default_stage=0):
+    sys.setrecursionlimit(20000)
     parser = argparse.ArgumentParser(
         description='Execute a clvm script.'
     )
@@ -107,6 +108,8 @@ def launch_tool(args, tool_name, default_stage=0):
         help="Print diagnostic table of reductions, for debugging")
     parser.add_argument(
         "-c", "--cost", action="store_true", help="Show cost")
+    parser.add_argument(
+        "--time", action="store_true", help="Print execution time")
     parser.add_argument(
         "-m", "--max-cost", type=int, help="Maximum cost")
     parser.add_argument(
@@ -158,12 +161,20 @@ def launch_tool(args, tool_name, default_stage=0):
     cost = 0
     try:
         output = "(didn't finish)"
+        time_start = time.perf_counter()
         env = binutils.assemble_from_ir(args.args)
+        time_assemble = time.perf_counter()
         input_sexp = to_sexp_f((assembled_sexp, env))
+        time_parse_input = time.perf_counter()
         cost, result = run_program(
             run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
+        time_done = time.perf_counter()
         if args.cost:
             print("cost = %d" % cost)
+        if args.time:
+            print('assemble_from_ir: %f' % (time_assemble - time_start))
+            print('to_sexp_f: %f' % (time_parse_input - time_assemble))
+            print('run_program: %f' % (time_done - time_parse_input))
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = blob.hex()
