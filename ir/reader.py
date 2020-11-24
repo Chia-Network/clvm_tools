@@ -11,6 +11,7 @@ from .utils import ir_new, ir_cons
 Token = Tuple[str, int]
 Stream = Iterator[Token]
 
+DISALLOWED_INITIAL_SYMBOL_CHARS = [ "-" ]
 
 def consume_whitespace(s: str, offset: int) -> int:
     """
@@ -99,6 +100,8 @@ def tokenize_quotes(token: str, offset: int):
 
 
 def tokenize_symbol(token: str, offset: int):
+    if token[0] in DISALLOWED_INITIAL_SYMBOL_CHARS and len(token) > 1:
+        raise SyntaxError(f"'{token[0]}' character not allowed as first char in symbol while parsing {token}")
     return ((Type.SYMBOL, offset), token.encode("utf8"))
 
 
