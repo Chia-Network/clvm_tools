@@ -3,7 +3,7 @@
 from typing import Iterator, Optional, Tuple
 
 from clvm import to_sexp_f
-from clvm.BaseSExp import BaseSExp
+from clvm.CLVMObject import CLVMObject
 
 from .Type import Type
 from .utils import ir_new, ir_cons
@@ -41,7 +41,7 @@ def next_cons_token(stream: Stream) -> Token:
     return token, offset
 
 
-def tokenize_cons(token: str, offset: int, stream: Stream) -> BaseSExp:
+def tokenize_cons(token: str, offset: int, stream: Stream) -> CLVMObject:
     if token == ")":
         return ir_new(Type.NULL, 0, offset)
 
@@ -63,7 +63,7 @@ def tokenize_cons(token: str, offset: int, stream: Stream) -> BaseSExp:
     return ir_cons(first_sexp, rest_sexp, initial_offset)
 
 
-def tokenize_int(token: str, offset: int) -> Optional[BaseSExp]:
+def tokenize_int(token: str, offset: int) -> Optional[CLVMObject]:
     try:
         return ir_new(Type.INT, int(token), offset)
     except (ValueError, TypeError):
@@ -71,7 +71,7 @@ def tokenize_int(token: str, offset: int) -> Optional[BaseSExp]:
     return None
 
 
-def tokenize_hex(token: str, offset: int) -> Optional[BaseSExp]:
+def tokenize_hex(token: str, offset: int) -> Optional[CLVMObject]:
     if token[:2].upper() == "0X":
         try:
             token = token[2:]
