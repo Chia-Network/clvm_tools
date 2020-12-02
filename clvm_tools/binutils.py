@@ -18,7 +18,7 @@ def assemble_from_ir(ir_sexp):
         if keyword[:1] == "#":
             keyword = keyword[1:]
         atom = KEYWORD_TO_ATOM.get(keyword)
-        if atom:
+        if atom is not None:
             return ir_sexp.to(atom)
         if True:
             return ir_val(ir_sexp)
@@ -61,9 +61,6 @@ def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
     if is_ir(sexp) and allow_keyword is not False:
         return ir_cons(ir_symbol("ir"), sexp)
 
-    if sexp.nullp():
-        return ir_null()
-
     if sexp.listp():
         if sexp.first().listp() or allow_keyword is None:
             allow_keyword = True
@@ -76,6 +73,9 @@ def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
         v = keyword_from_atom.get(as_atom)
         if v is not None and v != '.':
             return ir_symbol(v)
+
+    if sexp.nullp():
+        return ir_null()
 
     return sexp.to((type_for_atom(as_atom), as_atom))
 
