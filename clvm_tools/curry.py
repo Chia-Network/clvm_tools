@@ -9,10 +9,11 @@ from .pattern_match import match
 # CURRY_OBJ_CODE contains compiled code from the output of the following:
 # run -i clvm_runtime '(mod (F . args) (include curry.clvm) (curry_args F args))'
 
+
 CURRY_OBJ_CODE = assemble(
     """
-    ((c (q ((c 4 (c 2 (c 5 (c 7 (q ()))))))) (c (q ((c (c (q 5) (c (c (q 1) (c 5 (q ())))
-    (c ((c 6 (c 2 (c 11 (q (q)))))) (q ())))) (q ())) (c (i 5 (q (c (q 5) (c (c (q 1)
+    ((c (q ((c 4 (c 2 (c 5 (c 7 (q ()))))))) (c (q ((c (c (q #c) (c (c (q #q) (c 5 (q ())))
+    (c ((c 6 (c 2 (c 11 (q (1)))))) (q ())))) (q ())) (c (i 5 (q (c (q #c) (c (c (q #q)
     (c 9 (q ()))) (c ((c 6 (c 2 (c 13 (c 11 (q ())))))) (q ()))))) (q 11)) 1))) 1)))
 """
 )
