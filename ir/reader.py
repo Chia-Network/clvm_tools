@@ -3,7 +3,10 @@
 from typing import Iterator, Optional, Tuple
 
 from clvm import to_sexp_f
-from clvm.CLVMObject import CLVMObject
+try:
+    from clvm.CLVMObject import CLVMObject
+except ImportError:
+    from clvm.BaseSExp import BaseSExp as CLVMObject
 
 from .Type import Type
 from .utils import ir_new, ir_cons
