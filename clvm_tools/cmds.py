@@ -180,7 +180,7 @@ def launch_tool(args, tool_name, default_stage=0):
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
             output = blob.hex()
-        elif not args.quiet:
+        else:
             output = binutils.disassemble(result)
     except EvalError as ex:
         result = to_sexp_f(ex._sexp)
@@ -191,7 +191,8 @@ def launch_tool(args, tool_name, default_stage=0):
         output = str(ex)
         raise
     finally:
-        print(output)
+        if not args.quiet:
+            print(output)
         if args.verbose or symbol_table:
             print()
             trace_to_text(log_entries, binutils.disassemble, symbol_table)
