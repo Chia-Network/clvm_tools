@@ -3,13 +3,11 @@ from clvm_tools.binutils import disassemble
 from clvm_tools.NodePath import LEFT, TOP
 
 from .defaults import default_macro_lookup
-from .helpers import brun, eval
+from .helpers import brun, eval, quote
 from .mod import compile_mod
-
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
-
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 
@@ -30,19 +28,19 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
         # (qq ATOM) => (q ATOM)
-        return sexp.to([QUOTE_KW, sexp])
+        return sexp.to(quote(sexp))
 
     if sexp.listp() and not sexp.first().listp():
         op = sexp.first().as_atom()
         if op == b"qq":
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level+1)
-            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, quote(0)]]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
                 return com(sexp.rest().first())
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level-1)
-            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, [QUOTE_KW, 0]]]))
+            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, quote(0)]]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
     A = com(sexp.to([b"qq", sexp.first()]))
@@ -51,11 +49,11 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
 
 
 def compile_macros(args, macro_lookup, symbol_table, run_program):
-    return args.to([QUOTE_KW, macro_lookup])
+    return args.to(quote(macro_lookup))
 
 
 def compile_symbols(args, macro_lookup, symbol_table, run_program):
-    return args.to([QUOTE_KW, symbol_table])
+    return args.to(quote(symbol_table))
 
 
 COMPILE_BINDINGS = {
@@ -93,13 +91,13 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
             if symbol == atom:
                 return prog.to(value)
 
-        return prog.to([QUOTE_KW, prog])
+        return prog.to(quote(prog))
 
     operator = prog.first()
     if operator.listp():
         # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
-        inner_exp = eval(prog.to([b"com", [
-            QUOTE_KW, operator], [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_path())
+        inner_exp = eval(prog.to([b"com",
+            quote(operator), quote(macro_lookup), quote(symbol_table)]), TOP.as_path())
         return prog.to([inner_exp])
 
     as_atom = operator.as_atom()
@@ -110,12 +108,12 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
             macro_code = macro_pair.rest().first()
             post_prog = brun(macro_code, prog.rest())
             return eval(post_prog.to(
-                [b"com", post_prog, [QUOTE_KW, macro_lookup], [QUOTE_KW, symbol_table]]), TOP.as_short_path())
+                [b"com", post_prog, quote(macro_lookup), quote(symbol_table)]), TOP.as_short_path())
 
     if as_atom in COMPILE_BINDINGS:
         f = COMPILE_BINDINGS[as_atom]
         post_prog = f(prog.rest(), macro_lookup, symbol_table, run_program)
-        return eval(prog.to([QUOTE_KW, post_prog]), TOP.as_path())
+        return eval(prog.to(quote(post_prog)), TOP.as_path())
 
     if operator == QUOTE_KW:
         return prog
@@ -133,9 +131,9 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
         if symbol == as_atom:
             new_args = eval(
                 prog.to([b"opt", [b"com",
-                                  [QUOTE_KW, [b"list"] + list(prog.rest().as_iter())],
-                                  [QUOTE_KW, macro_lookup],
-                                  [QUOTE_KW, symbol_table]]]), TOP.as_path())
+                                  quote([b"list"] + list(prog.rest().as_iter())),
+                                  quote(macro_lookup),
+                                  quote(symbol_table)]]), TOP.as_path())
             r = prog.to([[CONS_KW, value, [CONS_KW, LEFT.as_path(), new_args]]])
             return r
 

@@ -4,7 +4,7 @@ from clvm_tools.pattern_match import match
 from clvm_tools.binutils import assemble
 
 from clvm_tools.NodePath import NodePath, LEFT, RIGHT
-
+from .helpers import quote
 
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
@@ -41,7 +41,7 @@ def constant_optimizer(r, eval):
     """
     if seems_constant(r):
         cost, r1 = eval(r, r.null())
-        r = r.to([QUOTE_KW, r1])
+        r = r.to(quote(r1))
     return r
 
 

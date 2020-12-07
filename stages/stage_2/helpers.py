@@ -5,6 +5,9 @@ from clvm_tools.NodePath import TOP
 CONS_KW = KEYWORD_TO_ATOM["c"]
 QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
+def quote(sexp):
+    """quoted list as a python list, not as an sexp"""
+    return [QUOTE_KW, sexp]
 
 def eval(prog, args):
     return prog.to([[CONS_KW, prog, args]])

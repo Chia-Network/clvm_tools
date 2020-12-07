@@ -4,7 +4,7 @@ from clvm_tools import binutils
 from clvm_tools.debug import build_symbol_dump
 from clvm_tools.NodePath import LEFT, RIGHT, TOP
 
-from .helpers import eval
+from .helpers import eval, quote
 from .optimize import optimize_sexp
 
 
@@ -37,7 +37,7 @@ def build_tree_program(items):
     """
     size = len(items)
     if size == 0:
-        return [QUOTE_KW, []]
+        return [quote([])]
     if size == 1:
         return items[0]
     half_size = size >> 1
@@ -133,7 +133,7 @@ def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, ru
     elif op == b"defun-inline":
         macros.append(defun_inline_to_macro(declaration_sexp))
     elif op == b"defconstant":
-        constants[name] = declaration_sexp.to([QUOTE_KW, declaration_sexp.rest().rest().first()])
+        constants[name] = declaration_sexp.to(quote(declaration_sexp.rest().rest().first()))
     else:
         raise SyntaxError("expected defun, defmacro, or defconstant")
 
@@ -176,10 +176,10 @@ def symbol_table_for_tree(tree, root_node):
 
 
 def build_macro_lookup_program(macro_lookup, macros, run_program):
-    macro_lookup_program = macro_lookup.to([QUOTE_KW, macro_lookup])
+    macro_lookup_program = macro_lookup.to(quote(macro_lookup))
     for macro in macros:
         macro_lookup_program = eval(macro_lookup.to(
-            [b"opt", [b"com", [QUOTE_KW, [CONS_KW, macro, macro_lookup_program]], macro_lookup_program]]),
+            [b"opt", [b"com", quote([CONS_KW, macro, macro_lookup_program]), macro_lookup_program]]),
             TOP.as_path())
         macro_lookup_program = optimize_sexp(macro_lookup_program, run_program)
     return macro_lookup_program
@@ -192,9 +192,9 @@ def compile_functions(functions, macro_lookup_program, constants_symbol_table, a
         all_symbols = local_symbol_table + constants_symbol_table
         compiled_functions[name] = lambda_expression.to(
             [b"opt", [b"com",
-                      [QUOTE_KW, lambda_expression.rest().first()],
+                      quote(lambda_expression.rest().first()),
                       macro_lookup_program,
-                      [QUOTE_KW, all_symbols]]])
+                      quote(all_symbols)]])
     return compiled_functions
 
 
