@@ -2,15 +2,17 @@ import string
 
 from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
 from clvm.casts import int_from_bytes, int_to_bytes
+from clvm.SExp import SExp
 
 from ir.reader import read_ir
 from ir.writer import write_ir
 from ir.utils import (
     ir_as_symbol, ir_cons, ir_first, ir_listp, ir_null,
-    ir_nullp, ir_rest, ir_symbol, ir_val, is_ir
+    ir_nullp, ir_rest, ir_symbol, ir_val, is_ir, ir_offset
 )
 from ir.Type import Type
 
+QUOTE_KW = KEYWORD_TO_ATOM.get("q")
 
 def assemble_from_ir(ir_sexp):
     keyword = ir_as_symbol(ir_sexp)
@@ -31,15 +33,33 @@ def assemble_from_ir(ir_sexp):
     if ir_nullp(ir_sexp):
         return ir_sexp.to([])
 
-    # handle "q"
     first = ir_first(ir_sexp)
     keyword = ir_as_symbol(first)
-    if keyword == "q":
-        pass
-        # TODO: note that any symbol is legal after this point
 
     sexp_1 = assemble_from_ir(first)
     sexp_2 = assemble_from_ir(ir_rest(ir_sexp))
+
+    if keyword == "q":
+        # This check disallows parsing '(q . x)'
+        # Note that '(1 . x)' is allowed
+        if not (sexp_2.listp() or sexp_2.null()):
+            raise SyntaxError(
+                "can't parse quote as first element of cons at %s. Expected '(q %s)'" % (ir_offset(ir_sexp), sexp_2)
+            )
+        if sexp_2.listp():
+            if not sexp_2.rest().nullp():
+                raise SyntaxError(
+                    f"Quote reqires only one argument, but we got {write_ir(ir_sexp)}"
+                )
+            # The IR reader reads '(q x)' as [ q [ x  nil ] ]
+            # We translate that to [ q  x ]
+            sexp_2 = sexp_2.first()
+        else:
+            raise SyntaxError("quote Expected list")
+
+        r = SExp((sexp_1, sexp_2))
+        return r
+
     return sexp_1.cons(sexp_2)
 
 

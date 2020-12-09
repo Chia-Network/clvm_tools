@@ -7,13 +7,19 @@ from clvm import casts, SExp
 from clvm.serialize import sexp_to_stream
 
 from .Type import Type
-from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom, ir_val
+from .utils import ir_nullp, ir_type, ir_listp, ir_first, ir_rest, ir_as_atom, ir_val, is_ir_quote_pair
 
+from clvm import KEYWORD_TO_ATOM
+QUOTE_KW = KEYWORD_TO_ATOM.get("q")
 
 def iter_sexp_format(ir_sexp: SExp) -> Iterator[str]:
     yield "("
     is_first = True
     while not ir_nullp(ir_sexp):
+        if is_ir_quote_pair(ir_sexp):
+            yield "q "
+            yield from iter_ir_format(ir_rest(ir_sexp))
+            break
         if not ir_listp(ir_sexp):
             yield " . "
             yield from iter_ir_format(ir_sexp)

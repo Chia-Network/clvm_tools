@@ -1,6 +1,6 @@
 from clvm_tools.binutils import assemble
 from clvm_tools.pattern_match import match
-
+from clvm.SExp import SExp
 
 def test_pattern_match():
 
@@ -33,3 +33,8 @@ def test_pattern_match():
     r = match(assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey1))"),
               assemble("(= (f (r (a))) 50000 50000)"))
     assert r == {"pubkey1": assemble("50000")}
+
+    UNCURRY_PATTERN_FUNCTION = assemble("((c (q (: . function)) (: . core)))")
+    p = assemble('((c (q (+ 2 5)) (c (q 200) (c (q 30) 1))))')
+    r = match(UNCURRY_PATTERN_FUNCTION, p)
+    assert r == {"function": assemble("(+ 2 5)"), "core": assemble("(c (q 200) (c (q 30) 1))")}

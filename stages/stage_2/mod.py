@@ -37,7 +37,7 @@ def build_tree_program(items):
     """
     size = len(items)
     if size == 0:
-        return [quote([])]
+        return [quote(SExp.null())]
     if size == 1:
         return items[0]
     half_size = size >> 1

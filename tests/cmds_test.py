@@ -96,6 +96,7 @@ def inject(*paths):
         for idx, (name, i, o, comments, path) in enumerate(get_test_cases(path)):
             name_of_f = "test_%s" % name
             setattr(TestCmds, name_of_f, make_f(i, o, comments, path))
+            setattr(TestCmds, "maxDiff", None)
 
 
 inject("opc")

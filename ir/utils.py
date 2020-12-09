@@ -125,3 +125,21 @@ def is_ir(sexp):
         return False
 
     return not r.listp()
+
+def is_ir_quote_pair(sexp):
+    """
+    `is_ir_quote_pair` is a hack to restore the decompiled syntax of a quoted pair.
+    """
+    if not ir_listp(sexp):
+        return False
+
+    if ir_type(sexp) != Type.CONS:
+        return False
+
+    if ir_type(ir_first(sexp)) != Type.SYMBOL:
+        return False
+
+    if ir_val(ir_first(sexp)) != b'q':
+        return False
+
+    return True
