@@ -1,0 +1,2 @@
+opc '(q 1 2)'
+Quote reqires only one argument, but we got (q (1 2))
