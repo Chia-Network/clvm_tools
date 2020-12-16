@@ -31,12 +31,8 @@ def assemble_from_ir(ir_sexp):
     if ir_nullp(ir_sexp):
         return ir_sexp.to([])
 
-    # handle "q"
     first = ir_first(ir_sexp)
     keyword = ir_as_symbol(first)
-    if keyword == "q":
-        pass
-        # TODO: note that any symbol is legal after this point
 
     sexp_1 = assemble_from_ir(first)
     sexp_2 = assemble_from_ir(ir_rest(ir_sexp))

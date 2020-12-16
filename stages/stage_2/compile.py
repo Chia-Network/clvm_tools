@@ -14,10 +14,16 @@ PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 for _ in "com opt".split():
     PASS_THROUGH_OPERATORS.add(_.encode("utf8"))
 
+def compile_quote(args, macro_lookup, symbol_table, run_program):
+    if not args.rest().nullp():
+        raise SyntaxError(
+            "can't compile %s, quote must take one argument" %
+            disassemble(args))
+    return args.to(quote(args.first()))
 
 def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     """
-    (qq ATOM) => (q ATOM)
+    (qq ATOM) => (q . ATOM)
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
@@ -27,7 +33,7 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
 
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
-        # (qq ATOM) => (q ATOM)
+        # (qq ATOM) => (q . ATOM)
         return sexp.to(quote(sexp))
 
     if sexp.listp() and not sexp.first().listp():
@@ -62,6 +68,7 @@ COMPILE_BINDINGS = {
     b"symbols": compile_symbols,
     b"lambda": compile_mod,
     b"mod": compile_mod,
+    b"quote": compile_quote,
 }
 
 
@@ -75,10 +82,10 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    ((c (com (q PROG) (MACROS)) ARGS)) == ((c (q PROG_EXP) ARGS))
+    ((c (com (q . PROG) (MACROS)) ARGS)) == ((c (q . PROG_EXP) ARGS))
     for all ARGS.
 
-    Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
+    Also, (opt (com (q . PROG) (MACROS))) == (opt (com (q . PROG_EXP) (MACROS)))
     """
 
     # quote atoms
@@ -95,7 +102,8 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
+        # xxx
+        # (com ((OP) . RIGHT)) => ((c (com (q . OP)) 1))
         inner_exp = eval(prog.to([b"com",
             quote(operator), quote(macro_lookup), quote(symbol_table)]), TOP.as_path())
         return prog.to([inner_exp])
