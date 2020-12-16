@@ -1,7 +1,9 @@
-from clvm import run_program, KEYWORD_TO_ATOM
+from clvm import KEYWORD_TO_ATOM
 from clvm.operators import OPERATOR_LOOKUP
 
 from clvm_tools.binutils import assemble
+
+from stages.stage_0 import run_program
 
 from .pattern_match import match
 
@@ -32,12 +34,7 @@ def curry(program, args):
     """
 
     args = program.to((program, args))
-    r = run_program(
-        CURRY_OBJ_CODE,
-        args,
-        quote_kw=KEYWORD_TO_ATOM["q"],
-        operator_lookup=OPERATOR_LOOKUP,
-    )
+    r = run_program(CURRY_OBJ_CODE, args)
     return r
 
 
