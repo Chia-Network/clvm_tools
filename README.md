@@ -71,16 +71,16 @@ Note that the `1` is not quoted. The compiler recognizes and auto-quotes constan
 
 Besides `mod` and `defun`, the compiler has a few more built-in operators:
 
-### (a)
+### @
 
-Instead of evaluating `1` to return the arguments, you should use `(a)` in the higher level language.
-This is easier for humans to read, and calling `(f (a))` will be compiled to 2, etc.
+Instead of evaluating `1` to return the arguments, you should use `@` in the higher level language.
+This is easier for humans to read, and calling `(f @)` will be compiled to 2, etc.
 
 ```
-    $ run '(a)' '("example" 200)'
+    $ run '@' '("example" 200)'
     ("example" 200)
     
-    $ $ run '(mod ARGS (f (r (a))))'
+    $ run '(mod ARGS (f (r @)))'
     5
 ```
 

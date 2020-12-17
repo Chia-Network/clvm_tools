@@ -47,9 +47,7 @@ def constant_optimizer(r, eval):
 
 def is_args_call(r):
     p = r.as_python()
-    if p == [ARGS_KW]:
-        return True
-    if not r.listp() and r.as_int() in (0, 1):
+    if not r.listp() and r.as_int() == 1:
         return True
     return False
 
@@ -135,9 +133,6 @@ def var_change_optimizer_cons_eval(r, eval):
 
     original_args = t1["args"]
 
-    if is_args_call(original_args):
-        return r
-
     original_call = t1["sexp"]
 
     new_eval_sexp_args = sub_args(original_call, original_args)
@@ -192,14 +187,10 @@ REST_ATOM_PATTERN = assemble("(r ($ . atom))")
 def path_optimizer(r, eval):
     """
     This applies the transform
-    (a) => 1
-    and
     (f N) => A
     and
     (r N) => B
     """
-    if is_args_call(r):
-        return r.to(1)
 
     t1 = match(FIRST_ATOM_PATTERN, r)
     if t1:
