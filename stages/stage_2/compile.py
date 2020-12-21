@@ -16,7 +16,7 @@ for _ in "com opt".split():
 
 def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     """
-    (qq ATOM) => (q ATOM)
+    (qq ATOM) => (q . ATOM)
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
@@ -26,7 +26,7 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
 
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
-        # (qq ATOM) => (q ATOM)
+        # (qq ATOM) => (q . ATOM)
         return sexp.to(quote(sexp))
 
     if sexp.listp() and not sexp.first().listp():
@@ -64,21 +64,24 @@ COMPILE_BINDINGS = {
 }
 
 
-# Transform "quote" to "q" everywhere. Not qq sensitive.
+# Transform "quote" to "q" everywhere. Note that quote will not be compiled if behind qq.
 # Overrides symbol table defns.
 def lower_quote(prog, macro_lookup=None, symbol_table=None, run_program=None):
     if prog.nullp():
         return prog
 
-    if not prog.listp():
-        atom = prog.as_atom()
-        if atom == b"quote":
-            return prog.to(QUOTE_ATOM)
+    if prog.listp():
+        if prog.first().as_atom() == b"quote":
+            # Note: quote should have exactly one arg, so the length of
+            # quoted list should be 2: "(quote arg)"
+            if not prog.rest().rest().nullp():
+                raise SyntaxError("Compilation error while compiling [%s]. quote takes exactly one argument." %
+                                      disassemble(prog))
+            return prog.to(quote(lower_quote(prog.rest().first())))
         else:
-            return prog
+            return prog.to((lower_quote(prog.first()), lower_quote(prog.rest())))
     else:
-        return prog.to((lower_quote(prog.first()), lower_quote(prog.rest())))
-
+        return prog
 
 def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     """

@@ -1,2 +1,2 @@
 run -s2 '(mod ARGS (defun add (n1 n2) (+ n1 n2)) (add 50 60))'
-(q 110)
+(q . 110)

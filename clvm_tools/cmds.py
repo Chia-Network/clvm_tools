@@ -157,8 +157,13 @@ def launch_tool(args, tool_name, default_stage=0):
     if args.hex:
         assembled_sexp = sexp_from_stream(io.BytesIO(bytes.fromhex(args.path_or_code)), to_sexp_f)
     else:
+
         src_text = args.path_or_code
-        src_sexp = reader.read_ir(src_text)
+        try:
+            src_sexp = reader.read_ir(src_text)
+        except SyntaxError as ex:
+            print("FAIL: %s" % (ex))
+            return -1
         assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
     pre_eval_f = None

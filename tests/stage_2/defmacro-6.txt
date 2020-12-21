@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (defmacro total (A B) (+ A B)))))'
-(q ("total" (+ 2 5)))
+brun -s2 '(opt (com (q . (defmacro total (A B) (+ A B)))))'
+(q "total" (+ 2 5))

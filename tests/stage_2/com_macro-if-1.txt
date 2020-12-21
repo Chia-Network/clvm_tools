@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (if @ 999 2000)) (c (f ((opt (com (q (defmacro if (A B C) (qq ((c (i (unquote A) (function (unquote B)) (function (unquote C))) @))))))))) (f ((opt (com (q (macros)))))))))'
-((c (i 1 (q (q 999)) (q (q 2000))) 1))
+brun -s2 '(opt (com (q . (if @ 999 2000)) (c ((opt (com (q . (defmacro if (A B C) (qq ((c (i (unquote A) (function (unquote B)) (function (unquote C))) @)))))))) ((opt (com (q . (macros))))))))'
+((c (i 1 (q 1 . 999) (q 1 . 2000)) 1))

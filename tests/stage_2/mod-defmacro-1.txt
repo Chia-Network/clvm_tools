@@ -1,4 +1,4 @@
-brun -s2 '(opt (com (q \
+brun -s2 '(opt (com (q . \
 	(mod args \
 		(defmacro map (func items) \
 		         (if items (qq (c ((c (unquote func) (unquote (f items)))) \
@@ -7,4 +7,4 @@ brun -s2 '(opt (com (q \
 		(map (lambda X (* X X)) (10 20 30 40 50)) \
 	) \
 )))'
-(q (q (100 400 900 1600 2500)))
+(q 1 100 400 900 1600 2500)

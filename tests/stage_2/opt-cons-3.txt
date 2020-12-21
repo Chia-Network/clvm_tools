@@ -1,2 +1,2 @@
-brun -s2 '(opt (q (f (r (r (c (q aaa) (c (q bbb) (c (q CCC) 1))))))))'
-(q "CCC")
+brun -s2 '(opt (q . (f (r (r (c (q . aaa) (c (q . bbb) (c (q . CCC) 1))))))))'
+(q . "CCC")
