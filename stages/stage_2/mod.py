@@ -57,7 +57,6 @@ def flatten(sexp):
         return r
     return [sexp.as_atom()]
 
-
 def build_used_constants_names(functions, constants, macros):
     """
     Do a naïve pruning of unused symbols. It may be too big, but it shouldn't
@@ -242,7 +241,7 @@ def compile_mod(args, macro_lookup, symbol_table, run_program):
     else:
         arg_tree_src = "1"
 
-    main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
+    main_code = "(opt (q . ((c %s %s))))" % (main_path_src, arg_tree_src)
 
     if has_constants_tree:
         build_symbol_dump(all_constants_lookup, run_program, "main.sym")

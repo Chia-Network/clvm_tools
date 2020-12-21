@@ -148,7 +148,11 @@ def launch_tool(args, tool_name, default_stage=0):
         run_program = args.stage.run_program
 
     src_text = args.path_or_code
-    src_sexp = reader.read_ir(src_text)
+    try:
+        src_sexp = reader.read_ir(src_text)
+    except SyntaxError as ex:
+        print("FAIL: %s" % (ex))
+        return -1
     assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
     pre_eval_f = None

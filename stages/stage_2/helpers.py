@@ -7,7 +7,7 @@ QUOTE_KW = KEYWORD_TO_ATOM["q"]
 
 def quote(sexp):
     """quoted list as a python list, not as an sexp"""
-    return [QUOTE_KW, sexp]
+    return (QUOTE_KW, sexp)
 
 def eval(prog, args):
     return prog.to([[CONS_KW, prog, args]])
@@ -15,15 +15,15 @@ def eval(prog, args):
 
 def run(prog, macro_lookup):
     """
-    PROG => (e (com (q PROG) (mac)) ARGS)
+    PROG => (e (com (q . PROG) (mac)) ARGS)
 
     The result can be evaluated with the stage_com eval
     function.
     """
     args = TOP.as_path()
-    mac = [QUOTE_KW, macro_lookup]
+    mac = quote(macro_lookup)
     return eval(prog.to([b"com", prog, mac]), args)
 
 
 def brun(prog, args):
-    return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, args])
+    return eval(prog.to(quote(prog)), quote(args))

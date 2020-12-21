@@ -17,7 +17,7 @@ for _ in "com opt".split():
 
 def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     """
-    (qq ATOM) => (q ATOM)
+    (qq ATOM) => (q . ATOM)
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
@@ -27,7 +27,7 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
 
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
-        # (qq ATOM) => (q ATOM)
+        # (qq ATOM) => (q . ATOM)
         return sexp.to(quote(sexp))
 
     if sexp.listp() and not sexp.first().listp():

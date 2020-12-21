@@ -1,2 +1,2 @@
-run -s2 '((c (mod (ARGS) (defun double (VAL) (* 2 VAL)) (defun square (VAL) (* VAL VAL)) (defun map (func items) (if items (c (func (f items)) (map func (r items))) ())) (map square (map double ARGS))) (q ((4 3 2 1)))))'
+run -s2 '((c (mod (ARGS) (defun double (VAL) (* 2 VAL)) (defun square (VAL) (* VAL VAL)) (defun map (func items) (if items (c (func (f items)) (map func (r items))) ())) (map square (map double ARGS))) (q . ((4 3 2 1)))))'
 (64 36 16 4)
