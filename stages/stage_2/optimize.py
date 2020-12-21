@@ -51,14 +51,13 @@ def is_args_call(r):
         return True
     return False
 
-
-CONS_Q_A_OPTIMIZER_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
+CONS_Q_A_OPTIMIZER_PATTERN = assemble("((c (q . (: . sexp)) (: . args)))")
 
 
 def cons_q_a_optimizer(r, eval):
     """
     This applies the transform
-    ((c (q SEXP) @)) => SEXP
+    ((c (q . SEXP) @)) => SEXP
     """
     t1 = match(CONS_Q_A_OPTIMIZER_PATTERN, r)
     if t1 and is_args_call(t1["args"]):
@@ -111,13 +110,13 @@ def sub_args(sexp, new_args):
     return sexp.to([first] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
 
 
-VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q (: . sexp)) (: . args)))")
+VAR_CHANGE_OPTIMIZER_CONS_EVAL_PATTERN = assemble("((c (q . (: . sexp)) (: . args)))")
 
 
 def var_change_optimizer_cons_eval(r, eval):
     """
     This applies the transform
-    ((c (q (op SEXP1...)) (ARGS))) => (q RET_VAL) where ARGS != @
+    ((c (q . (op SEXP1...)) (ARGS))) => (q . RET_VAL) where ARGS != @
     via
     (op ((c SEXP1 (ARGS)) ...)) (ARGS)) and then "children_optimizer" of this.
     In some cases, this can result in a constant in some of the children.
@@ -136,6 +135,11 @@ def var_change_optimizer_cons_eval(r, eval):
     original_call = t1["sexp"]
 
     new_eval_sexp_args = sub_args(original_call, original_args)
+
+    if seems_constant(new_eval_sexp_args):
+        new_operands = new_eval_sexp_args
+        opt_operands = optimize_sexp(new_operands, eval)
+        return r.to(opt_operands)
 
     new_operands = list(new_eval_sexp_args.as_iter())
     opt_operands = [optimize_sexp(_, eval) for _ in new_operands]
