@@ -179,6 +179,7 @@ print_files(lambda n, vs: generate_op_list(n, 'concat', vs, 'concat'))
 print_files(lambda n, vs: generate_args(n, 'concat', vs, 'concat'))
 
 print_files(lambda n, vs: generate_op_list(n, 'divmod', vs, 'divmod'))
+print_files(lambda n, vs: generate_op_list(n, 'div', vs, 'div'))
 
 print_files(lambda n, vs: generate_args(n, '+', vs, 'plus'))
 print_files(lambda n, vs: generate_op_list(n, '+', vs, 'plus'))
