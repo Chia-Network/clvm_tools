@@ -374,6 +374,11 @@ Since there are two parameters, the 1024 argument size calls have a total of 204
 
 Add to the base cost 1 for every 64 bytes of input.
 
+div
+---
+
+Measurements of `div` are very similar to `divmod`.
+
 boolean
 -------
 
@@ -447,7 +452,7 @@ lookup.
 
 `lookup_2-2` measures the time it takes to perform a lookup of depth 1. This
 determines the minimum overhead of this operator. Given that this is *less* than
-what we've measeired for the `const` operations to string them together, it
+what we've measured for the `cons` operations to string them together, it
 seems reasonable to model the minimum cost for a path lookup to be 0, and just
 incur a cost of **1** per leg.
 
