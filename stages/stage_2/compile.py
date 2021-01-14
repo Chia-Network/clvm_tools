@@ -7,7 +7,7 @@ from .helpers import brun, eval, quote
 from .mod import compile_mod
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_KW = KEYWORD_TO_ATOM["q"]
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 
@@ -115,7 +115,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
         post_prog = f(prog.rest(), macro_lookup, symbol_table, run_program)
         return eval(prog.to(quote(post_prog)), TOP.as_path())
 
-    if operator == QUOTE_KW:
+    if operator == QUOTE_ATOM:
         return prog
 
     compiled_args = [do_com_prog(_, macro_lookup, symbol_table, run_program) for _ in prog.rest().as_iter()]

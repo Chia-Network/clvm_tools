@@ -6,7 +6,7 @@ from clvm_tools.binutils import assemble
 from clvm_tools.NodePath import NodePath, LEFT, RIGHT
 from .helpers import quote
 
-QUOTE_KW = KEYWORD_TO_ATOM["q"]
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 ARGS_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
@@ -22,7 +22,7 @@ def seems_constant(sexp):
     operator = sexp.first()
     if not operator.listp():
         as_atom = operator.as_atom()
-        if as_atom == QUOTE_KW:
+        if as_atom == QUOTE_ATOM:
             return True
         if as_atom == ARGS_KW:
             return False
@@ -105,7 +105,7 @@ def sub_args(sexp, new_args):
         if op == ARGS_KW:
             return new_args
 
-        if op == QUOTE_KW:
+        if op == QUOTE_ATOM:
             return sexp
 
     return sexp.to([first] + [sub_args(_, new_args) for _ in sexp.rest().as_iter()])
@@ -139,7 +139,7 @@ def var_change_optimizer_cons_eval(r, eval):
 
     new_operands = list(new_eval_sexp_args.as_iter())
     opt_operands = [optimize_sexp(_, eval) for _ in new_operands]
-    non_constant_count = sum(1 if _.listp() and _.first() != QUOTE_KW else 0 for _ in opt_operands)
+    non_constant_count = sum(1 if _.listp() and _.first() != QUOTE_ATOM else 0 for _ in opt_operands)
     if non_constant_count < 1:
         final_sexp = r.to(opt_operands)
         return final_sexp
@@ -155,7 +155,7 @@ def children_optimizer(r, eval):
     operator = r.first()
     if not operator.listp():
         op = operator.as_atom()
-        if op == QUOTE_KW:
+        if op == QUOTE_ATOM:
             return r
     return r.to([optimize_sexp(_, eval) for _ in r.as_iter()])
 

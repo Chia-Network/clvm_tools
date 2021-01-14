@@ -3,11 +3,11 @@ from clvm_tools.NodePath import TOP
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_KW = KEYWORD_TO_ATOM["q"]
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 def quote(sexp):
     """quoted list as a python list, not as an sexp"""
-    return [QUOTE_KW, sexp]
+    return [QUOTE_ATOM, sexp]
 
 def eval(prog, args):
     return prog.to([[CONS_KW, prog, args]])
@@ -21,9 +21,9 @@ def run(prog, macro_lookup):
     function.
     """
     args = TOP.as_path()
-    mac = [QUOTE_KW, macro_lookup]
+    mac = [QUOTE_ATOM, macro_lookup]
     return eval(prog.to([b"com", prog, mac]), args)
 
 
 def brun(prog, args):
-    return eval(prog.to([QUOTE_KW, prog]), [QUOTE_KW, args])
+    return eval(prog.to([QUOTE_ATOM, prog]), [QUOTE_ATOM, args])
