@@ -9,7 +9,7 @@ from .optimize import optimize_sexp
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_KW = KEYWORD_TO_ATOM["q"]
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 MAIN_NAME = b""
 
