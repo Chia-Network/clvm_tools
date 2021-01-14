@@ -76,11 +76,11 @@ DEFAULT_MACROS_SRC = [
                (function (unquote B))
                (function (unquote C)))
             @))))""",
-
 ]
 
 
 DEFAULT_MACRO_LOOKUP = None
+
 
 def build_default_macro_lookup(eval):
     run = binutils.assemble("((c (com (f 1) (r 1)) 1))")
