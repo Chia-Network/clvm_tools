@@ -13,11 +13,7 @@ from .pattern_match import match
 
 
 CURRY_OBJ_CODE = assemble(
-    """
-    ((c (q ((c 4 (c 2 (c 5 (c 7 (q ()))))))) (c (q ((c (c (q #c) (c (c (q #q) (c 5 (q ())))
-    (c ((c 6 (c 2 (c 11 (q (1)))))) (q ())))) (q ())) (c (i 5 (q (c (q #c) (c (c (q #q)
-    (c 9 (q ()))) (c ((c 6 (c 2 (c 13 (c 11 (q ())))))) (q ()))))) (q 11)) 1))) 1)))
-"""
+    """((c (quote ((c 4 (c 2 (c 5 (c 7 (quote ()))))))) (c (quote ((c (c (quote 5) (c (c (quote 1) (c 5 (quote ()))) (c ((c 6 (c 2 (c 11 (quote (quote)))))) (quote ())))) (quote ())) (c (i 5 (quote (c (quote 5) (c (c (quote 1) (c 9 (quote ()))) (c ((c 6 (c 2 (c 13 (c 11 (quote ())))))) (quote ()))))) (quote 11)) 1))) 1)))"""
 )
 
 
@@ -38,8 +34,8 @@ def curry(program, args):
     return r
 
 
-UNCURRY_PATTERN_FUNCTION = assemble("((c (q (: . function)) (: . core)))")
-UNCURRY_PATTERN_CORE = assemble("(c (q (: . parm)) (: . core))")
+UNCURRY_PATTERN_FUNCTION = assemble("((c (quote (: . function)) (: . core)))")
+UNCURRY_PATTERN_CORE = assemble("(c (quote (: . parm)) (: . core))")
 
 
 def uncurry(curried_program):

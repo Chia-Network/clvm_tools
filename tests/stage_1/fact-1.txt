@@ -1,2 +1,2 @@
-run -s 1 "(bind (q ((fact ((c (i (= (f 1) (q 1)) (q (q 1)) (q (* (f 1) (fact (- (f 1) (q 1)))))) 1)) ))) (q (fact (q 10))) 1)"
+run -s 1 "(bind (quote ((fact ((c (i (= (f 1) (quote 1)) (quote (quote 1)) (quote (* (f 1) (fact (- (f 1) (quote 1)))))) 1)) ))) (quote (fact (quote 10))) 1)"
 0x375f00

@@ -1,9 +1,8 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
 from clvm_tools.NodePath import TOP
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 def quote(sexp):
     """quoted list as a python list, not as an sexp"""
@@ -15,15 +14,15 @@ def eval(prog, args):
 
 def run(prog, macro_lookup):
     """
-    PROG => (e (com (q PROG) (mac)) ARGS)
+    PROG => (e (com (quote PROG) (mac)) ARGS)
 
     The result can be evaluated with the stage_com eval
     function.
     """
     args = TOP.as_path()
-    mac = [QUOTE_ATOM, macro_lookup]
+    mac = quote(macro_lookup)
     return eval(prog.to([b"com", prog, mac]), args)
 
 
 def brun(prog, args):
-    return eval(prog.to([QUOTE_ATOM, prog]), [QUOTE_ATOM, args])
+    return eval(prog.to(quote(prog)), quote(args))

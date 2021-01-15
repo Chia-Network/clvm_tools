@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (+ 6 55))))'
-(q 61)
+brun -s2 '(opt (com (quote (+ 6 55))))'
+(quote 61)

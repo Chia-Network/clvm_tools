@@ -21,9 +21,9 @@ def test_curry_uncurry():
     f = assemble("(+ 2 5)")
     args = assemble("(200 30)")
     actual_disassembly = check_idempotency(f, args)
-    assert actual_disassembly == "((c (q (+ 2 5)) (c (q 200) (c (q 30) 1))))"
+    assert actual_disassembly == "((c (quote (+ 2 5)) (c (quote 200) (c (quote 30) 1))))"
 
     f = assemble("(+ 2 5)")
-    args = assemble("((+ (q 50) (q 60)))")
+    args = assemble("((+ (quote 50) (quote 60)))")
     actual_disassembly = check_idempotency(f, args)
-    assert actual_disassembly == "((c (q (+ 2 5)) (c (q (+ (q 50) (q 60))) 1)))"
+    assert actual_disassembly == "((c (quote (+ 2 5)) (c (quote (+ (quote 50) (quote 60))) 1)))"

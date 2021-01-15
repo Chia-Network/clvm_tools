@@ -1,2 +1,2 @@
 run '(compile (if x5 (if x1 500 600) 200))'
-(e (i (f (r (r (r (r (r (a))))))) (q (e (i (f (r (a))) (q (q 500)) (q (q 600))) (a))) (q (q 200))) (a))
+(e (i (f (r (r (r (r (r (a))))))) (quote (e (i (f (r (a))) (quote (quote 500)) (quote (quote 600))) (a))) (quote (quote 200))) (a))

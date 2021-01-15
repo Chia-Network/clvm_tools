@@ -21,7 +21,7 @@ def test_reader_1():
     sexp = reader.read_ir('foo')
     print(sexp)
 
-    sexp = reader.read_ir('(c (q 100) (c (q "foo") (q ())))')
+    sexp = reader.read_ir('(c (quote 100) (c (quote "foo") (quote ())))')
     print(sexp)
 
     sexp = reader.read_ir('(c . foo)')

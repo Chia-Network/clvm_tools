@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
 
 from clvm_tools import binutils
 from clvm_tools.debug import build_symbol_dump
@@ -9,7 +9,6 @@ from .optimize import optimize_sexp
 
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 MAIN_NAME = b""
 
@@ -242,7 +241,7 @@ def compile_mod(args, macro_lookup, symbol_table, run_program):
     else:
         arg_tree_src = "1"
 
-    main_code = "(opt (q ((c %s %s))))" % (main_path_src, arg_tree_src)
+    main_code = "(opt (quote ((c %s %s))))" % (main_path_src, arg_tree_src)
 
     if has_constants_tree:
         build_symbol_dump(all_constants_lookup, run_program, "main.sym")

@@ -1,2 +1,2 @@
 run '(mod (AA BB) (defconstant FOO 1000) (+ AA BB FOO))'
-(+ 2 5 (q 1000))
+(+ 2 5 (quote 1000))

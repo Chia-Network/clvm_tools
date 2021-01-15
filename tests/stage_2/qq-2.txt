@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (qq 9999))))'
-(q 9999)
+brun -s2 '(opt (com (quote (qq 9999))))'
+(quote 9999)

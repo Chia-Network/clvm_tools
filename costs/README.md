@@ -114,8 +114,8 @@ The model used to ascribe costs to operations breaks down to:
 
 The tests for operators that take an arbitrary number of arguments are tested in two forms:
 
-1. adding an increasing number of arguments. e.g. `(+ (q 1) (q 2) (q 3) ...)`
-2. nesting an increasing number of calls, with additional arguments. e.g. `(+ (q 1) (+ (q 2) (+ (q 3) ...)))`
+1. adding an increasing number of arguments. e.g. `(+ (quote 1) (quote 2) (quote 3) ...)`
+2. nesting an increasing number of calls, with additional arguments. e.g. `(+ (quote 1) (+ (quote 2) (+ (quote 3) ...)))`
 
 The additional time (2) takes over (1) represents the cost to produce a value
 and read one input. Since in (1), producing the result is amortized over all

@@ -1,2 +1,2 @@
-brun -s2 '(opt (com ((c (com (q (list + 15 20))) 1))))'
-(q 35)
+brun -s2 '(opt (com ((c (com (quote (list + 15 20))) 1))))'
+(quote 35)

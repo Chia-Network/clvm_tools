@@ -1,2 +1,2 @@
-brun -s2 '(opt (q ((c (q 1) 1))))'
+brun -s2 '(opt (quote ((c (quote 1) 1))))'
 1

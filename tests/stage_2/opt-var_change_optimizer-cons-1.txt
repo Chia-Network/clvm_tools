@@ -1,2 +1,2 @@
-brun -s2 '(opt (q ((c (q (+ (r (f (a))) (f (f (a))))) (c (q (75 . 99)) (a))))))'
-(q 174)
+brun -s2 '(opt (quote ((c (quote (+ (r (f (a))) (f (f (a))))) (c (quote (75 . 99)) (a))))))'
+(quote 174)

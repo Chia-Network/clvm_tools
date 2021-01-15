@@ -9,7 +9,7 @@ brun = run = binutils.assemble("((c (f 1) (r 1)))")
 def run_program(
     program,
     args,
-    quote_kw=KEYWORD_TO_ATOM["q"],
+    quote_kw=KEYWORD_TO_ATOM["quote"],
     apply_kw=KEYWORD_TO_ATOM["a"],
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,

@@ -1,2 +1,2 @@
 run '(compile (if 0 100 200))'
-(e (i (q 0) (q (q 100)) (q (q 200))) (a))
+(e (i (quote 0) (quote (quote 100)) (quote (quote 200))) (a))

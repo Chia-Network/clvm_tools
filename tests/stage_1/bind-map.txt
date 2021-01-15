@@ -1,2 +1,2 @@
-run -s 1 "(bind (q ((map ((c (i (f (r 1))(q (c ((c (f 1) (c (f (f (r 1))) (q ())))) (map (f 1) (r (f (r 1)))))) (q (q ()))) 1) )))) (q (map (q (+ (q 1) (f 1))) (q (50 60 70 80)))) 1)"
+run -s 1 "(bind (quote ((map ((c (i (f (r 1))(quote (c ((c (f 1) (c (f (f (r 1))) (quote ())))) (map (f 1) (r (f (r 1)))))) (quote (quote ()))) 1) )))) (quote (map (quote (+ (quote 1) (f 1))) (quote (50 60 70 80)))) 1)"
 (51 61 71 81)

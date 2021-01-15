@@ -1,2 +1,2 @@
 run -s2 '(mod noargs (defun map (func items) (if items (c ((c func (list (f items)))) (map func (r items))) ()) ) (map (lambda (VAL) (+ VAL 1)) (list 100 200 300)))'
-(q (101 201 301))
+(quote (101 201 301))

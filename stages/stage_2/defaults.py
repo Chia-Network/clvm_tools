@@ -10,11 +10,11 @@ program to indicate we want this program literal to be
 compiled and quoted, so it can be passed as an argument
 to a compiled clvm program.
 
-EG: (function (+ 20 @)) should return (+ (q 20) 1) when run.
-Thus (opt (com (q (function (+ 20 @)))))
-should return (q (+ (q 20) 1))
+EG: (function (+ 20 @)) should return (+ (quote 20) 1) when run.
+Thus (opt (com (quote (function (+ 20 @)))))
+should return (quote (+ (quote 20) 1))
 
-(function PROG) => (opt (com (q PROG) (q MACROS)))
+(function PROG) => (opt (com (quote PROG) (quote MACROS)))
 
 We have to use "opt" as (com PROG) might leave
 some partial "com" operators in there and our
@@ -28,14 +28,14 @@ DEFAULT_MACROS_SRC = [
     ;(defmacro defmacro (name params body)
     ;    (qq (list (unquote name) (mod (unquote params) (unquote body))))
     ;)
-    (q ("defmacro"
-       (c (q "list")
+    (quote ("defmacro"
+       (c (quote "list")
           (c (f 1)
-             (c (c (q "mod")
+             (c (c (quote "mod")
                    (c (f (r 1))
                       (c (f (r (r 1)))
-                         (q ()))))
-                (q ()))))))
+                         (quote ()))))
+                (quote ()))))))
     """,
     """
     ;(defmacro list ARGS
@@ -51,22 +51,22 @@ DEFAULT_MACROS_SRC = [
     ;        ARGS
     ;    ))
     ;)
-    (q (list
-        ((c (q ((c (f 1) (c (f 1) (c (r 1) (q ()))))))
-            (c (q ((c (i (f (r 1))
-                         (q (c (q #c)
+    (quote (list
+        ((c (quote ((c (f 1) (c (f 1) (c (r 1) (quote ()))))))
+            (c (quote ((c (i (f (r 1))
+                         (quote (c (quote #c)
                                (c (f (f (r 1)))
                                   (c ((c (f 1)
                                          (c (f 1)
                                             (c (r (f (r 1)))
-                                               (q ())))))
-                                     (q ())))))
-                         (q (q ()))) 1)))
+                                               (quote ())))))
+                                     (quote ())))))
+                         (quote (quote ()))) 1)))
                1)))))
     """,
     """
     (defmacro function (BODY)
-        (qq (opt (com (q (unquote BODY))
+        (qq (opt (com (quote (unquote BODY))
                  (qq (unquote (macros)))
                  (qq (unquote (symbols)))))))""",
     """

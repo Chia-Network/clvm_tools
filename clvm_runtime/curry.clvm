@@ -7,7 +7,7 @@
   ;; (curry add2 15) ; this yields a function that accepts ONE argument, and adds 15 to it
 
   ; (curry_args sum (list 50 60)) => returns a function that is like (sum 50 60 ...)
-  (defun curry_args (func list_of_args) (qq ((c (q (unquote func)) (unquote (fix_curry_args list_of_args (q 1)))))))
+  (defun curry_args (func list_of_args) (qq ((c (quote (unquote func)) (unquote (fix_curry_args list_of_args (quote 1)))))))
 
   ;; (curry sum 50 60) => returns a function that is like (sum 50 60 ...)
   (defun curry (func . args) (curry_args func args))
@@ -15,7 +15,7 @@
   ;; utility function used by `curry_args`
   (defun fix_curry_args (items core)
     (if items
-        (qq (c (q (unquote (f items))) (unquote (fix_curry_args (r items) core))))
+        (qq (c (quote (unquote (f items))) (unquote (fix_curry_args (r items) core))))
         core
     )
   )
@@ -28,7 +28,7 @@
   ;; currying the core muliple times.
 
   ;; run -i . '(mod (X) (defun add2 (A B) (+ A B)) (include curry.clvm) (include sha256tree.clvm) (curry_sha add2 0x29066ef6b3c159c7c65e47f13609682752588565fa0e86846e3ae63a28f24716 15) )'
-  ;; (q (((c (q (+ 5 11)) (c (q 15) 1))) . 0x16686638d91ec9eea115335ddd52f1f78640f8a504c0caff1f07499a71de6b4d))
+  ;; (quote (((c (quote (+ 5 11)) (c (quote 15) 1))) . 0x16686638d91ec9eea115335ddd52f1f78640f8a504c0caff1f07499a71de6b4d))
 
   (defun curry_sha_args (func func_hash args)
     (c (curry_args func args) (sha256tree_esc (curry_args func_hash args) func_hash))

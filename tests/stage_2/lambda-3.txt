@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q (lambda (A B C) (list A B C (list C))))))'
-(q (c 2 (c 5 (c 11 (c (c 11 (q ())) (q ()))))))
+brun -s2 '(opt (com (quote (lambda (A B C) (list A B C (list C))))))'
+(quote (c 2 (c 5 (c 11 (c (c 11 (quote ())) (quote ()))))))

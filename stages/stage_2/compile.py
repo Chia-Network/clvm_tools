@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm import QUOTE_ATOM, KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
 from clvm_tools.NodePath import LEFT, TOP
 
@@ -7,7 +7,6 @@ from .helpers import brun, eval, quote
 from .mod import compile_mod
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 
@@ -17,7 +16,7 @@ for _ in "com opt".split():
 
 def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
     """
-    (qq ATOM) => (q ATOM)
+    (qq ATOM) => (quote ATOM)
     (qq (unquote X)) => X
     (qq (a . B)) => (c (qq a) (qq B))
     """
@@ -27,7 +26,7 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
 
     sexp = args.first()
     if not sexp.listp() or sexp.nullp():
-        # (qq ATOM) => (q ATOM)
+        # (qq ATOM) => (quote ATOM)
         return sexp.to(quote(sexp))
 
     if sexp.listp() and not sexp.first().listp():
@@ -75,10 +74,10 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    ((c (com (q PROG) (MACROS)) ARGS)) == ((c (q PROG_EXP) ARGS))
+    ((c (com (quote PROG) (MACROS)) ARGS)) == ((c (quote PROG_EXP) ARGS))
     for all ARGS.
 
-    Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
+    Also, (opt (com (quote PROG) (MACROS))) == (opt (com (quote PROG_EXP) (MACROS)))
     """
 
     # quote atoms
@@ -95,7 +94,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
+        # (com ((OP) . RIGHT)) => ((c (com (quote OP)) 1))
         inner_exp = eval(prog.to([b"com",
             quote(operator), quote(macro_lookup), quote(symbol_table)]), TOP.as_path())
         return prog.to([inner_exp])

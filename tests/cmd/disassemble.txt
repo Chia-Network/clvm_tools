@@ -1,2 +1,2 @@
-brun '(q (1 2 3))'
-(q 2 3)
+brun '(quote (1 2 3))'
+(quote 2 3)

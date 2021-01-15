@@ -1,2 +1,2 @@
 run -i clvm_runtime '(mod (A . B) (include "macros.clvm") (or (= 1 A) (= 2 B)))'
-((c (i (= (q 1) 2) (q (q 1)) (q ((c (i (= (q 2) 3) (q (q 1)) (q (q ()))) 1)))) 1))
+((c (i (= (quote 1) 2) (quote (quote 1)) (quote ((c (i (= (quote 2) 3) (quote (quote 1)) (quote (quote ()))) 1)))) 1))

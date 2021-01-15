@@ -1,2 +1,2 @@
-brun -s2 '(com (q hello) (q ()) (q ((hello 2000))))'
+brun -s2 '(com (quote hello) (quote ()) (quote ((hello 2000))))'
 2000
