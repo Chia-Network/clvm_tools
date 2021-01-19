@@ -62,12 +62,15 @@ def opd(args=sys.argv):
         description='Disassemble a compiled clvm script.'
     )
     parser.add_argument(
-        "script", nargs="+", type=bytes.fromhex,
+        "script", nargs="+", type=str,
         help="hex version of clvm script")
+
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
-        sexp = sexp_from_stream(io.BytesIO(blob), to_sexp_f)
+        if blob == "-":
+            blob = sys.stdin.read()
+        sexp = sexp_from_stream(io.BytesIO(bytes.fromhex(blob)), to_sexp_f)
         print(binutils.disassemble(sexp))
 
 
