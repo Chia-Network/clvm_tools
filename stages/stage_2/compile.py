@@ -64,6 +64,22 @@ COMPILE_BINDINGS = {
 }
 
 
+# Transform "quote" to "q" everywhere. Not qq sensitive.
+# Overrides symbol table defns.
+def lower_quote(prog, macro_lookup=None, symbol_table=None, run_program=None):
+    if prog.nullp():
+        return prog
+
+    if not prog.listp():
+        atom = prog.as_atom()
+        if atom == b"quote":
+            return prog.to(QUOTE_ATOM)
+        else:
+            return prog
+    else:
+        return prog.to((lower_quote(prog.first()), lower_quote(prog.rest())))
+
+
 def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     """
     Turn the given program `prog` into a clvm program using
@@ -79,6 +95,9 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
 
     Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
     """
+
+    # lower "quote" to "q"
+    prog = lower_quote(prog, macro_lookup, symbol_table, run_program)
 
     # quote atoms
     if prog.nullp() or not prog.listp():
