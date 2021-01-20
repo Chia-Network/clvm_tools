@@ -27,7 +27,7 @@ def test_writer_1():
 
     do_test('(100 0x0100)')
 
-    do_test('(c (q 100) (c (q "foo") (q ())))')
+    do_test('(c (quote 100) (c (quote "foo") (quote ())))')
 
     do_test('(c . foo)')
 
