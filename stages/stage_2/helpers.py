@@ -20,9 +20,9 @@ def run(prog, macro_lookup):
     function.
     """
     args = TOP.as_path()
-    mac = [QUOTE_ATOM, macro_lookup]
+    mac = quote(macro_lookup)
     return eval(prog.to([b"com", prog, mac]), args)
 
 
 def brun(prog, args):
-    return eval(prog.to([QUOTE_ATOM, prog]), [QUOTE_ATOM, args])
+    return eval(prog.to(quote(prog)), quote(args))
