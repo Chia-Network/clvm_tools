@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm import QUOTE_ATOM, KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
 from clvm_tools.NodePath import LEFT, TOP
 
@@ -7,7 +7,6 @@ from .helpers import brun, eval, quote
 from .mod import compile_mod
 
 CONS_KW = KEYWORD_TO_ATOM["c"]
-QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 

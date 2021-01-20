@@ -1,5 +1,5 @@
 from clvm import run_program as default_run_program  # noqa
-from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP  # noqa
+from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP, QUOTE_ATOM  # noqa
 
 from clvm_tools import binutils
 
@@ -9,7 +9,7 @@ brun = run = binutils.assemble("((c (f 1) (r 1)))")
 def run_program(
     program,
     args,
-    quote_kw=KEYWORD_TO_ATOM["q"],
+    quote_kw=QUOTE_ATOM,
     apply_kw=KEYWORD_TO_ATOM["a"],
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
