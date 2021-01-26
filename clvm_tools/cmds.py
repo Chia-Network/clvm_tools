@@ -102,6 +102,9 @@ def launch_tool(args, tool_name, default_stage=0):
         description='Execute a clvm script.'
     )
     parser.add_argument(
+        "-x", "--hex", action="store_true",
+        help="Read program and environment as hexadecimal bytecode")
+    parser.add_argument(
         "-s", "--stage", type=stage_import,
         help="stage number to include", default=stage_import(default_stage))
     parser.add_argument(
@@ -136,10 +139,11 @@ def launch_tool(args, tool_name, default_stage=0):
     )
     parser.add_argument(
         "path_or_code", type=path_or_code,
-        help="path to clvm script, or literal script")
+        help="filepath to clvm script, or a literal script")
+
     parser.add_argument(
-        "args", type=reader.read_ir, help="arguments", nargs="?",
-        default=reader.read_ir("()"))
+        "env", nargs="?", type=str,
+        help="clvm script environment, as clvm src, or hex")
 
     args = parser.parse_args(args=args[1:])
 
@@ -150,9 +154,12 @@ def launch_tool(args, tool_name, default_stage=0):
     else:
         run_program = args.stage.run_program
 
-    src_text = args.path_or_code
-    src_sexp = reader.read_ir(src_text)
-    assembled_sexp = binutils.assemble_from_ir(src_sexp)
+    if args.hex:
+        assembled_sexp = sexp_from_stream(io.BytesIO(bytes.fromhex(args.path_or_code)), to_sexp_f)
+    else:
+        src_text = args.path_or_code
+        src_sexp = reader.read_ir(src_text)
+        assembled_sexp = binutils.assemble_from_ir(src_sexp)
 
     pre_eval_f = None
     symbol_table = None
@@ -172,18 +179,32 @@ def launch_tool(args, tool_name, default_stage=0):
     try:
         output = "(didn't finish)"
         time_start = time.perf_counter()
-        env = binutils.assemble_from_ir(args.args)
-        time_assemble = time.perf_counter()
+        if args.hex:
+            if not args.env:
+                args.env = "80"
+            env = sexp_from_stream(io.BytesIO(bytes.fromhex(args.env)), to_sexp_f)
+            time_read_hex = time.perf_counter()
+        else:
+            if not args.env:
+                args.env = "()"
+            env_ir = reader.read_ir(args.env)
+            env = binutils.assemble_from_ir(env_ir)
+            time_assemble = time.perf_counter()
+
         input_sexp = to_sexp_f((assembled_sexp, env))
         time_parse_input = time.perf_counter()
         cost, result = run_program(
             run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
         time_done = time.perf_counter()
+
         if args.cost:
             print("cost = %d" % cost)
         if args.time:
-            print('assemble_from_ir: %f' % (time_assemble - time_start))
-            print('to_sexp_f: %f' % (time_parse_input - time_assemble))
+            if args.hex:
+                print('read_hex: %f' % (time_read_hex - time_start))
+            else:
+                print('assemble_from_ir: %f' % (time_assemble - time_start))
+                print('to_sexp_f: %f' % (time_parse_input - time_assemble))
             print('run_program: %f' % (time_done - time_parse_input))
         if args.dump:
             blob = as_bin(lambda f: sexp_to_stream(result, f))
@@ -197,7 +218,10 @@ def launch_tool(args, tool_name, default_stage=0):
         output = "FAIL: %s %s" % (ex, binutils.disassemble(result, keywords))
         return -1
     except Exception as ex:
-        result = src_sexp
+        if args.hex:
+            result = assembled_sexp
+        else:
+            result = src_sexp
         output = str(ex)
         raise
     finally:
