@@ -6,7 +6,7 @@ with open("README.md", "rt") as fh:
     long_description = fh.read()
 
 dependencies = [
-    "clvm>=0.7",
+    "clvm@git+https://github.com/Chia-Network/clvm.git@ba9faee065a0579e8e80c610867032a3598c57b6#egg=clvm",  # no    qa
 ]
 
 setup(
