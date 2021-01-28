@@ -142,7 +142,7 @@ def launch_tool(args, tool_name, default_stage=0):
         help="filepath to clvm script, or a literal script")
 
     parser.add_argument(
-        "env", nargs="?", type=str,
+        "env", nargs="?", type=path_or_code,
         help="clvm script environment, as clvm src, or hex")
 
     args = parser.parse_args(args=args[1:])
