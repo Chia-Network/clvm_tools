@@ -64,9 +64,6 @@ Note that the `1` is not quoted. The compiler recognizes and auto-quotes constan
     $ brun 15
     FAIL: not a list 15
 
-** WARNING ** You might actually mean `(a)` when you write `1` (or `(f (a))` for `2`, etc.), but `run` will never interpret it that way. Use `(a)`.
-
-
 ## Known operators
 
 Besides `mod` and `defun`, the compiler has a few more built-in operators:
@@ -83,6 +80,8 @@ This is easier for humans to read, and calling `(f @)` will be compiled to 2, et
     $ run '(mod ARGS (f (r @)))'
     5
 ```
+
+You generally won't need to use `@`; it's better to use `mod` and named arguments.
 
 
 ### (if)
@@ -170,4 +169,4 @@ This produces
 
 `((c (i (= (+ 2 5) (q 10)) (q (q "the sum is 10")) (q (q "the sum is not 10"))) 1))`
 
-which is not much code, for how much source there is. This also demonstrates the general notion that macros (and inline functions)cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.
+which is not much code, for how much source there is. This also demonstrates the general notion that macros (and inline functions) cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.
