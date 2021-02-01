@@ -232,7 +232,7 @@ print_files(lambda n, vs: generate_op_list(n, 'pubkey_for_exp', vs, 'pubkey', ar
 print_files(lambda n, vs: generate_lookup(n))
 print_files(lambda n, vs: generate_lookup_op_list(n))
 
-print_files(lambda n, vs: generate_op_list(n, 'strlen', vs, 'strlen'))
+print_files(lambda n, vs: generate_op_list(n, 'strlen', vs, 'strlen', arity=1))
 
 print_files(lambda n, vs: generate_op_list(n, '*', vs, 'mul'))
 print_files(lambda n, vs: generate_nested_1(n, '*', vs, 'mul'))
