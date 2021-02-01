@@ -13,7 +13,7 @@ for fn in glob.glob('mixed-programs/*.clvm'):
     # the filename is expected to be in the form:
     # name "-" value_size "-" num_calls
     env = open(fn[:-4] + 'env').read()
-    output = subprocess.check_output(['brun', '-c', '--quiet', '--time', fn, env])
+    output = subprocess.check_output(['brun', '--backend=rust', '-c', '--quiet', '--time', fn, env])
     output = output.decode('ascii').split('\n', 5)[:-1]
 
     counters = {}
