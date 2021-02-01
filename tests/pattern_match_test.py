@@ -19,17 +19,25 @@ def test_pattern_match():
     r = match(assemble("(: . size)"), assemble("(I like cheese)"))
     assert r == {"size": assemble("(I like cheese)")}
 
-    r = match(assemble("(= (f (r (a))) ($ . pubkey))"), assemble("(= (f (r (a))) 50000)"))
+    r = match(
+        assemble("(= (f (r (a))) ($ . pubkey))"), assemble("(= (f (r (a))) 50000)")
+    )
     assert r == {"pubkey": assemble("50000")}
 
-    r = match(assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey2))"),
-              assemble("(= (f (r (a))) 50000 60000)"))
+    r = match(
+        assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey2))"),
+        assemble("(= (f (r (a))) 50000 60000)"),
+    )
     assert r == {"pubkey1": assemble("50000"), "pubkey2": assemble("60000")}
 
-    r = match(assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey1))"),
-              assemble("(= (f (r (a))) 50000 60000)"))
+    r = match(
+        assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey1))"),
+        assemble("(= (f (r (a))) 50000 60000)"),
+    )
     assert r is None
 
-    r = match(assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey1))"),
-              assemble("(= (f (r (a))) 50000 50000)"))
+    r = match(
+        assemble("(= (f (r (a))) ($ . pubkey1) ($ . pubkey1))"),
+        assemble("(= (f (r (a))) 50000 50000)"),
+    )
     assert r == {"pubkey1": assemble("50000")}

@@ -135,6 +135,7 @@ def var_change_optimizer_cons_eval(r, eval):
 
     new_eval_sexp_args = sub_args(original_call, original_args)
 
+    # Do not iterate into a quoted value as if it were a list
     if seems_constant(new_eval_sexp_args):
         new_operands = new_eval_sexp_args
         opt_operands = optimize_sexp(new_operands, eval)
