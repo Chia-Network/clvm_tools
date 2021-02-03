@@ -1,5 +1,6 @@
 from clvm import run_program as default_run_program  # noqa
 from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP, QUOTE_ATOM  # noqa
+from clvm.EvalError import EvalError
 
 from clvm_tools import binutils
 
@@ -14,7 +15,13 @@ def run_program(
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
     pre_eval_f=None,
+    strict=False,
 ):
+    if strict:
+        def fatal_error(op, arguments):
+            raise EvalError("unimplemented operator", arguments.to(op))
+        operator_lookup.set_unknown_op_handler(fatal_error)
+
     return default_run_program(
         program,
         args,
