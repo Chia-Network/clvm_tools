@@ -107,6 +107,9 @@ def launch_tool(args, tool_name, default_stage=0):
         description='Execute a clvm script.'
     )
     parser.add_argument(
+        "--strict", action="store_true",
+        help="Unknown opcodes are always fatal errors in strict mode")
+    parser.add_argument(
         "-x", "--hex", action="store_true",
         help="Read program and environment as hexadecimal bytecode")
     parser.add_argument(
@@ -210,7 +213,7 @@ def launch_tool(args, tool_name, default_stage=0):
         else:
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f)
+                run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
             time_done = time.perf_counter()
         if args.cost:
             print("cost = %d" % cost)
