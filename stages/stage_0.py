@@ -1,5 +1,5 @@
 from clvm import run_program as default_run_program  # noqa
-from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP, QUOTE_ATOM, OperatorDict  # noqa
+from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP, OperatorDict
 from clvm.EvalError import EvalError
 
 from clvm_tools import binutils
@@ -10,8 +10,6 @@ brun = run = binutils.assemble("((c (f 1) (r 1)))")
 def run_program(
     program,
     args,
-    quote_kw=QUOTE_ATOM,
-    apply_kw=KEYWORD_TO_ATOM["a"],
     operator_lookup=OPERATOR_LOOKUP,
     max_cost=None,
     pre_eval_f=None,
@@ -20,15 +18,11 @@ def run_program(
     if strict:
         def fatal_error(op, arguments):
             raise EvalError("unimplemented operator", arguments.to(op))
-        # copy on write
-        operator_lookup = OperatorDict(operator_lookup)
-        operator_lookup.set_unknown_op_handler(fatal_error)
+        operator_lookup = OperatorDict(operator_lookup, unknown_op_handler=fatal_error)
 
     return default_run_program(
         program,
         args,
-        quote_kw,
-        apply_kw,
         operator_lookup,
         max_cost,
         pre_eval_f=pre_eval_f,
