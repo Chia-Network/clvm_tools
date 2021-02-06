@@ -18,7 +18,7 @@ from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 
 try:
-    from clvm_rs import serialize_and_run_program
+    from clvm_rs import serialize_and_run_program, STRICT_MODE
 except ImportError:
     serialize_and_run_program = None
 
@@ -212,7 +212,7 @@ def launch_tool(args, tool_name, default_stage=0):
             run_script = run_script.as_bin()
             time_parse_input = time.perf_counter()
             cost, result = serialize_and_run_program(
-                run_script, input_serialized, 1, 3, args.max_cost)
+                run_script, input_serialized, 1, 3, args.max_cost, STRICT_MODE if args.strict else 0)
             time_done = time.perf_counter()
             result = sexp_from_stream(io.BytesIO(result), to_sexp_f)
         else:
