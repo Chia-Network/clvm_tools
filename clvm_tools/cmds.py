@@ -163,12 +163,29 @@ def launch_tool(args, tool_name, default_stage=0):
     else:
         run_program = args.stage.run_program
 
+    input_serialized = None
+    input_sexp = None
+
+    time_start = time.perf_counter()
     if args.hex:
-        assembled_sexp = sexp_from_stream(io.BytesIO(bytes.fromhex(args.path_or_code)), to_sexp_f)
+        assembled_serialized = bytes.fromhex(args.path_or_code)
+        if not args.env:
+            args.env = "80"
+        env_serialized = bytes.fromhex(args.env)
+        time_read_hex = time.perf_counter()
+
+        input_serialized = b"\xff" + assembled_serialized + env_serialized
     else:
         src_text = args.path_or_code
         src_sexp = reader.read_ir(src_text)
         assembled_sexp = binutils.assemble_from_ir(src_sexp)
+        if not args.env:
+            args.env = "()"
+        env_ir = reader.read_ir(args.env)
+        env = binutils.assemble_from_ir(env_ir)
+        time_assemble = time.perf_counter()
+
+        input_sexp = to_sexp_f((assembled_sexp, env))
 
     pre_eval_f = None
     symbol_table = None
@@ -187,30 +204,21 @@ def launch_tool(args, tool_name, default_stage=0):
     cost = 0
     try:
         output = "(didn't finish)"
-        time_start = time.perf_counter()
-        if args.hex:
-            if not args.env:
-                args.env = "80"
-            env = sexp_from_stream(io.BytesIO(bytes.fromhex(args.env)), to_sexp_f)
-            time_read_hex = time.perf_counter()
-        else:
-            if not args.env:
-                args.env = "()"
-            env_ir = reader.read_ir(args.env)
-            env = binutils.assemble_from_ir(env_ir)
-            time_assemble = time.perf_counter()
-
-        input_sexp = to_sexp_f((assembled_sexp, env))
 
         if args.backend == "rust" or (serialize_and_run_program and args.backend != "python"):
+            if input_serialized == None:
+                input_serialized = input_sexp.as_bin()
+
             run_script = run_script.as_bin()
-            input_sexp = input_sexp.as_bin()
             time_parse_input = time.perf_counter()
             cost, result = serialize_and_run_program(
-                run_script, input_sexp, 1, 3, args.max_cost)
+                run_script, input_serialized, 1, 3, args.max_cost)
             time_done = time.perf_counter()
             result = sexp_from_stream(io.BytesIO(result), to_sexp_f)
         else:
+            if input_sexp == None:
+                input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
+
             time_parse_input = time.perf_counter()
             cost, result = run_program(
                 run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
