@@ -1,5 +1,5 @@
 from clvm import run_program as default_run_program  # noqa
-from clvm.operators import KEYWORD_TO_ATOM, OPERATOR_LOOKUP, OperatorDict
+from clvm.operators import OPERATOR_LOOKUP, OperatorDict
 from clvm.EvalError import EvalError
 
 from clvm_tools import binutils
