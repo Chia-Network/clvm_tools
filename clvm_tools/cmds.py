@@ -205,7 +205,8 @@ def launch_tool(args, tool_name, default_stage=0):
     try:
         output = "(didn't finish)"
 
-        if args.backend == "rust" or (serialize_and_run_program and args.backend != "python"):
+        use_rust = (tool_name != "run") and not args.table and not args.stage and (args.backend == "rust" or (serialize_and_run_program and args.backend != "python"))
+        if use_rust:
             if input_serialized == None:
                 input_serialized = input_sexp.as_bin()
 
