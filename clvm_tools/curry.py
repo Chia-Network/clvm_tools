@@ -1,6 +1,3 @@
-from clvm import KEYWORD_TO_ATOM
-from clvm.operators import OPERATOR_LOOKUP
-
 from clvm_tools.binutils import assemble
 
 from stages.stage_0 import run_program

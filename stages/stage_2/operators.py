@@ -19,7 +19,7 @@ from .optimize import make_do_opt
 
 
 def do_read(args):
-    filename = args.first().as_atom().decode()
+    filename = args.first().as_atom()
     s = open(filename).read()
     ir_sexp = args.to(read_ir(s))
     sexp = assemble_from_ir(ir_sexp)
@@ -27,7 +27,7 @@ def do_read(args):
 
 
 def do_write(args):
-    filename = args.first().as_atom().decode()
+    filename = args.first().as_atom()
     data = args.rest().first()
     with open(filename, "w") as f:
         write_ir_to_stream(disassemble_to_ir(data), f)
@@ -37,9 +37,9 @@ def do_write(args):
 def run_program_for_search_paths(search_paths):
 
     def do_full_path_for_name(args):
-        filename = args.first().as_atom().decode()
+        filename = args.first().as_atom()
         for path in search_paths:
-            f_path = pathlib.Path(path) / filename
+            f_path = pathlib.Path(path) / bytes(filename).decode()
             if f_path.is_file():
                 return 1, args.to(str(f_path).encode())
         raise EvalError("can't open %s" % filename, args)

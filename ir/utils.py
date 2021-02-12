@@ -73,7 +73,7 @@ def ir_is_atom(ir_sexp):
 
 
 def ir_as_atom(ir_sexp):
-    return ir_sexp.rest().as_atom()
+    return bytes(ir_sexp.rest().as_atom())
 
 
 def ir_first(ir_sexp):
@@ -90,7 +90,7 @@ def ir_symbol(symbol):
 
 def ir_as_symbol(ir_sexp):
     if ir_sexp.listp() and ir_type(ir_sexp) == Type.SYMBOL:
-        return ir_as_sexp(ir_sexp).as_atom().decode("utf8")
+        return bytes(ir_as_sexp(ir_sexp).as_atom()).decode("utf8")
 
 
 def ir_iter(ir_sexp):
