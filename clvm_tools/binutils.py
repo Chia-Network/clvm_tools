@@ -46,7 +46,7 @@ def assemble_from_ir(ir_sexp):
 def type_for_atom(atom) -> Type:
     if len(atom) > 2:
         try:
-            v = atom.decode("utf8")
+            v = bytes(atom).decode("utf8")
             if all(c in string.printable for c in v):
                 return Type.QUOTES
         except UnicodeDecodeError:

@@ -7,7 +7,7 @@ def unify_bindings(bindings, new_key, new_value):
     Try to add a new binding to the list, rejecting it if it conflicts
     with an existing binding.
     """
-    new_key = new_key.decode()
+    new_key = bytes(new_key).decode()
     if new_key in bindings:
         if bindings[new_key] != new_value:
             return None
