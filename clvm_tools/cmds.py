@@ -7,10 +7,10 @@ import pathlib
 import sys
 import time
 
-from clvm import to_sexp_f
+from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
-from clvm import KEYWORD_FROM_ATOM
+from clvm.operators import OP_REWRITE
 
 from ir import reader
 
@@ -18,9 +18,22 @@ from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 
 try:
-    from clvm_rs import serialize_and_run_program, STRICT_MODE
+    from clvm_rs import deserialize_and_run_program, STRICT_MODE
+
 except ImportError:
-    serialize_and_run_program = None
+    try:
+        from clvm_rs import serialize_and_run_program, STRICT_MODE
+
+        def deserialize_and_run_program(
+            program, args, quote_kw, apply_kw, native_opcodes_by_name, max_cost, flags
+        ):
+            return serialize_and_run_program(
+                program, args, quote_kw, apply_kw, max_cost, flags
+            )
+
+    except ImportError:
+        deserialize_and_run_program = None
+
 
 def path_or_code(arg):
     try:
@@ -207,15 +220,38 @@ def launch_tool(args, tool_name, default_stage=0):
     try:
         output = "(didn't finish)"
 
-        use_rust = (tool_name != "run") and not args.table and not args.stage and (args.backend == "rust" or (serialize_and_run_program and args.backend != "python"))
+        use_rust = (
+            (tool_name != "run")
+            and not pre_eval_f
+            and (
+                args.backend == "rust"
+                or (deserialize_and_run_program and args.backend != "python")
+            )
+        )
         if use_rust:
             if input_serialized == None:
                 input_serialized = input_sexp.as_bin()
 
             run_script = run_script.as_bin()
             time_parse_input = time.perf_counter()
-            cost, result = serialize_and_run_program(
-                run_script, input_serialized, 1, 3, args.max_cost, STRICT_MODE if args.strict else 0)
+
+            # build the opcode look-up table
+            # this should eventually be subsumed by "Dialect" api
+
+            native_opcode_names_by_opcode = dict(
+                ("op_%s" % OP_REWRITE.get(k, k), op)
+                for op, k in KEYWORD_FROM_ATOM.items()
+                if k not in "qa."
+            )
+            cost, result = deserialize_and_run_program(
+                run_script,
+                input_serialized,
+                KEYWORD_TO_ATOM["q"][0],
+                KEYWORD_TO_ATOM["a"][0],
+                native_opcode_names_by_opcode,
+                args.max_cost,
+                STRICT_MODE if args.strict else 0,
+            )
             time_done = time.perf_counter()
             result = sexp_from_stream(io.BytesIO(result), to_sexp_f)
         else:
