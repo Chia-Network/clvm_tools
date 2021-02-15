@@ -47,6 +47,7 @@ def opc(args=sys.argv):
         "path_or_code", nargs="*", type=path_or_code,
         help="path to clvm script, or literal script")
 
+    sys.setrecursionlimit(20000)
     args = parser.parse_args(args=args[1:])
 
     for text in args.path_or_code:
@@ -70,6 +71,7 @@ def opd(args=sys.argv):
         "script", nargs="+", type=str,
         help="hex version of clvm script")
 
+    sys.setrecursionlimit(20000)
     args = parser.parse_args(args=args[1:])
 
     for blob in args.script:
