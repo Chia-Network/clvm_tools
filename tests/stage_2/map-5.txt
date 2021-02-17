@@ -1,2 +1,2 @@
 run -s2 '(mod (ARGS) (defun add1 (VAL) (+ 1 VAL)) (defun map (func items) (if items (c (func (f items)) (map func (r items))) ())) (map add1 ARGS))'
-((c (q (c 6 (c 2 (c 4 (c 5 (q)))))) (c (q (+ (q . 1) 5) (c (i 11 (q 5 ((c 5 (c 2 (c 19 (q))))) ((c 6 (c 2 (c 5 (c 27 (q))))))) (q 1)) 1)) 1)))
+((c (q (c 6 (c 2 (c 4 (c 5 (q)))))) (c (q (+ (q . 1) 5) (c (i 11 (q 4 ((c 5 (c 2 (c 19 (q))))) ((c 6 (c 2 (c 5 (c 27 (q))))))) (q 1)) 1)) 1)))
