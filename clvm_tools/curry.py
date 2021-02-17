@@ -8,10 +8,12 @@ from .pattern_match import match
 # CURRY_OBJ_CODE contains compiled code from the output of the following:
 # run -i clvm_runtime '(mod (F . args) (include curry.clvm) (curry_args F args))'
 
+# the text below has been hand-optimized to replace `((c (q X) Y))` with `(a (q X) Y)`
+# and `(q 0)` with `0`
 
 CURRY_OBJ_CODE = assemble(
     """
-((c (q (c 4 (c 2 (c 5 (c 7 (q)))))) (c (q (c (c (q . 5) (c (c (q . 1) 5) (c ((c 6 (c 2 (c 11 (q 1))))) (q)))) (q)) (c (i 5 (q 5 (q . 5) (c (c (q . 1) 9) (c ((c 6 (c 2 (c 13 (c 11 (q)))))) (q)))) (q . 11)) 1)) 1)))
+(a (q (c 4 (c 2 (c 5 (c 7 0))))) (c (q (c (q . 2) (c (c (q . 1) 5) (c (a 6 (c 2 (c 11 (q 1)))) 0))) (c (i 5 (q 4 (q . 4) (c (c (q . 1) 9) (c (a 6 (c 2 (c 13 (c 11 0)))) 0))) (q . 11)) 1)) 1))
     """
 )
 
@@ -33,7 +35,7 @@ def curry(program, args):
     return r
 
 
-UNCURRY_PATTERN_FUNCTION = assemble("((c (q . (: . function)) (: . core)))")
+UNCURRY_PATTERN_FUNCTION = assemble("(a (q . (: . function)) (: . core))")
 UNCURRY_PATTERN_CORE = assemble("(c (q . (: . parm)) (: . core))")
 
 
