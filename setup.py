@@ -6,7 +6,7 @@ with open("README.md", "rt") as fh:
     long_description = fh.read()
 
 dependencies = [
-    "clvm>=0.7",
+    "clvm>=0.8.5",
 ]
 
 setup(
