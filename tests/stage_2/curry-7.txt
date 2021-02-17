@@ -1,2 +1,2 @@
 run -i clvm_runtime '((c (mod (func func_hash . args) (include curry.clvm) (include sha256tree.clvm) (curry_sha_args func func_hash args)) (list (quote (+ 2 5 11)) 0x4efe22f87114f43e4292c0645b6ee567aff727a3aa8f7e5114ba395e6f2b2f7c 10 20)))'
-(((c (q 12 2 5 11) (c (q . 10) (c (q . 20) 1)))) . 0xec751770ff3205f4def98456e77c70a79690c56ffd6e99c86c04e6b5ffe9ddf8)
+((a (q 16 2 5 11) (c (q . 10) (c (q . 20) 1))) . 0x321b787e429f632b3a7a67e8f8fc0660dad2409876af5b80d47f2b2f202cfa6d)

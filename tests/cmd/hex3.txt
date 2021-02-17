@@ -1,2 +1,3 @@
-brun --hex ff0cffff0101ffff010280
+# (+ (q . 1) (q . 2))
+brun --hex ff10ffff0101ffff010280
 3
