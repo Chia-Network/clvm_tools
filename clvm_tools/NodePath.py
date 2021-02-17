@@ -71,7 +71,9 @@ class NodePath:
         self._index = index
 
     def as_short_path(self):
-        return self._index
+        index = self._index
+        byte_count = (index.bit_length() + 7) >> 3
+        return index.to_bytes(byte_count, byteorder="big")
 
     def as_long_path(self):
         r = [ARGS_KW]
