@@ -6,7 +6,7 @@ from clvm_tools.binutils import assemble
 from clvm_tools.NodePath import NodePath, LEFT, RIGHT
 from .helpers import quote
 
-ARGS_KW = KEYWORD_TO_ATOM["a"]
+APPLY_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
@@ -23,8 +23,6 @@ def seems_constant(sexp):
         as_atom = operator.as_atom()
         if as_atom == QUOTE_ATOM:
             return True
-        if as_atom == ARGS_KW:
-            return False
         if as_atom == RAISE_KW:
             return False
     elif not seems_constant(operator):
@@ -100,8 +98,6 @@ def sub_args(sexp, new_args):
         first = sub_args(first, new_args)
     else:
         op = first.as_atom()
-        if op == ARGS_KW:
-            return new_args
 
         if op == QUOTE_ATOM:
             return sexp
