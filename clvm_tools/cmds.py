@@ -49,9 +49,9 @@ def stream_to_bin(write_f):
     return b.getvalue()
 
 
-def opc(args=sys.argv):
+def call_tool(tool_name, desc, conversion, input_args):
     parser = argparse.ArgumentParser(
-        description='Compile a clvm script.'
+        description=desc
     )
     parser.add_argument(
         "-H", "--script_hash", action="store_true",
@@ -61,37 +61,36 @@ def opc(args=sys.argv):
         help="path to clvm script, or literal script")
 
     sys.setrecursionlimit(20000)
-    args = parser.parse_args(args=args[1:])
+    args = parser.parse_args(args=input_args[1:])
 
-    for text in args.path_or_code:
+    for program in args.path_or_code:
+        if program == "-":
+            program = sys.stdin.read()
+        sexp,text = conversion(program)
+        if args.script_hash:
+            compiled_script = sexp.as_bin()
+            print(hashlib.sha256(compiled_script).hexdigest())
+        if text: print(text)
+
+
+def opc(args=sys.argv):
+    def conversion(text):
         try:
             ir_sexp = reader.read_ir(text)
             sexp = binutils.assemble_from_ir(ir_sexp)
         except SyntaxError as ex:
             print("%s" % ex.msg)
-            continue
-        compiled_script = sexp.as_bin()
-        if args.script_hash:
-            print(hashlib.sha256(compiled_script).hexdigest())
-        print(compiled_script.hex())
+            return None, None
+        return sexp, sexp.as_bin().hex()
+
+    call_tool("opc", "Compile a clvm script.", conversion, args)
 
 
 def opd(args=sys.argv):
-    parser = argparse.ArgumentParser(
-        description='Disassemble a compiled clvm script.'
-    )
-    parser.add_argument(
-        "script", nargs="+", type=str,
-        help="hex version of clvm script")
-
-    sys.setrecursionlimit(20000)
-    args = parser.parse_args(args=args[1:])
-
-    for blob in args.script:
-        if blob == "-":
-            blob = sys.stdin.read()
+    def conversion(blob):
         sexp = sexp_from_stream(io.BytesIO(bytes.fromhex(blob)), to_sexp_f)
-        print(binutils.disassemble(sexp))
+        return sexp, binutils.disassemble(sexp)
+    call_tool("opd", "Disassemble a compiled clvm script from hex.", conversion, args)
 
 
 def stage_import(stage):
