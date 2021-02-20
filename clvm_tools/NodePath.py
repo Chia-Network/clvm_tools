@@ -68,6 +68,10 @@ class NodePath:
     """
 
     def __init__(self, index=1):
+        if index < 0:
+            byte_count = (index.bit_length() + 7) >> 3
+            blob = index.to_bytes(byte_count, byteorder="big", signed=True)
+            index = int.from_bytes((b"\0" + blob), byteorder="big", signed=False)
         self._index = index
 
     def as_short_path(self):
