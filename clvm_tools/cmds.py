@@ -1,5 +1,4 @@
 import argparse
-import hashlib
 import importlib
 import io
 import json
@@ -16,6 +15,7 @@ from ir import reader
 
 from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
+from .sha256tree import sha256tree
 
 try:
     from clvm_rs import deserialize_and_run_program, STRICT_MODE
@@ -50,15 +50,16 @@ def stream_to_bin(write_f):
 
 
 def call_tool(tool_name, desc, conversion, input_args):
-    parser = argparse.ArgumentParser(
-        description=desc
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument(
+        "-H", "--script-hash", action="store_true", help="Show sha256 tree hash"
     )
     parser.add_argument(
-        "-H", "--script_hash", action="store_true",
-        help="Show sha256 script hash")
-    parser.add_argument(
-        "path_or_code", nargs="*", type=path_or_code,
-        help="path to clvm script, or literal script")
+        "path_or_code",
+        nargs="*",
+        type=path_or_code,
+        help="path to clvm script, or literal script",
+    )
 
     sys.setrecursionlimit(20000)
     args = parser.parse_args(args=input_args[1:])
@@ -66,11 +67,11 @@ def call_tool(tool_name, desc, conversion, input_args):
     for program in args.path_or_code:
         if program == "-":
             program = sys.stdin.read()
-        sexp,text = conversion(program)
+        sexp, text = conversion(program)
         if args.script_hash:
-            compiled_script = sexp.as_bin()
-            print(hashlib.sha256(compiled_script).hexdigest())
-        if text: print(text)
+            print(sha256tree(sexp).hex())
+        if text:
+            print(text)
 
 
 def opc(args=sys.argv):
