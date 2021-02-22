@@ -234,7 +234,7 @@ def launch_tool(args, tool_name, default_stage=0):
             )
         )
         if use_rust:
-            if input_serialized == None:
+            if input_serialized is None:
                 input_serialized = input_sexp.as_bin()
 
             run_script = run_script.as_bin()
@@ -260,7 +260,7 @@ def launch_tool(args, tool_name, default_stage=0):
             time_done = time.perf_counter()
             result = sexp_from_stream(io.BytesIO(result), to_sexp_f)
         else:
-            if input_sexp == None:
+            if input_sexp is None:
                 input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
 
             time_parse_input = time.perf_counter()
@@ -301,6 +301,7 @@ def launch_tool(args, tool_name, default_stage=0):
             trace_to_text(log_entries, binutils.disassemble, symbol_table)
         if args.table:
             trace_to_table(log_entries, binutils.disassemble, symbol_table)
+
 
 def read_ir(args=sys.argv):
     parser = argparse.ArgumentParser(
