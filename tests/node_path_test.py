@@ -1,6 +1,8 @@
-from clvm.casts import int_from_bytes, int_to_bytes
+from clvm.casts import int_from_bytes
 
 from clvm_tools.NodePath import NodePath, TOP, LEFT, RIGHT
+
+LEFT_RIGHT_LEFT = LEFT + RIGHT + LEFT
 
 
 def reset(n):
@@ -10,8 +12,13 @@ def reset(n):
     return n
 
 
+def cmp_to_bits(n, bits):
+    n_as_int = int(f"0x{n.as_short_path().hex()}", 16)
+    bits_as_int = int(f"0b{bits}", 2)
+    assert n_as_int == bits_as_int
+
+
 def test_node_path():
-    left_right_left = TOP + LEFT + RIGHT + LEFT
     n = TOP
     assert n.as_short_path().hex() == "01"
     n = reset(n)
@@ -37,7 +44,18 @@ def test_node_path():
     assert n.as_short_path().hex() == "c6"
     n = reset(n)
     n += LEFT
-    assert n.as_short_path().hex() == "0146"
+    cmp_to_bits(n, "101000110")
+    n = reset(n)
+    n += LEFT_RIGHT_LEFT
+    cmp_to_bits(n, "101001000110")
+    n = reset(n)
+    n += LEFT_RIGHT_LEFT
+    cmp_to_bits(n, "101001001000110")
+    n = reset(n)
+    n += LEFT_RIGHT_LEFT
+    cmp_to_bits(n, "101001001001000110")
+    n = reset(n)
+    cmp_to_bits(n, "101001001001000110")
 
 
 def test_revive_index():
