@@ -9,6 +9,10 @@ dependencies = [
     "clvm>=0.9.0",
 ]
 
+dev_dependencies = [
+    "pytest",
+]
+
 setup(
     name="clvm_tools",
     packages=["ir", "clvm_tools", "clvm_tools.setuptools", "stages", "stages.stage_2",],
@@ -39,6 +43,7 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Security :: Cryptography",
     ],
+    extras_require=dict(dev=dev_dependencies,),
     project_urls={
         "Bug Reports": "https://github.com/Chia-Network/clvm_tools",
         "Source": "https://github.com/Chia-Network/clvm_tools",
