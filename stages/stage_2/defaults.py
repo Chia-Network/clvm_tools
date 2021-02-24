@@ -52,17 +52,17 @@ DEFAULT_MACROS_SRC = [
     ;    ))
     ;)
     (q . (list
-        ((c (q . ((c (f 1) (c (f 1) (c (r 1) (q . ()))))))
-            (c (q . ((c (i (f (r 1))
+        (a (q . (a (f 1) (c (f 1) (c (r 1) (q . ())))))
+            (c (q . (a (i (f (r 1))
                          (q . (c (q . #c)
                                (c (f (f (r 1)))
-                                  (c ((c (f 1)
+                                  (c (a (f 1)
                                          (c (f 1)
                                             (c (r (f (r 1)))
-                                               (q . ())))))
+                                               (q . ()))))
                                      (q . ())))))
-                         (q . (q . ()))) 1)))
-               1)))))
+                         (q . (q . ()))) 1))
+               1))))
     """,
     """
     (defmacro function (BODY)
@@ -71,11 +71,11 @@ DEFAULT_MACROS_SRC = [
                  (qq (unquote (symbols)))))))""",
     """
     (defmacro if (A B C)
-        (qq ((c
+        (qq (a
             (i (unquote A)
                (function (unquote B))
                (function (unquote C)))
-            @))))""",
+            @)))""",
 
 ]
 
