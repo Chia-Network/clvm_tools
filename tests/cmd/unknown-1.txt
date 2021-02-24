@@ -1,3 +1,2 @@
-brun -c '(a (q . 0x1ff) (q . (2 3 4))))'
-cost = 112
-()
+brun -n '(0x1ff (q . (2 3 4))))'
+FAIL: unknown op on list (2 3 4)
