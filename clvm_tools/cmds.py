@@ -35,6 +35,15 @@ except ImportError:
         deserialize_and_run_program = None
 
 
+# These commands are used by the test suite, and many of them expect certain costs.
+# If boilerplate invocation code changes by a fixed cost, you can tweak this
+# value so you don't have to change all the tests' expected costs.
+#
+# Eventually you should re-tare this to zero and alter the tests' costs though.
+
+COST_OFFSET = 46
+
+
 def path_or_code(arg):
     try:
         with open(arg) as f:
@@ -232,6 +241,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 or (deserialize_and_run_program and args.backend != "python")
             )
         )
+        max_cost = max(0, args.max_cost - COST_OFFSET if args.max_cost != 0 else 0)
         if use_rust:
             if input_serialized == None:
                 input_serialized = input_sexp.as_bin()
@@ -253,7 +263,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 KEYWORD_TO_ATOM["q"][0],
                 KEYWORD_TO_ATOM["a"][0],
                 native_opcode_names_by_opcode,
-                args.max_cost,
+                max_cost,
                 STRICT_MODE if args.strict else 0,
             )
             time_done = time.perf_counter()
@@ -264,9 +274,10 @@ def launch_tool(args, tool_name, default_stage=0):
 
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
+                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
             time_done = time.perf_counter()
         if args.cost:
+            cost += COST_OFFSET if cost > 0 else 0
             print("cost = %d" % cost)
         if args.time:
             if args.hex:

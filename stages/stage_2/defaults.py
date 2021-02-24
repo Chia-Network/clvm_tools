@@ -83,7 +83,7 @@ DEFAULT_MACROS_SRC = [
 DEFAULT_MACRO_LOOKUP = None
 
 def build_default_macro_lookup(eval):
-    run = binutils.assemble("((c (com (f 1) (r 1)) 1))")
+    run = binutils.assemble("(a (com 2 3) 1)")
     global DEFAULT_MACRO_LOOKUP
     for macro_src in DEFAULT_MACROS_SRC:
         macro_sexp = binutils.assemble(macro_src)
