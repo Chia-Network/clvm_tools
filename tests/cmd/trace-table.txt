@@ -1,50 +1,26 @@
 brun -t '(+ 1 (q . 3))' '2'
 5
-exp: (c (f 1) (r 1))
-arg: ()
+exp: 2
+arg: (a 3)
 env: ((+ 1 (q . 3)) . 2)
 val: 5
-bexp: b'\xff\x04\xff\xff\x05\xff\x01\x80\xff\xff\x06\xff\x01\x80\x80'
-barg: b'\x80'
+bexp: b'\x02'
+barg: b'\xff\x02\xff\x03\x80'
 benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
 --
-exp: 4
-arg: ((f 1) (r 1))
-env: ((+ 1 (q . 3)) . 2)
-val: ((+ 1 (q . 3)) . 2)
-bexp: b'\x04'
-barg: b'\xff\xff\x05\xff\x01\x80\xff\xff\x06\xff\x01\x80\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
-exp: 6
-arg: (q)
+exp: 3
+arg: ()
 env: ((+ 1 (q . 3)) . 2)
 val: 2
-bexp: b'\x06'
-barg: b'\xff\x01\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
-exp: 1
-arg: ()
-env: ((+ 1 (q . 3)) . 2)
-val: ((+ 1 (q . 3)) . 2)
-bexp: b'\x01'
+bexp: b'\x03'
 barg: b'\x80'
 benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
 --
-exp: 5
-arg: (q)
-env: ((+ 1 (q . 3)) . 2)
-val: (+ 1 (q . 3))
-bexp: b'\x05'
-barg: b'\xff\x01\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
-exp: 1
+exp: 2
 arg: ()
 env: ((+ 1 (q . 3)) . 2)
-val: ((+ 1 (q . 3)) . 2)
-bexp: b'\x01'
+val: (+ 1 (q . 3))
+bexp: b'\x02'
 barg: b'\x80'
 benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
 --

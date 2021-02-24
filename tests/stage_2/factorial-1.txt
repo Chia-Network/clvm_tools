@@ -1,2 +1,2 @@
-run -s2 '((c (quote ((c (f 1) 1))) (list (lambda (self N) (if (= N 1) 1 (* N ((c self (list self (- N 1))))))) (f @))))' '(10)'
+run -s2 '(a (quote (a (f 1) 1)) (list (lambda (self N) (if (= N 1) 1 (* N (a self (list self (- N 1)))))) (f @)))' '(10)'
 0x375f00

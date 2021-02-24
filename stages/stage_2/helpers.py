@@ -2,7 +2,7 @@ from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
 from clvm_tools.NodePath import TOP
 
 
-CONS_KW = KEYWORD_TO_ATOM["c"]
+APPLY_KW = KEYWORD_TO_ATOM["a"]
 
 def quote(sexp):
     """quoted list as a python list, not as an sexp"""
@@ -10,7 +10,7 @@ def quote(sexp):
 
 
 def eval(prog, args):
-    return prog.to([[CONS_KW, prog, args]])
+    return prog.to([APPLY_KW, prog, args])
 
 
 def run(prog, macro_lookup):
