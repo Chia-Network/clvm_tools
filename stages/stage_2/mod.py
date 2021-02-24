@@ -240,7 +240,7 @@ def compile_mod(args, macro_lookup, symbol_table, run_program):
     else:
         arg_tree_src = "1"
 
-    main_code = "(opt (q . ((c %s %s))))" % (main_path_src, arg_tree_src)
+    main_code = "(opt (q . (a %s %s)))" % (main_path_src, arg_tree_src)
 
     if has_constants_tree:
         build_symbol_dump(all_constants_lookup, run_program, "main.sym")

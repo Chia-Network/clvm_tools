@@ -6,6 +6,7 @@ from .defaults import default_macro_lookup
 from .helpers import brun, eval, quote
 from .mod import compile_mod
 
+APPLY_KW = KEYWORD_TO_ATOM["a"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
@@ -155,7 +156,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
                                   quote([b"list"] + list(prog.rest().as_iter())),
                                   quote(macro_lookup),
                                   quote(symbol_table)]]), TOP.as_path())
-            r = prog.to([[CONS_KW, value, [CONS_KW, LEFT.as_path(), new_args]]])
+            r = prog.to([APPLY_KW, value, [CONS_KW, LEFT.as_path(), new_args]])
             return r
 
     raise SyntaxError(
