@@ -43,7 +43,7 @@ DEFAULT_MACROS_SRC = [
     ;        (defun compile-list
     ;               (args)
     ;               (if args
-    ;                   qq (c (unquote (f args))
+    ;                   (qq (c (unquote (f args))
     ;                         (unquote (compile-list (r args)))))
     ;                   ()))
     ;            (compile-list args)
