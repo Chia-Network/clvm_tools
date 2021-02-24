@@ -43,7 +43,7 @@ DEFAULT_MACROS_SRC = [
     ;        (defun compile-list
     ;               (args)
     ;               (if args
-    ;                   qq (c (unquote (f args))
+    ;                   (qq (c (unquote (f args))
     ;                         (unquote (compile-list (r args)))))
     ;                   ()))
     ;            (compile-list args)
@@ -51,18 +51,7 @@ DEFAULT_MACROS_SRC = [
     ;        ARGS
     ;    ))
     ;)
-    (q . (list
-        (a (q . (a (f 1) (c (f 1) (c (r 1) (q . ())))))
-            (c (q . (a (i (f (r 1))
-                         (q . (c (q . #c)
-                               (c (f (f (r 1)))
-                                  (c (a (f 1)
-                                         (c (f 1)
-                                            (c (r (f (r 1)))
-                                               (q . ()))))
-                                     (q . ())))))
-                         (q . (q . ()))) 1))
-               1))))
+(q "list" (a (q 2 (q 2 2 (c 2 (c 3 (q)))) (c (q 2 (i 5 (q 4 (q . 4) (c 9 (c (a 2 (c 2 (c 13 (q)))) (q)))) (q 1)) 1) 1)) 1))
     """,
     """
     (defmacro function (BODY)
