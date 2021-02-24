@@ -30,10 +30,10 @@ DEFAULT_MACROS_SRC = [
     ;)
     (q . ("defmacro"
        (c (q . "list")
-          (c (f 1)
+          (c 2
              (c (c (q . "mod")
-                   (c (f (r 1))
-                      (c (f (r (r 1)))
+                   (c 5
+                      (c 11
                          (q . ()))))
                 (q . ()))))))
     """,
