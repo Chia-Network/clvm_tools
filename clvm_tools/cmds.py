@@ -19,20 +19,8 @@ from .sha256tree import sha256tree
 
 try:
     from clvm_rs import deserialize_and_run_program, STRICT_MODE
-
 except ImportError:
-    try:
-        from clvm_rs import serialize_and_run_program, STRICT_MODE
-
-        def deserialize_and_run_program(
-            program, args, quote_kw, apply_kw, native_opcodes_by_name, max_cost, flags
-        ):
-            return serialize_and_run_program(
-                program, args, quote_kw, apply_kw, max_cost, flags
-            )
-
-    except ImportError:
-        deserialize_and_run_program = None
+    deserialize_and_run_program = None
 
 
 def path_or_code(arg):
