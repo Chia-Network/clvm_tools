@@ -6,7 +6,7 @@ import pathlib
 import sys
 import time
 
-from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
+from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.operators import OP_REWRITE
@@ -102,6 +102,22 @@ def run(args=sys.argv):
 
 def brun(args=sys.argv):
     return launch_tool(args, "brun")
+
+
+def calculate_cost_offset(run_program, run_script: SExp):
+    """
+    These commands are used by the test suite, and many of them expect certain costs.
+    If boilerplate invocation code changes by a fixed cost, you can tweak this
+    value so you don't have to change all the tests' expected costs.
+
+    Eventually you should re-tare this to zero and alter the tests' costs though.
+
+    This is a hack and need to go away, probably when we do dialects for real,
+    and then the dialect can have a `run_program` API.
+    """
+    null = binutils.assemble("0")
+    cost, _r = run_program(run_script, null.cons(null))
+    return 53 - cost
 
 
 def launch_tool(args, tool_name, default_stage=0):
@@ -211,6 +227,7 @@ def launch_tool(args, tool_name, default_stage=0):
     run_script = getattr(args.stage, tool_name)
 
     cost = 0
+    cost_offset = calculate_cost_offset(run_program, run_script)
     try:
         output = "(didn't finish)"
 
@@ -222,6 +239,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 or (deserialize_and_run_program and args.backend != "python")
             )
         )
+        max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
         if use_rust:
             if input_serialized is None:
                 input_serialized = input_sexp.as_bin()
@@ -243,7 +261,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 KEYWORD_TO_ATOM["q"][0],
                 KEYWORD_TO_ATOM["a"][0],
                 native_opcode_names_by_opcode,
-                args.max_cost,
+                max_cost,
                 STRICT_MODE if args.strict else 0,
             )
             time_done = time.perf_counter()
@@ -254,9 +272,10 @@ def launch_tool(args, tool_name, default_stage=0):
 
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=args.max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
+                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
             time_done = time.perf_counter()
         if args.cost:
+            cost += cost_offset if cost > 0 else 0
             print("cost = %d" % cost)
         if args.time:
             if args.hex:
