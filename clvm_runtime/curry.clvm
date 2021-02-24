@@ -27,8 +27,22 @@
   ;; If you're going to curry a function multiple times, using this function can save you
   ;; currying the core muliple times.
 
-  ;; run -i . '(mod (X) (defun add2 (A B) (+ A B)) (include curry.clvm) (include sha256tree.clvm) (curry_sha add2 0x29066ef6b3c159c7c65e47f13609682752588565fa0e86846e3ae63a28f24716 15) )'
-  ;; (q . (((c (q . (+ 5 11)) (c (q . 15) 1))) . 0x16686638d91ec9eea115335ddd52f1f78640f8a504c0caff1f07499a71de6b4d))
+  ;; Example:
+  ;;
+  ;; Calculate the sha256tree of `add2`
+  ;;
+  ;; run -i clvm_runtime '(mod (X) (defun add2 (A B) (+ A B)) (include sha256tree.clvm) (sha256tree add2))' 
+  ;; (q . 0x4212e6549edf9ba3ce6bcd8839ecca37b430ec96ddbbae17e5c669d8e18bd17f)
+
+  ;; Now calculate the sha256tree of `add2` when curried with `15`, ie. fixing A to 15
+  ;;
+  ;; run -i clvm_runtime '(mod (X) (defun add2 (A B) (+ A B)) (include curry.clvm) (include sha256tree.clvm) (sha256tree (curry add2 15)) )'
+  ;; (q . 0xf90da10ec9e353929eb8ad3294986874e000fae0b62d5810e58ec6806b2a70ed)
+
+  ;; Now, supposing we know the hash of `add2`, do it again but don't rehash `add2
+  ;;
+  ;; run -i clvm_runtime '(mod (X) (defun add2 (A B) (+ A B)) (include curry.clvm) (include sha256tree.clvm) (curry_sha add2 0x4212e6549edf9ba3ce6bcd8839ecca37b430ec96ddbbae17e5c669d8e18bd17f 15) )'
+  ;; (q (a (q 16 5 11) (c (q . 15) 1)) . 0xf90da10ec9e353929eb8ad3294986874e000fae0b62d5810e58ec6806b2a70ed)
 
   (defun curry_sha_args (func func_hash args)
     (c (curry_args func args) (sha256tree_esc (curry_args func_hash args) func_hash))
