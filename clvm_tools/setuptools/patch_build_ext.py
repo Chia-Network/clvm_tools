@@ -6,10 +6,8 @@ from setuptools.dist import Distribution
 
 try:
     from wheel.bdist_wheel import bdist_wheel
-
-    wheel = True
 except ImportError:
-    wheel = False
+    bdist_wheel = None
 
 
 def patch_build_ext(build_ext):

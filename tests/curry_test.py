@@ -1,6 +1,3 @@
-import io
-
-from clvm.serialize import sexp_to_stream
 from clvm.operators import KEYWORD_TO_ATOM
 
 from clvm_tools.binutils import assemble, disassemble

@@ -137,7 +137,7 @@ def token_stream(s: str) -> Stream:
             while offset < len(s) and s[offset] != initial_c:
                 offset += 1
             if offset < len(s):
-                yield s[start : offset + 1], start
+                yield s[start:offset + 1], start
                 offset += 1
                 continue
             else:
