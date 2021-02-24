@@ -94,7 +94,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
     Return a new expanded s-expression PROG_EXP that is equivalent by rewriting
     based upon the operator, where "equivalent" means
 
-    ((c (com (q PROG) (MACROS)) ARGS)) == ((c (q PROG_EXP) ARGS))
+    (a (com (q PROG) (MACROS)) ARGS) == (a (q PROG_EXP) ARGS)
     for all ARGS.
 
     Also, (opt (com (q PROG) (MACROS))) == (opt (com (q PROG_EXP) (MACROS)))
@@ -117,10 +117,10 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
 
     operator = prog.first()
     if operator.listp():
-        # (com ((OP) . RIGHT)) => ((c (com (q OP)) 1))
+        # (com ((OP) . RIGHT)) => (a (com (q OP)) 1)
         inner_exp = eval(prog.to([b"com",
             quote(operator), quote(macro_lookup), quote(symbol_table)]), TOP.as_path())
-        return prog.to([inner_exp])
+        return prog.to(inner_exp)
 
     as_atom = operator.as_atom()
 

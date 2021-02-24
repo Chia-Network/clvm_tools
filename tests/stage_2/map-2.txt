@@ -1,2 +1,2 @@
-run -s2 '(mod noargs (defun map (func items) (if items (c ((c func (list (f items)))) (map func (r items))) ()) ) (map (lambda (VAL) (* VAL VAL)) (list 10 20 30)))'
+run -s2 '(mod noargs (defun map (func items) (if items (c (a func (list (f items))) (map func (r items))) ()) ) (map (lambda (VAL) (* VAL VAL)) (list 10 20 30)))'
 (q 100 400 900)
