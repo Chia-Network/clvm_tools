@@ -120,7 +120,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
         # (com ((OP) . RIGHT)) => (a (com (q OP)) 1)
         inner_exp = eval(prog.to([b"com",
             quote(operator), quote(macro_lookup), quote(symbol_table)]), TOP.as_path())
-        return prog.to(inner_exp)
+        return prog.to([inner_exp])
 
     as_atom = operator.as_atom()
 
