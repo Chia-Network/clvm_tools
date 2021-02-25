@@ -296,10 +296,6 @@ def launch_tool(args, tool_name, default_stage=0):
         output = "FAIL: %s %s" % (ex, binutils.disassemble(result, keywords))
         return -1
     except Exception as ex:
-        if args.hex:
-            result = assembled_sexp
-        else:
-            result = src_sexp
         output = str(ex)
         raise
     finally:
