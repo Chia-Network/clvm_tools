@@ -15,9 +15,14 @@ RAISE_KW = KEYWORD_TO_ATOM["x"]
 DEBUG_OPTIMIZATIONS = 0
 
 
+def non_nil(sexp):
+    return sexp.listp() or len(sexp.as_atom()) > 0
+
+
 def seems_constant(sexp):
     if not sexp.listp():
-        return False
+        # note that `0` is a constant
+        return not non_nil(sexp)
     operator = sexp.first()
     if not operator.listp():
         as_atom = operator.as_atom()
@@ -36,17 +41,17 @@ def constant_optimizer(r, eval):
     it's a constant. So we can simply evaluate it and
     return the quoted result.
     """
-    if seems_constant(r):
+    if seems_constant(r) and non_nil(r):
         cost, r1 = eval(r, r.null())
         r = r.to(quote(r1))
     return r
 
 
 def is_args_call(r):
-    p = r.as_python()
     if not r.listp() and r.as_int() == 1:
         return True
     return False
+
 
 CONS_Q_A_OPTIMIZER_PATTERN = assemble("(a (q . (: . sexp)) (: . args))")
 
@@ -193,16 +198,44 @@ def path_optimizer(r, eval):
     """
 
     t1 = match(FIRST_ATOM_PATTERN, r)
-    if t1:
+    if t1 and non_nil(t1["atom"]):
         node = NodePath(t1["atom"].as_int())
         node = node + LEFT
         return r.to(node.as_short_path())
 
     t1 = match(REST_ATOM_PATTERN, r)
-    if t1:
+    if t1 and non_nil(t1["atom"]):
         node = NodePath(t1["atom"].as_int())
         node = node + RIGHT
         return r.to(node.as_short_path())
+    return r
+
+
+QUOTE_PATTERN_1 = assemble("(q . 0)")
+
+
+def quote_null_optimizer(r, eval):
+    """
+    This applies the transform `(q . 0)` => `0`
+    """
+    t1 = match(QUOTE_PATTERN_1, r)
+    if t1 is not None:
+        return r.to(0)
+
+    return r
+
+
+APPLY_NULL_PATTERN_1 = assemble("(a 0 . (: . rest))")
+
+
+def apply_null_optimizer(r, eval):
+    """
+    This applies the transform `(a 0 ARGS)` => `0`
+    """
+    t1 = match(APPLY_NULL_PATTERN_1, r)
+    if t1 is not None:
+        return r.to(0)
+
     return r
 
 
@@ -221,6 +254,8 @@ def optimize_sexp(r, eval):
         var_change_optimizer_cons_eval,
         children_optimizer,
         path_optimizer,
+        quote_null_optimizer,
+        apply_null_optimizer,
     ]
 
     while r.listp():
