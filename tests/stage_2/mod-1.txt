@@ -1,2 +1,2 @@
 brun -s2 '(opt (com (q . (mod (X Y) (defun square (N) (* N N)) (defun hyp (A B) (+ (square A) (square B))) (hyp X Y)))))'
-(q 2 (q 2 4 (c 2 (c 5 (c 11 (q))))) (c (q (+ (a 6 (c 2 (c 5 (q)))) (a 6 (c 2 (c 11 (q))))) 18 5 5) 1))
+(q 2 (q 2 4 (c 2 (c 5 (c 11 ())))) (c (q (+ (a 6 (c 2 (c 5 ()))) (a 6 (c 2 (c 11 ())))) 18 5 5) 1))

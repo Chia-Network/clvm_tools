@@ -17,4 +17,4 @@ run -s2 '(opt (com (quote (mod (ARGS) \
     ) \
     (and1 (f @) 30) \
 ))))'
-(q 2 (i 2 (q 1 . 1) (q 1)) 1)
+(q 2 (i 2 (q 1 . 1) ()) 1)
