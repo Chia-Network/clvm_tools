@@ -101,6 +101,8 @@ def inject(*paths):
 
 inject("opc")
 
+inject("opd")
+
 inject("stage_1")
 
 inject("stage_2")
