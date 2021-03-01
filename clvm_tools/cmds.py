@@ -40,7 +40,7 @@ def stream_to_bin(write_f):
 def call_tool(tool_name, desc, conversion, input_args):
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument(
-        "-H", "--script-hash", action="store_true", help="Show sha256 tree hash"
+        "-H", "--script-hash", action="store_true", help="Show only sha256 tree hash of program"
     )
     parser.add_argument(
         "path_or_code",
@@ -58,7 +58,7 @@ def call_tool(tool_name, desc, conversion, input_args):
         sexp, text = conversion(program)
         if args.script_hash:
             print(sha256tree(sexp).hex())
-        if text:
+        elif text:
             print(text)
 
 
