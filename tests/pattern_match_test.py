@@ -4,8 +4,24 @@ from clvm_tools.pattern_match import match
 
 def test_pattern_match():
 
+    r = match(assemble("($ . $)"), assemble("$"))
+    assert r == {}
+
+    r = match(assemble("($ . $)"), assemble("x"))
+    assert r == None
+
+    r = match(assemble("(: . :)"), assemble(":"))
+    assert r == {}
+
+    r = match(assemble("(: . :)"), assemble("x"))
+    assert r == None
+
     r = match(assemble("$"), assemble("$"))
     assert r == {}
+
+    # () is an atom
+    r = match(assemble("($ . n)"), assemble("()"))
+    assert r == {"n": assemble("()")}
 
     r = match(assemble("($ . size)"), assemble("200"))
     assert r == {"size": assemble("200")}
