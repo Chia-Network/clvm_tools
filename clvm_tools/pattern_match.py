@@ -42,11 +42,11 @@ def match(pattern, sexp, known_bindings={}):
 
     left = pattern.first()
     right = pattern.rest()
+    atom = sexp.as_atom()
 
     if left == ATOM_MATCH:
         if sexp.listp():
             return None
-        atom = sexp.as_atom()
         if right == ATOM_MATCH:
             if atom == ATOM_MATCH:
                 return {}
