@@ -44,7 +44,7 @@ set termoption enhanced
 set ylabel "run-time (s)"
 set xlabel "number of ops"
 set xrange [0:3000]
-set yrange [0:0.3]
+set yrange [0:0.02]
 set datafile separator ","
 plot ''' % directory)
 

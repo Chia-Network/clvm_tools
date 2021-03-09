@@ -25,7 +25,7 @@ def make_lookup(depth):
 def generate_args(n, name, value_size, filename):
     ret = '(' + name
     for i in range(n):
-        ret += ' (q ' + make_value(value_size) + ')'
+        ret += ' (q . ' + make_value(value_size) + ')'
     ret += ')'
     return '%s_args-%d-%d' % (filename, value_size, n), ret, '()'
 
@@ -34,8 +34,8 @@ def generate_nested(n, name, value_size, filename, arity=2):
     for i in range(n):
         ret += '(%s ' % name
         for i in range(arity - 1):
-            ret += '(q ' + make_value(value_size) + ') '
-    ret += '(q ' + make_value(value_size) + ')'
+            ret += '(q . ' + make_value(value_size) + ') '
+    ret += '(q . ' + make_value(value_size) + ')'
     for i in range(n):
         ret += ')'
     return '%s_nest-%d-%d' % (filename, value_size, n), ret, '()'
@@ -45,8 +45,8 @@ def generate_nested_1(n, name, value_size, filename, arity=2):
     for i in range(n):
         ret += '(%s ' % name
         for i in range(arity - 1):
-            ret += '(q 1) '
-    ret += '(q ' + make_value(value_size) + ')'
+            ret += '(q . 1) '
+    ret += '(q . ' + make_value(value_size) + ')'
     for i in range(n):
         ret += ')'
     return '%s_nest1-%d-%d' % (filename, value_size, n), ret, '()'
@@ -63,7 +63,7 @@ def size_of_value(val):
 def generate_args_value(n, name, value, filename):
     ret = '(' + name
     for i in range(n):
-        ret += ' (q ' + value + ')'
+        ret += ' (q . ' + value + ')'
     ret += ')'
     return '%s_args-%d-%d' % (filename, size_of_value(value), n), ret, '()'
 
@@ -72,8 +72,8 @@ def generate_nested_value(n, name, value, filename, arity=2):
     for i in range(n):
         ret += '(%s ' % name
         for i in range(arity - 1):
-            ret += '(q ' + value + ') '
-    ret += '(q ' + value + ')'
+            ret += '(q . ' + value + ') '
+    ret += '(q . ' + value + ')'
     for i in range(n):
         ret += ')'
     return '%s_nest-%d-%d' % (filename, size_of_value(value), n), ret, '()'
@@ -84,10 +84,10 @@ def generate_nested_2values(n, name, value_sizes, filename, arity=2):
     ret = ''
     for i in range(n):
         ret += '(%s ' % name
-    ret += '(q ' + make_value(value_sizes[0]) + ')'
+    ret += '(q . ' + make_value(value_sizes[0]) + ')'
     for i in range(n):
         for i in range(arity - 1):
-            ret += ' (q ' + make_value(value_sizes[1]) + ')'
+            ret += ' (q . ' + make_value(value_sizes[1]) + ')'
         ret += ')'
     return '%s_nest-%d-%d' % (filename, value_sizes[0], n), ret, '()'
 
@@ -111,7 +111,7 @@ def generate_op_list(n, name, value_size, filename, arity=2):
     for i in range(n):
         ret += '(c (%s' % name
         for i in range(arity):
-            ret += ' (q ' + make_value(value_size) + ')'
+            ret += ' (q . ' + make_value(value_size) + ')'
         ret += ') '
     ret += '()'
     for i in range(n):
@@ -121,7 +121,7 @@ def generate_op_list(n, name, value_size, filename, arity=2):
 def generate_list(n, name, filename):
     ret = ''
     for i in range(n):
-        ret += '(c (%s (q (1 2 3))) ' % name
+        ret += '(c (%s (q . (1 2 3))) ' % name
     ret += '()'
     for i in range(n):
         ret += ')'
@@ -130,7 +130,7 @@ def generate_list(n, name, filename):
 def generate_list_empty(n):
     ret = ''
     for i in range(n):
-        ret += '(c (q (1 2 3)) '
+        ret += '(c (q . (1 2 3)) '
     ret += '()'
     for i in range(n):
         ret += ')'
@@ -139,9 +139,9 @@ def generate_list_empty(n):
 def generate_if(n):
     ret = ''
     # alternate between true and false
-    conditions = ['()', '(q 1)']
+    conditions = ['()', '(q . 1)']
     for i in range(n):
-        ret += '(c (i %s (q 1) (q 2)) ' % conditions[i % 2]
+        ret += '(c (i %s (q . 1) (q . 2)) ' % conditions[i % 2]
     ret += '()'
     for i in range(n):
         ret += ')'
@@ -179,7 +179,7 @@ print_files(lambda n, vs: generate_op_list(n, 'concat', vs, 'concat'))
 print_files(lambda n, vs: generate_args(n, 'concat', vs, 'concat'))
 
 print_files(lambda n, vs: generate_op_list(n, 'divmod', vs, 'divmod'))
-print_files(lambda n, vs: generate_op_list(n, 'div', vs, 'div'))
+print_files(lambda n, vs: generate_op_list(n, '/', vs, 'div'))
 
 print_files(lambda n, vs: generate_args(n, '+', vs, 'plus'))
 print_files(lambda n, vs: generate_op_list(n, '+', vs, 'plus'))
