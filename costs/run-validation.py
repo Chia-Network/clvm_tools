@@ -5,6 +5,21 @@ import os
 
 results = open('mixed-programs/results.csv', 'w+')
 
+gnuplot_filename = 'mixed-programs/render.gnuplot'
+gnuplot = open(gnuplot_filename, 'w+')
+
+gnuplot.write('''set output "mixed-programs/costs.png"
+set datafile separator ","
+set term png size 1400,900 small
+set termoption enhanced
+set ylabel "run-time (s)"
+set xlabel "cost"
+set xrange [0:*]
+set yrange [0:*]
+plot "mixed-programs/results.csv" using 1:2 with points
+''')
+gnuplot.close()
+
 counter = 0
 for fn in glob.glob('mixed-programs/*.clvm'):
 
@@ -27,21 +42,7 @@ for fn in glob.glob('mixed-programs/*.clvm'):
 
     line = counters['cost'] + ',' + counters['run_program'] + '\n'
     results.write(line)
-
-gnuplot_filename = 'mixed-programs/render.gnuplot'
-gnuplot = open(gnuplot_filename, 'w+')
-
-gnuplot.write('''set output "mixed-programs/costs.png"
-set datafile separator ","
-set term png size 1400,900 small
-set termoption enhanced
-set ylabel "run-time (s)"
-set xlabel "cost"
-set xrange [0:*]
-set yrange [0:*]
-plot "mixed-programs/results.csv" using 1:2 with points
-''')
+    results.flush()
 
 results.close()
-gnuplot.close()
 os.system('gnuplot %s' % gnuplot_filename)

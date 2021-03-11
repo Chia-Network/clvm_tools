@@ -63,7 +63,7 @@ def make_condition(depth, env_depth):
     elif r == 4:
         return '(l ' + make_expression(depth -1, env_depth) + ')'
     elif r == 5:
-        return '(q ' + make_small_value() + ')'
+        return '(q . ' + make_small_value() + ')'
     elif r == 0:
         ret = '(= '
     elif r == 1:
@@ -78,17 +78,17 @@ def make_condition(depth, env_depth):
 def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
     if depth <= 0:
         if kind == ExpType.SMALL_VALUE:
-            return '(q ' + make_small_value() + ')'
+            return '(q . ' + make_small_value() + ')'
         elif kind == ExpType.VALUE:
-            return '(q ' + make_value() + ')'
+            return '(q . ' + make_value() + ')'
         elif kind == ExpType.LIST or kind == ExpType.VALUE_LIST or kind == ExpType.ANYTHING:
-            return '(q (' + make_value() + ' ' + make_value() + '))'
+            return '(q . (' + make_value() + ' ' + make_value() + '))'
         elif kind == ExpType.POINT:
-            return '(q ' + make_point() + ')'
+            return '(q . ' + make_point() + ')'
         elif kind == ExpType.STRING:
-            return '(q ' + make_string() + ')'
+            return '(q . ' + make_string() + ')'
         else:
-            return '(q (q ' + make_value() + '))'
+            return '(q . (q . ' + make_value() + '))'
 
     value_kind = ExpType.VALUE
 
@@ -112,7 +112,7 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
 
     if r == 0:
         # value
-        return '(q ' + make_value() + ')'
+        return '(q . ' + make_value() + ')'
     elif r == 1:
         # path
         return make_path(env_depth)
@@ -139,14 +139,11 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
             ' ' + make_expression(depth - 1, env_depth, ExpType.VALUE_LIST) + ')'
     elif r == 8:
         # value list
-        return '(q (' + make_value() + ' ' + make_value() + '))'
-    elif r == 9:
-        # quoted program
+        return '(q . (' + make_value() + ' ' + make_value() + '))'
+    elif r == 9 or r == 10:
+        # eval
         new_env_depth = random.randint(1, 5)
-        return '(c (q ' + make_expression(depth - 1, new_env_depth) + ') (q ' + make_tree(new_env_depth) + '))'
-    elif r == 10:
-        # eval-expression
-        return '(' + make_expression(depth - 1, env_depth, ExpType.PROGRAM) + ')'
+        return '(a (q . ' + make_expression(depth - 1, new_env_depth) + ') (q . ' + make_tree(new_env_depth) + '))'
     elif r == 11:
         # add expression
         ret = '(+'
@@ -161,15 +158,15 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
         return ret + ')'
     elif r == 13:
         # divmod expression
-        return '(divmod ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ' (q ' + \
+        return '(divmod ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ' (q . ' + \
             make_small_value() + '))'
     elif r == 14:
         # divmod expression, integer division
-        return '(f (divmod ' + make_expression(depth - 1, env_depth, value_kind) + ' (q ' + \
+        return '(f (divmod ' + make_expression(depth - 1, env_depth, value_kind) + ' (q . ' + \
             make_small_value() + ')))'
     elif r == 15:
         # divmod expression, remainder
-        return '(r (divmod ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ' (q ' + \
+        return '(r (divmod ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ' (q . ' + \
             make_small_value() + ')))'
     elif r == 16:
         # concat expression
@@ -177,7 +174,7 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
         n = random.randint(1, 4)
         for i in range(n):
             ret += ' ' + make_expression(depth - 1, env_depth, ExpType.VALUE)
-        ret += ' (q ' + make_string() + ')'
+        ret += ' (q . ' + make_string() + ')'
         return ret + ')'
     elif r == 17:
         # logical or
@@ -212,7 +209,7 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
         # strlen
         return '(strlen ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ')'
     elif r == 24:
-        return '(q ' + make_small_value() + ')'
+        return '(q . ' + make_small_value() + ')'
     elif r == 27:
         # multiply expression
         ret = '(*'
@@ -227,7 +224,7 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
         return '(pubkey_for_exp ' + make_expression(depth - 1, env_depth, ExpType.VALUE) + ')'
     elif r == 30:
         # a valid point
-       return '(q ' + make_point() + ')'
+       return '(q . ' + make_point() + ')'
     elif r == 31:
         # point_add
         ret = '(point_add'
@@ -236,9 +233,9 @@ def make_expression(depth, env_depth, kind = ExpType.ANYTHING):
         return ret + ')'
     elif r == 32:
         # substring
-        return '(substr ' + make_expression(depth - 1, env_depth, ExpType.STRING) + ' (q 0) (q 1))';
+        return '(substr ' + make_expression(depth - 1, env_depth, ExpType.STRING) + ' (q . 0) (q . 1))';
     elif r == 33:
-        return '(q ' + make_string() + ')'
+        return '(q . ' + make_string() + ')'
     elif r == 34:
         ret = '(sha256'
         for i in range(random.randint(0, 4)):
