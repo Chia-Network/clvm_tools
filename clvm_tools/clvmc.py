@@ -31,6 +31,7 @@ def compile_clvm(input_path, output_path, search_paths=[]):
 
         with open(output_path, "w") as f:
             f.write(hex)
+            f.write("\n")
     else:
         log.info("skipping %s, compiled recently" % input_path)
 
