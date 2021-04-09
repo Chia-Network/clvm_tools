@@ -145,7 +145,7 @@ def launch_tool(args, tool_name, default_stage=0):
     parser.add_argument(
         "--time", action="store_true", help="Print execution time")
     parser.add_argument(
-        "-m", "--max-cost", type=int, default=0, help="Maximum cost")
+        "-m", "--max-cost", type=int, default=10860254871, help="Maximum cost")
     parser.add_argument(
         "-d", "--dump", action="store_true",
         help="dump hex version of final output")

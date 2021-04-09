@@ -148,7 +148,37 @@ it would not be practical to implement any such checks. It's also hard to
 explain why the cost of the operation itself *would* be proportinal to the atoms.
 This is most likely an effect of the larger working set.
 
-We round the cost for `cons` to be **3** (that's 0.3 microseconds).
+We round the cost for `cons` to be **245** (that's 245 nanoseconds).
+
+first
+-----
+
+```
+      first-1: 0.32143060013064828073 (76.251001)
+first_empty-1: 0.29133047587311594606 (97.778027)
+```
+
+The `first_empty` test is measuring the cost of `cons` as well as the quote, to
+combine the operations. This is the overhead not related to the `first`
+operation.
+
+The cost of `first` is 321 - 291 = **30**
+
+rest
+----
+
+```
+rest-1: 0.36777596799212358691 (70.401632)
+```
+
+Subtracting the overhead not related to `rest` (291) make the cost of `rest` be
+368 - 291 = **77**.
+
+quote
+-----
+
+The cost of quote is the difference between the cons + quote and the cost of
+`cons`. 291 - 245 = **46**
 
 arithmetic operators
 --------------------
@@ -180,32 +210,28 @@ Plus and minus have virtually the same timings. We lump them together.
 The cost of the `-args` versions represent the incremental cost for each
 argument that's added.
 
-Each argument adds a cost of **3**.
+Each argument adds a cost of **320**.
 
-Each additional byte of argument adds about (17 - 3) / 1024 = 0.01367. That's a
-cost of 1 every 73.1429 bytes. Let's round that to every 64 bytes, to add some
-additional cost to bytes.
-
-byte cost divisor: 64
+Each additional byte of argument adds about (1714 - 320) / 1024 = 1.361328125.
 
 The `plus` and `minus` tests are a series of `cons` in between the operator
 being measured, so we need to subtract the cost of a cons from those
-numbers, which is 3.
+numbers, which is 245.
 
-Also subtract the cost for the two arguments we pass in the test. 2 * 3 = 6.
+Also subtract the cost for the two arguments we pass in the test. 2 * 320 = 640.
 Base cost for arithmetic operators:
 
-* For 1 byte atoms: 10 - 3 - 6 = **1**
-* For 128 byte atoms: 19 - 3 - 6 = **11**
-* For 1024 byte atoms: 70 - 3 - 6 = **61**
+* For 1 byte atoms: 984 - 245 - 640 = **99**
+* For 128 byte atoms: 1876 - 245 - 640 = **991**
+* For 1024 byte atoms: 6979 - 245 - 640 = **6094**
 
-Each operation has two operands of the given size, so bytes per cost is:
+Each operation has two operands of the given size, so cost per bytes is:
 
-1024 * 2 / 61 = 33.5738
+6094 / (1024 * 2) = 2.9756
 
-We round this to 32:
+We round this to 3:
 
-byte cost divisor: **32**
+cost per byte: **3**
 
 logical operators
 -----------------
@@ -243,20 +269,20 @@ logior_args-1024: 1.57666239302069444150 (17.386227)
 logxor_args-1024: 1.71136422587087877467 (28.892076)
 ```
 
-Each argument adds a cost of **3**.
+Subtract the cost of quote. Each argument adds a cost of 310 - 46 = **264**.
 
-Subtract the cost of each `cons` in the test. Subtract 2 * 3 for the two arguments.
+Subtract the cost of each `cons` (245) in the test. Subtract 2 * 264 for the two arguments.
 Base cost for logiocal operators:
 
-* For 1 byte atoms: 10 - 3 - 6 = **1**
-* For 128 byte atoms: 20 - 3 - 6 = **11**
-* For 1024 byte atoms: 69 - 3 - 6 = **60**
+* For 1 byte atoms: 1000 - 245 - 528 = **227**
+* For 128 byte atoms: 1880 - 245 - 528 = **1107**
+* For 1024 byte atoms: 7000 - 245 - 528 = **6227**
 
-Each operation has two operands of the given size, so bytes per cost is:
+Each operation has two operands of the given size, so cost per byte is:
 
-1024 * 2 / 61 = 33.5738
+6227 / (1024 * 2) = 3.04
 
-Round the byte cost divisor to: **32**
+Round the cost per byte to: **3**
 
 ```
 microseconds per operation
@@ -265,11 +291,27 @@ microseconds per operation
 lognot_nest-1024: 2.63077443666830124158 (-75.015860)
 ```
 
-The cost for `lognot` is **3**
+The cost for `lognot` is **331**
 
-Byte cost divisor is 1024 / 26 = 39.38461
+Cost per Byte is 2630 / 1024 = 2.568
 
-Round the byte cost divisor to: **32**
+Round the cost per byte to: **3**
+
+apply
+-----
+
+Executing 1000 nested calls to `apply` (and `lognot`) takes about 515000 nanoseconds.
+
+The test looks like this but repeated 1000 times:
+
+```
+(a (q . (lognot (a (q . (lognot (q . 1 ))) ()))) ())
+```
+
+First divide by 1000, 515 per nesting step.
+To separate out the cost of `apply`, subtract the cost of `quote` (46) and the cost of `lognot` (331).
+
+515 - 46 - 331 = **138**
 
 comparisons
 -----------
@@ -285,13 +327,14 @@ grs-1024: 1.95542021746606797805 (13.851156)
  eq-1024: 2.34231949190749233480 (-281.994352)
 '''
 
-Subtract the cost of the `cons` (3).
+Subtract the cost of the `cons` (245) and `quote` (46).
 
-Base cost for `=` and `>s` is 5 - 3 = **2**.
+Base cost for `=` and `>s` is 454 - 245 - 2 * 46 = **117**.
 
-Byte cost divisor is 2 * 1024 / (23 - 3) = 102.4
+Cost per byte is (1955 - 454) / (2 * 1024) = 0.7329
+and (2342 - 454) / (2 * 1024) = 0.9219
 
-Round byte cost divisor to: **64**
+Round cost per byte to: **1**
 
 '''
 microseconds per operation
@@ -300,28 +343,17 @@ microseconds per operation
  gr-1024: 3.93887591431556893795 (-141.312945)
 ```
 
-Base cost for '>' is 8 - 3 = **5**.
+Base cost for '>' is 835 - 245 - 2 * 46 = **498**.
 
-Byte cost divisor is 2 * 1024 / (39 - 3) = 56.88
+Cost per byte is (3939 - 835) / (2 * 1024) = 1.51
 
-Round the byte cost divisor to: **32**
+Round the cost per byte to: **2**
 
 sha-256
 -------
 
 ```
 microseconds per operation
-        sha-1: 28.55177302241918368964 (324.926931)
-      sha-128: 28.49818414035497937675 (407.883062)
-     sha-1024: 32.57254548179997044599 (56.155021)
-   sha_args-1: 7.51462305113815443036 (-88.108982)
- sha_args-128: 7.80882158921228786141 (119.709524)
-sha_args-1024: 10.79437223109812649113 (79.329517)
-
-  sha_empty-1: 20.66984590774052676920 (-174.334628)
-
-----------
-
         sha-1: 0.45975574752144754420 (93.694481)
       sha-128: 0.73532795934131278681 (78.716874)
      sha-1024: 2.16696831346474594326 (-214.288105)
@@ -333,15 +365,15 @@ sha_args-1024: 1.45560239419398107508 (-15.067240)
   sha_empty-1: 0.33212180728239903971 (91.945749)
 ```
 
-We subtract the cost of the `cons` as well as the cost of the one argument
-passed to the call. The base cost of a `sha256` call is 5 - 3 = **2**.
+We subtract the cost of the `cons` (245) as well as the cost of the one argument
+passed to the call. The base cost of a `sha256` call is 332 - 245 = **87**.
 
-Each argument has a cost of: **1**
+Each argument has a cost of: **134**
 
-The cost byte divisor is 1024 / (15 - 1) = 73.142
-or 1024 / (22 - 2 - 1) = 53.894
+The cost per byte is (1456 - 134) / 1024 = 1.291
+or (2166 - 260) / 1024 = 1.861
 
-Round the byte cost divisor to: **64**
+Round the cost per byte to: **2**
 
 point_add
 ---------
@@ -354,11 +386,11 @@ point_add_nest-48: 871.58037906847948761424 (397.973413)
 
 `point_add` is simple in that it always take a fixed size argument (48 bytes)
 and always returns a result of the same size. So, bytes of input is not a
-dimention to consider.
+dimension to consider.
 
-Each argument cost **4200**.
+Each argument cost **419994**.
 
-The `_nest` test has two arguments per call, so the base cost is 8716 - 4200 * 2 = **316**
+The `_nest` test has two arguments per call, so the base cost is 871580 - 419994 * 2 = **31592**
 
 pubkey_for_exp
 --------------
@@ -371,13 +403,13 @@ pubkey-1024: 431.54759660818592692522 (-334.521863)
 ```
 
 `pubkey_for_exp` takes exactly one argument, so the number of arguments is not a
-dimention for computing cost.
+dimension for computing cost.
 
-Bytes per cost is though, which comes out to 1024 / (4314 - 4197) = 8.752
+Cost per bytes comes out to (431548 - 419780) / 1024 = 11.492
 
-Round the byte cost divisor to **8**
+Round the byte cost to **12**
 
-We subtract the cost of `cons` for the base cost, which is 4197 - 3 = **4194**
+We subtract the cost of `cons` for the base cost, which is 419780 - 245 = **419535**
 
 left shift
 ----------
@@ -389,10 +421,10 @@ microseconds per operation
 lsh_nest-1024: 2.60921442074267684319 (124.849076)
 ```
 
-base cost is **3**
+base cost is **277**
 
-Bytes per cost is approximately 1024 / (26 - 3) = 44.5217
-Round the byte cost divisor to **32**
+Cost per byte is approximately (2609 - 276) / 1024 = 2.2783
+Round the cost per byte to **3**
 
 arithmetic shift
 ----------------
@@ -404,10 +436,10 @@ microseconds per operation
 ash_nest-1024: 3.00428881374951251004 (-147.547149)
 ```
 
-Base cost is **6**
+Base cost is **596**
 
-Bytes per cost is 1024 / (30 - 6) = 42.6666
-Round the byte cost divisor to **32**
+Cost per byte is (3004 - 596) / 1024 = 2.3516
+Round the byte cost to **3**
 
 divmod
 ------
@@ -419,13 +451,13 @@ microseconds per operation
 divmod-1024: 7.60455035694966419157 (-135.188393)
 ```
 
-Subtract the cost of `cons`. The base cost for `divmod` is 14 - 3 = **11**.
+Subtract the cost of `cons` (245). The base cost for `divmod` is 1361 - 245 = **1116**.
 
 Each invocation of `divmod` has two arguments of the specified size. so the 1024
-measures are really 2048 bytes worth of argumnets.
+measures are really 2048 bytes worth of arguments.
 
-The byte cost divisor is 1024 / (76 - 14) = 16.51612
-Round the byte cost divisor to: **16**
+The cost per byte is (7605 - 1361) / 1024 = 6.09766
+Round the byte cost to: **6**
 
 div
 ---
@@ -437,11 +469,11 @@ microseconds per operation
 div-1024: 4.92077671146116113476 (-249.012930)
 ```
 
-Subtracting the cost of `cons` makes the base cost 12 - 3 = **9**
+Subtracting the cost of `cons` (245) makes the base cost 1233 - 245 = **988**
 
-The byte cost divisor is 1024 / (49 - 12) = 54.4324
+The cost per byte is (4920 - 1233) / 1024 = 3.6006
 
-Round the byte cost divisor to **32**
+Round the byte cost to **4**
 
 boolean
 -------
@@ -469,11 +501,11 @@ all_args-1024: 0.73993089213334262144 (-5.671898)
 not_nest-1024: 0.07913310585202978920 (83.876844)
 ```
 
-Cost for `not` is **1**.
+Cost for `not` is **78**.
 
-Base cost for `any` and `all` is **1**.
+Base cost for `any` and `all` is **200**.
 
-The cost for each argument to `any` and `all` is: **3**
+The cost for each argument to `any` and `all` is: **300**
 
 In the `any_nest` and `all_nest` we pass in two arguments.
 
@@ -491,14 +523,14 @@ concat_args-1024: 2.38576786019322595322 (-85.233455)
 ```
 
 `concat_args-1` et. al. measure the incremental cost of adding one more argument
-to `concat`. The minimum cost is **1** per argument.
+to `concat`. The minimum cost is **135** per argument.
 
 `concat-1` et. al. measured the cost of concatenating two strings of the given
-size (1, 128 and 1024 respectively). When subtracting the cost of `cons` and the
-per-argument cost we have a base cost of 5 - 1 - 3 = **1**.
+size (1, 128 and 1024 respectively). When subtracting the cost of `cons` (245) and the
+per-argument cost we have a base cost of 522 - 135 - 245 = **142**.
 
-The byte cost divisor is 2 * 1024 / (67 - 5) = 33.032
-Round the byte cost divisor to **32**.
+The cost per byte is (6694 - 522) / (2 * 1024) = 3.0137
+Round the byte cost to **3**.
 
 lookups
 -------
@@ -514,9 +546,9 @@ lookup.
 
 `lookup_2-2` measures the time it takes to perform a lookup of depth 1. This
 determines the minimum overhead of this operator. Given that this is *less* than
-what we've measured for the `cons` operations to string them together, it
+what we've measured for the `cons` operations (245) to string them together, it
 seems reasonable to model the minimum cost for a path lookup to be 0, and just
-incur a cost of **1** per leg.
+incur a cost of **147** per leg.
 
 Looking up the root of the environment ('1') counts as a single leg.
 
@@ -530,9 +562,10 @@ microseconds per operation
 strlen-1024: 1.32640170143377811307 (-140.631272)
 ```
 
-base cost is 5 - 3: **2**
-The byte cost divisor is 1024 / (13.26 - 4.63) = 118.655
-Round the byte cost divisor to **128**.
+Subtract `cons` and `quote` costs.
+base cost is 464 - 245 - 46 = **173**
+The cost per byte is (1326 - 464) / 1024 = 0.8418
+Round the byte cost to **1**.
 
 listp
 -----
@@ -541,34 +574,8 @@ listp
 listp-1: 0.31038065066450787333 (94.644048)
 ```
 
-Subtracting the cost of `cons`, the cost of `listp` turns into 0, so charge the
-smallest possible cost: **1**
-
-first
------
-
-```
-      first-1: 26.10817583474324621307 (-207.954529)
-first_empty-1: 17.13094403204565097099 (146.471635)
-
-      first-1: 0.32143060013064828073 (76.251001)
-first_empty-1: 0.29133047587311594606 (97.778027)
-```
-
-The `first_empty` test is essentially just measureing the cost of `cons`, to
-combine the operations. This is the overhead not related to the `first`
-operation.
-
-The cost of `first` is 3.2 - 2 = **1** (we use 3 to be consistent with the benchmark of just `cons`).
-
-rest
-----
-
-```
-rest-1: 0.36777596799212358691 (70.401632)
-```
-
-Subtracting the cost of `cons` make the cost of `rest` be 3.7 - 3 = **1**.
+Subtracting the cost of `cons` (245) and of one `quote` (46), the cost of `listp` turns into
+310 - 245 - 46 = **19**
 
 if
 --
@@ -577,7 +584,8 @@ if
 if-1: 0.36958951307556009436 (74.675161)
 ```
 
-Subtracting the cost of `cons` make the cost of `if` be 3.7 - 3 = **1**.
+Subtracting the cost of `cons` (245) and two `quote` (46 * 2) make the cost of
+`if` be 370 - 245 - 2 * 46 = **33**.
 
 multiplication
 --------------
@@ -594,7 +602,7 @@ This tests the cost of just invoking the multiplication operator, with no argume
 mul_empty-1: 0.33661753909896824366 (89.131827)
 ```
 
-Base cost: 3.4 - 3 = **1**
+Base cost: 337 - 245 = **92**
 
 These tests multiply an increasing number of pairs, of varying sized operands.
 Note that each pair of operands that are multiplied are independent, the product
@@ -624,15 +632,35 @@ mul-1300: 29.80849443518868469027 (-1082.983160)
 mul-1400: 31.58819694703557345861 (-1153.085545)
 ```
 
-Fitting this to a quadratic curve (and multiplying by 10 to turn microseconds
+Fitting this to a quadratic curve (and multiplying by 1000 to turn microseconds
 into cost) results in:
+
+```
+1: 1146.36064545158089523
+25: 1703.15212029002749361
+50: 1888.84455701491082991
+100: 2403.95381029566435060
+200: 3718.98746429636251065
+300: 5380.19049274786542725
+400: 7224.10307967137121921
+500: 8427.44990287291884101
+600: 10852.31959167802351374
+700: 12813.91052743008707182
+800: 15134.49056668298275952
+900: 17593.38681266760673338
+1000: 19780.98733891571470167
+1100: 24562.60610789641418705
+1200: 27293.84148555957878557
+1300: 29808.49443518868469027
+1400: 31588.19694703557345861
+```
 
 ```
 A + Bx + Cx^2
 
-A   12.2286128
-B   0.1119215961
-C   0.000080925179
+A   1222.861
+B   11.19216
+C   0.008092518
 ```
 
 We can use this formula like this:
@@ -643,23 +671,23 @@ Where `len(lhs)` is the number of bytes of left-hand-side operand, and
 A + (len(lhs) + len(rhs)) * B / 2 + (len(lhs) * len(rhs)) * C
 ```
 
-Since `A` includes the cost of `cons` and the base cost, we need to subtract
-that. Making it a base cost of 12 - 1 - 3 = **8** for each multiplication (e.g.
+Since `A` includes the cost of `cons` (245) and the base cost, we need to subtract
+that. Making it a base cost of 1222 - 92 - 245 = **885** for each multiplication (e.g.
 `*` with 3 operands is 2 multiplications).
 
-The linear byte cost divisor is 2 / 0.1119215961 = 17.8696
-Round the linear byte cost divisor to: **16**
+The linear cost per byte 11.19216 / 2 = 5.596
+Round the linear byte cost to: **6**
 
-The quadratic byte cost divisor is 1 / 0.000080925179 = 12357.093
-Round that to **16384**
+The quadratic byte cost divisor is 1 / 0.008092518 = 123.57093
+Round that to **128**
 
 ```
-(len(lhs) + len(rhs)) / 16 + (len(lhs) * len(rhs)) / 16384
+(len(lhs) + len(rhs)) * 6 + (len(lhs) * len(rhs)) / 128
 ```
 
 This next test is multiplying a long series of ones with values of various sizes.
 This indicates the minimum overhead for each argument. This is roughly
-consistent with a base cost of **8** for each multiplication.
+consistent with a base cost of **885** for each multiplication.
 
 ```
    mul_nest1-1: 0.76153535353535384278 (52.804202)
@@ -676,8 +704,9 @@ mul_nest1-1000: 3.43048484848484847021 (-50.915515)
 To validate this formula test a few examples:
 
 ```
-1 + 8 + (1400 + 1400) / 16 + (1400 * 1400) / 16384 = 9 + 200 + 119 = 328 (measured as 315)
-1 + 8 + (600 + 600) / 16 + (600 * 600) / 16384 = 9 + 75 + 21 = 105 (measured as 108)
-1 + 8 + (25 + 25) / 16 + (25 * 25) / 16384 = 9 + 26 + 0 = 35 (measured as 17)
+92 + 885 + (1400 + 1400) * 6 + (1400 * 1400) / 128 = 33089 (measured as 31588)
+92 + 885 + (600 + 600) * 6 + (600 * 600) / 128 = 10989 (measured as 10852)
+92 + 885 + (25 + 25) * 6 + (25 * 25) / 128 = 1281 (measured as 1703)
+92 + 885 + (1 + 1) * 6 + (1 * 1) / 128 = 989 (measured as 1146)
 ```
 
