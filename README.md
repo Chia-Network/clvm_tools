@@ -8,8 +8,10 @@ This is the in-development version of `clvm_tools` for clvm, which implements, a
 Set up your virtual environments
 
     $ python3 -m venv venv
-    $ . ./venv/bin/activate
+    $ . ./venv/bin/activate (windows: venv\Scripts\activate.bat)
     $ pip install -e .
+
+If you run into any issues, be sure to check out [this section](https://github.com/Chia-Network/clvm_tools/blob/develop/README.md#known-issues)
 
 Optionally, run unit tests for a sanity check.
 
@@ -27,7 +29,7 @@ To compile the higher level language into the lower level language use:
 
 To execute this code:
 
-    $ brun '(+ 1 (q 3))' '2'
+    $ brun '(+ 1 (q . 3))' '2'
     5
 
 
@@ -45,7 +47,7 @@ The high level language is a superset of [clvm](https://github.com/Chia-Network/
 
 You can copy this to a file `fact.clvm`, then compile it with `run fact.clvm` and you'll see output like
 
-`((c (q ((c 2 (c 2 (c 5 (q ())))))) (c (q ((c (i (= 5 (q 1)) (q (q 1)) (q (* 5 ((c 2 (c 2 (c (- 5 (q 1)) (q ())))))))) 1))) 1)))`
+`(a (q 2 2 (c 2 (c 5 ()))) (c (q 2 (i (= 5 (q . 1)) (q 1 . 1) (q 18 5 (a 2 (c 2 (c (- 5 (q . 1)) ()))))) 1) 1))`
 
 You can then run this code with `brun`, passing in a parameter. Or pipe it using this `bash` quoting trick:
 
@@ -132,7 +134,7 @@ Compare to the function version:
 
 which produces
 
-`((c (q ((c 2 (c 2 (c 5 (c 11 (q ()))))))) (c (q (+ 5 11)) 1)))`
+`(a (q 2 2 (c 2 (c 5 (c 11 ())))) (c (q 16 5 11) 1))`
 
 There's a lot more going on here, setting up an environment where sum would be allowed to call itself recursively.
 
@@ -170,3 +172,26 @@ This produces
 `((c (i (= (+ 2 5) (q 10)) (q (q "the sum is 10")) (q (q "the sum is not 10"))) 1))`
 
 which is not much code, for how much source there is. This also demonstrates the general notion that macros (and inline functions) cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.
+
+# Known issues
+## Windows
+### Building wheel for blspy (PEP 517) error
+Make sure you are running python 64bit. You can find out python versions installed by runnning
+`py -0a`
+You'll see something like this:
+
+    Installed Pythons found by py Launcher for Windows
+     (venv) *
+     -3.8-64
+     -3.8-32
+ 
+If you only see a 32-bit version, install python 64-bit selecting the 'add to path' option. Once installed, run python on cmd/CLI to [check what version runs as default](https://stackoverflow.com/a/10966396/1202124)). If it isn't the 64 bit one, you can
+a) uninstall python 32bit and/or delete it from your path
+b) for multiple versions of python installed simultaneously (e.g. 3.8-64 and 3.8-32), make sure that the first python path in your path environment variable is the 64bit one, so python 64 runs as default. For more of a detailed explanation see [here](https://stackoverflow.com/questions/57328054/change-default-version-of-python-from-32bit-to-64bit/66102653#66102653)
+
+### brun: unrecognized arguments error
+This issue comes up when running ```brun '(+ 1 (q . 3))' '2'``` . The solution is to use double quotes instead of single quotes i.e. ```brun "(+ 1 (q . 3))" "2"```. That should work just fine.
+
+## Debian 10
+### ModuleNotFoundError: No module named 'clvm.CLMObject'
+Install cmake from backports, and install clvm from source into the clvm_tools venv (credit to @sgharvey on keybase). This issue shows up when running 'run/brun' commands.
