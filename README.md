@@ -194,4 +194,30 @@ This issue comes up when running ```brun '(+ 1 (q . 3))' '2'``` . The solution i
 
 ## Debian 10
 ### ModuleNotFoundError: No module named 'clvm.CLMObject'
-Install cmake from backports, and install clvm from source into the clvm_tools venv (credit to @sgharvey on keybase). This issue shows up when running 'run/brun' commands.
+This issue shows up when using 'run/brun' commands. Credit to @sgharvey on keybase for the solution:
+
+1. Add backports to your sources.list (or alternatively add a new file with the ".list" extension to /etc/apt/sources.list.d/)
+```
+deb http://deb.debian.org/debian buster-backports main
+```
+
+2. Run ```apt-get update```
+3. Install cmake from backports
+```
+apt-get install cmake/buster-backports
+```
+4. Clone into clvm
+```
+git clone https://github.com/Chia-Network/clvm.git
+cd clvm
+```
+5. Create venv
+```
+python3 -m venv venv
+. ./venv/bin/activate
+```
+7. Install clvm into venv
+```
+pip install -e '.[dev]'
+```
+8. If you pay close attention, you'll notice that clvm_tools was installed. Test that by running 'run' or 'brun'.
