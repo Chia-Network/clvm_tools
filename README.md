@@ -173,7 +173,7 @@ This produces
 
 which is not much code, for how much source there is. This also demonstrates the general notion that macros (and inline functions) cause much less code bloat than functions. The main disadvantages is that macros are not recursive (since they run at compile time) and they're messier to write.
 
-# Known issues
+# Troubleshooting
 ## Windows
 ### Building wheel for blspy (PEP 517) error
 Make sure you are running python 64bit. You can find out python versions installed by runnning
