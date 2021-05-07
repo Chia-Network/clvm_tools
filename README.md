@@ -11,7 +11,7 @@ Set up your virtual environments
     $ . ./venv/bin/activate (windows: venv\Scripts\activate.bat)
     $ pip install -e .
 
-If you run into any issues, be sure to check out [this section](https://github.com/Chia-Network/clvm_tools/blob/develop/README.md#known-issues)
+If you run into any issues, be sure to check out [this section](https://github.com/Chia-Network/clvm_tools/blob/develop/README.md#troubleshooting)
 
 Optionally, run unit tests for a sanity check.
 
@@ -176,7 +176,7 @@ which is not much code, for how much source there is. This also demonstrates the
 # Troubleshooting
 ## Windows
 ### Building wheel for blspy (PEP 517) error
-Make sure you are running python 64bit. You can find out python versions installed by runnning
+Make sure you are running python 64-bit. You can find out python versions installed by runnning
 `py -0a`
 You'll see something like this:
 
