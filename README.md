@@ -25,7 +25,7 @@ The language has two components: the higher level language and the compiled lowe
 To compile the higher level language into the lower level language use:
 
     $ run '(mod ARGUMENT (+ ARGUMENT 3))'
-    (+ 1 (q 3))
+    (+ 1 (q . 3))
 
 To execute this code:
 
