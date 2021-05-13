@@ -26,12 +26,6 @@ bit controls the first branch, then the next-least the second, and so on. That l
 ugly-numbered tree.
 """
 
-from clvm import KEYWORD_TO_ATOM
-
-ARGS_KW = KEYWORD_TO_ATOM["a"]
-FIRST_KW = KEYWORD_TO_ATOM["f"]
-REST_KW = KEYWORD_TO_ATOM["r"]
-
 
 def compose_paths(path_0, path_1):
     """
@@ -78,14 +72,6 @@ class NodePath:
         index = self._index
         byte_count = (index.bit_length() + 7) >> 3
         return index.to_bytes(byte_count, byteorder="big")
-
-    def as_long_path(self):
-        r = [ARGS_KW]
-        index = self._index
-        while index > 1:
-            r = [REST_KW if index & 1 else FIRST_KW, r]
-            index >>= 1
-        return r
 
     as_path = as_short_path
 
