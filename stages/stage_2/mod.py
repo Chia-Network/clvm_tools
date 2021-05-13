@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
+from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
 from clvm_tools.debug import build_symbol_dump
@@ -8,6 +8,7 @@ from .helpers import eval, quote
 from .optimize import optimize_sexp
 
 
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 
 MAIN_NAME = b""
@@ -55,6 +56,7 @@ def flatten(sexp):
         r.extend(flatten(sexp.rest()))
         return r
     return [sexp.as_atom()]
+
 
 def build_used_constants_names(functions, constants, macros):
     """

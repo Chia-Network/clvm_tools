@@ -1,8 +1,10 @@
-from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
+from clvm import KEYWORD_TO_ATOM
 from clvm_tools.NodePath import TOP
 
 
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_KW = KEYWORD_TO_ATOM["a"]
+
 
 def quote(sexp):
     """quoted list as a python list, not as an sexp"""
