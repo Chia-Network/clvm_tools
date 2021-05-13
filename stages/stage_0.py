@@ -1,32 +1,15 @@
-from clvm import run_program as default_run_program  # noqa
-from clvm.operators import OPERATOR_LOOKUP, OperatorDict
-from clvm.EvalError import EvalError
+from typing import List
+
+from clvm.chia_dialect import chia_dialect
+from clvm.dialect import Dialect
 
 from clvm_tools import binutils
 
 brun = run = binutils.assemble("(a 2 3)")
 
 
-def run_program(
-    program,
-    args,
-    operator_lookup=OPERATOR_LOOKUP,
-    max_cost=None,
-    pre_eval_f=None,
-    strict=False,
-):
-    if strict:
-        def fatal_error(op, arguments):
-            raise EvalError("unimplemented operator", arguments.to(op))
-        operator_lookup = OperatorDict(operator_lookup, unknown_op_handler=fatal_error)
-
-    return default_run_program(
-        program,
-        args,
-        operator_lookup,
-        max_cost,
-        pre_eval_f=pre_eval_f,
-    )
+def dialect_for_search_paths(search_paths: List[str], strict=True) -> Dialect:
+    return chia_dialect(strict)
 
 
 """

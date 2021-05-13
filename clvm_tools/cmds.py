@@ -6,21 +6,16 @@ import pathlib
 import sys
 import time
 
-from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
+from clvm import to_sexp_f
+from clvm.chia_dialect import KEYWORD_FROM_ATOM
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
-from clvm.operators import OP_REWRITE
 
 from ir import reader
 
 from . import binutils
 from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 from .sha256tree import sha256tree
-
-try:
-    from clvm_rs import deserialize_and_run_program2, STRICT_MODE
-except ImportError:
-    deserialize_and_run_program2 = None
 
 
 def path_or_code(arg):
@@ -104,7 +99,7 @@ def brun(args=sys.argv):
     return launch_tool(args, "brun")
 
 
-def calculate_cost_offset(run_program, run_script: SExp):
+def calculate_cost_offset(dialect, run_script):
     """
     These commands are used by the test suite, and many of them expect certain costs.
     If boilerplate invocation code changes by a fixed cost, you can tweak this
@@ -116,7 +111,7 @@ def calculate_cost_offset(run_program, run_script: SExp):
     and then the dialect can have a `run_program` API.
     """
     null = binutils.assemble("0")
-    cost, _r = run_program(run_script, null.cons(null))
+    cost, _r = dialect.run_program(run_script, null.cons(null), max_cost=10000000, pre_eval_f=None, to_python=to_sexp_f)
     return 53 - cost
 
 
@@ -157,7 +152,6 @@ def launch_tool(args, tool_name, default_stage=0):
     parser.add_argument(
         "-n", "--no-keywords", action="store_true",
         help="Output result as data, not as a program")
-    parser.add_argument("--backend", type=str, help="force use of 'rust' or 'python' backend")
     parser.add_argument(
         "-i",
         "--include",
@@ -178,10 +172,7 @@ def launch_tool(args, tool_name, default_stage=0):
 
     keywords = {} if args.no_keywords else KEYWORD_FROM_ATOM
 
-    if hasattr(args.stage, "run_program_for_search_paths"):
-        run_program = args.stage.run_program_for_search_paths(args.include)
-    else:
-        run_program = args.stage.run_program
+    dialect = args.stage.dialect_for_search_paths(args.include, strict=args.strict)
 
     input_serialized = None
     input_sexp = None
@@ -227,53 +218,18 @@ def launch_tool(args, tool_name, default_stage=0):
     run_script = getattr(args.stage, tool_name)
 
     cost = 0
-    cost_offset = calculate_cost_offset(run_program, run_script)
+    cost_offset = calculate_cost_offset(dialect, run_script)
     try:
         output = "(didn't finish)"
 
-        use_rust = (
-            (tool_name != "run")
-            and not pre_eval_f
-            and (
-                args.backend == "rust"
-                or (deserialize_and_run_program2 and args.backend != "python")
-            )
-        )
         max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
-        if use_rust:
-            if input_serialized is None:
-                input_serialized = input_sexp.as_bin()
+        if input_sexp is None:
+            input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
 
-            run_script = run_script.as_bin()
-            time_parse_input = time.perf_counter()
-
-            # build the opcode look-up table
-            # this should eventually be subsumed by "Dialect" api
-
-            native_opcode_names_by_opcode = dict(
-                ("op_%s" % OP_REWRITE.get(k, k), op)
-                for op, k in KEYWORD_FROM_ATOM.items()
-                if k not in "qa."
-            )
-            cost, result = deserialize_and_run_program2(
-                run_script,
-                input_serialized,
-                KEYWORD_TO_ATOM["q"][0],
-                KEYWORD_TO_ATOM["a"][0],
-                native_opcode_names_by_opcode,
-                max_cost,
-                STRICT_MODE if args.strict else 0,
-            )
-            time_done = time.perf_counter()
-            result = SExp.to(result)
-        else:
-            if input_sexp is None:
-                input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
-
-            time_parse_input = time.perf_counter()
-            cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
-            time_done = time.perf_counter()
+        time_parse_input = time.perf_counter()
+        cost, result = dialect.run_program(
+            run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, to_python=to_sexp_f)
+        time_done = time.perf_counter()
         if args.cost:
             cost += cost_offset if cost > 0 else 0
             print("cost = %d" % cost)

@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm.chia_dialect import KEYWORD_TO_ATOM
 
 from clvm_tools.pattern_match import match
 from clvm_tools.binutils import assemble
@@ -275,7 +275,7 @@ def optimize_sexp(r, eval):
 
 def make_do_opt(run_program):
 
-    def do_opt(args):
+    def do_opt(args, max_cost=None):
         return 1, optimize_sexp(args.first(), run_program)
 
     return do_opt

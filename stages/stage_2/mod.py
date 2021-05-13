@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm.chia_dialect import KEYWORD_TO_ATOM
 
 from clvm_tools import binutils
 from clvm_tools.debug import build_symbol_dump

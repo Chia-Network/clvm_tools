@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm.chia_dialect import KEYWORD_TO_ATOM
 from clvm_tools.NodePath import TOP
 
 

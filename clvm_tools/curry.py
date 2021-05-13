@@ -1,6 +1,7 @@
+from clvm.chia_dialect import chia_dialect
+
 from clvm_tools.binutils import assemble
 
-from stages.stage_0 import run_program
 
 from .pattern_match import match
 
@@ -18,6 +19,10 @@ CURRY_OBJ_CODE = assemble(
 )
 
 
+DIALECT = chia_dialect(strict=True)
+INFINITE_COST = int(1e18)
+
+
 def curry(program, args):
     """
     ;; A "curry" binds values to a function, making them constant,
@@ -31,7 +36,7 @@ def curry(program, args):
     """
 
     args = program.to((program, args))
-    r = run_program(CURRY_OBJ_CODE, args)
+    r = DIALECT.run_program(CURRY_OBJ_CODE, args, max_cost=INFINITE_COST, pre_eval_f=None, to_python=program.to)
     return r
 
 

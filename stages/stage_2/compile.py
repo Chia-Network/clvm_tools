@@ -1,4 +1,5 @@
-from clvm import KEYWORD_TO_ATOM
+from clvm.chia_dialect import KEYWORD_TO_ATOM
+
 from clvm_tools.binutils import disassemble
 from clvm_tools.NodePath import LEFT, TOP
 
@@ -167,7 +168,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
 
 def make_do_com(run_program):
 
-    def do_com(sexp):
+    def do_com(sexp, max_cost):
         prog = sexp.first()
         symbol_table = sexp.null()
         if not sexp.rest().nullp():

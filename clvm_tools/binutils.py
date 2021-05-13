@@ -1,7 +1,8 @@
 import string
 
-from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
+from clvm import to_sexp_f
 from clvm.casts import int_from_bytes, int_to_bytes
+from clvm.chia_dialect import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
 
 from ir.reader import read_ir
 from ir.writer import write_ir
@@ -58,6 +59,7 @@ def type_for_atom(atom) -> Type:
 
 
 def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
+    sexp = to_sexp_f(sexp)
     if is_ir(sexp) and allow_keyword is not False:
         return ir_cons(ir_symbol("ir"), sexp)
 

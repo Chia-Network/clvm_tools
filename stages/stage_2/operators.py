@@ -1,24 +1,22 @@
+from typing import List
+
 import pathlib
 
 from ir.reader import read_ir
 from ir.writer import write_ir_to_stream
 
-
+from clvm.chia_dialect import chia_dialect_with_op_table
+from clvm.dialect import Dialect, DialectInfo
+from clvm.handle_unknown_op import handle_unknown_op_strict
 from clvm.EvalError import EvalError
-from clvm_tools.operator_dict import OperatorDict
 
 from clvm_tools.binutils import assemble_from_ir, disassemble_to_ir
-
-from stages.stage_0 import (
-    run_program as run_program_0,
-    OPERATOR_LOOKUP as ORIGINAL_OPERATOR_LOOKUP,
-)
 
 from .compile import make_do_com
 from .optimize import make_do_opt
 
 
-def do_read(args):
+def do_read(args, max_cost):
     filename = args.first().as_atom()
     s = open(filename).read()
     ir_sexp = args.to(read_ir(s))
@@ -26,7 +24,7 @@ def do_read(args):
     return 1, sexp
 
 
-def do_write(args):
+def do_write(args, max_cost):
     filename = args.first().as_atom()
     data = args.rest().first()
     with open(filename, "w") as f:
@@ -34,9 +32,10 @@ def do_write(args):
     return 1, args.to(0)
 
 
-def run_program_for_search_paths(search_paths):
+def dialect_for_search_paths(search_paths: List[str], strict: bool) -> DialectInfo:
+    dialect = chia_dialect_with_op_table(strict)
 
-    def do_full_path_for_name(args):
+    def do_full_path_for_name(args, max_cost):
         filename = args.first().as_atom()
         for path in search_paths:
             f_path = pathlib.Path(path) / bytes(filename).decode()
@@ -44,19 +43,8 @@ def run_program_for_search_paths(search_paths):
                 return 1, args.to(str(f_path).encode())
         raise EvalError("can't open %s" % filename, args)
 
-    operator_lookup = OperatorDict(ORIGINAL_OPERATOR_LOOKUP)
-
-    def run_program(
-        program, args, operator_lookup=operator_lookup, max_cost=None, pre_eval_f=None, strict=False
-    ):
-        return run_program_0(
-            program,
-            args,
-            operator_lookup=operator_lookup,
-            max_cost=max_cost,
-            pre_eval_f=pre_eval_f,
-            strict=strict
-        )
+    def run_program(program, args):
+        return dialect.run_program(program, args, max_cost=int(1e15), pre_eval_f=None, to_python=program.to)
 
     BINDINGS = {
         b"com": make_do_com(run_program),
@@ -66,6 +54,5 @@ def run_program_for_search_paths(search_paths):
         b"_write": do_write,
     }
 
-    operator_lookup.update(BINDINGS)
-
-    return run_program
+    dialect.update(BINDINGS)
+    return dialect

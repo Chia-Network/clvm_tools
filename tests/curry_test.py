@@ -1,4 +1,4 @@
-from clvm.operators import KEYWORD_TO_ATOM
+from clvm.chia_dialect import KEYWORD_TO_ATOM
 
 from clvm_tools.binutils import assemble, disassemble
 from clvm_tools.curry import curry, uncurry

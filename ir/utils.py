@@ -100,7 +100,7 @@ def ir_iter(ir_sexp: SExp) -> typing.Iterable[SExp]:
         ir_sexp = ir_rest(ir_sexp)
 
 
-def is_ir(sexp) -> bool:
+def is_ir(sexp: SExp) -> bool:
     if sexp.atom is not None:
         return False
 
