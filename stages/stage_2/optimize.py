@@ -1,4 +1,4 @@
-from clvm import KEYWORD_TO_ATOM, QUOTE_ATOM
+from clvm import KEYWORD_TO_ATOM
 
 from clvm_tools.pattern_match import match
 from clvm_tools.binutils import assemble
@@ -6,6 +6,7 @@ from clvm_tools.binutils import assemble
 from clvm_tools.NodePath import NodePath, LEFT, RIGHT
 from .helpers import quote
 
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_KW = KEYWORD_TO_ATOM["a"]
 FIRST_KW = KEYWORD_TO_ATOM["f"]
 REST_KW = KEYWORD_TO_ATOM["r"]

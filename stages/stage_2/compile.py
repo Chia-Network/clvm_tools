@@ -1,4 +1,4 @@
-from clvm import QUOTE_ATOM, KEYWORD_TO_ATOM
+from clvm import KEYWORD_TO_ATOM
 from clvm_tools.binutils import disassemble
 from clvm_tools.NodePath import LEFT, TOP
 
@@ -6,6 +6,7 @@ from .defaults import default_macro_lookup
 from .helpers import brun, eval, quote
 from .mod import compile_mod
 
+QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
 APPLY_KW = KEYWORD_TO_ATOM["a"]
 CONS_KW = KEYWORD_TO_ATOM["c"]
 
