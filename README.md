@@ -8,8 +8,10 @@ This is the in-development version of `clvm_tools` for clvm, which implements, a
 Set up your virtual environments
 
     $ python3 -m venv venv
-    $ . ./venv/bin/activate
+    $ . ./venv/bin/activate (windows: venv\Scripts\activate.bat)
     $ pip install -e .
+
+If you run into any issues, be sure to check out [this section of the wiki](https://github.com/Chia-Network/chia-blockchain/wiki/Help-with-clvm_tools)
 
 Optionally, run unit tests for a sanity check.
 
@@ -23,11 +25,11 @@ The language has two components: the higher level language and the compiled lowe
 To compile the higher level language into the lower level language use:
 
     $ run '(mod ARGUMENT (+ ARGUMENT 3))'
-    (+ 1 (q 3))
+    (+ 1 (q . 3))
 
 To execute this code:
 
-    $ brun '(+ 1 (q 3))' '2'
+    $ brun '(+ 1 (q . 3))' '2'
     5
 
 
@@ -45,7 +47,7 @@ The high level language is a superset of [clvm](https://github.com/Chia-Network/
 
 You can copy this to a file `fact.clvm`, then compile it with `run fact.clvm` and you'll see output like
 
-`((c (q ((c 2 (c 2 (c 5 (q ())))))) (c (q ((c (i (= 5 (q 1)) (q (q 1)) (q (* 5 ((c 2 (c 2 (c (- 5 (q 1)) (q ())))))))) 1))) 1)))`
+`(a (q 2 2 (c 2 (c 5 ()))) (c (q 2 (i (= 5 (q . 1)) (q 1 . 1) (q 18 5 (a 2 (c 2 (c (- 5 (q . 1)) ()))))) 1) 1))`
 
 You can then run this code with `brun`, passing in a parameter. Or pipe it using this `bash` quoting trick:
 
@@ -132,7 +134,7 @@ Compare to the function version:
 
 which produces
 
-`((c (q ((c 2 (c 2 (c 5 (c 11 (q ()))))))) (c (q (+ 5 11)) 1)))`
+`(a (q 2 2 (c 2 (c 5 (c 11 ())))) (c (q 16 5 11) 1))`
 
 There's a lot more going on here, setting up an environment where sum would be allowed to call itself recursively.
 
