@@ -51,7 +51,6 @@ def generate_nested_1(n, name, value_size, filename, arity=2):
         ret += ')'
     return '%s_nest1-%d-%d' % (filename, value_size, n), ret, '()'
 
-
 def size_of_value(val):
     if val.startswith('0x'):
         return (len(val) - 2) / 2
@@ -146,6 +145,22 @@ def generate_if(n):
     for i in range(n):
         ret += ')'
     return 'if-1-%d' % n, ret, '()'
+
+def gen_apply(n, name):
+    folder = 'test-programs/%s' % name
+    try: os.mkdir(folder)
+    except: pass
+    with open(folder + '/%s-%d.clvm' % (name, n), 'w+') as f:
+        for i in range(n):
+            f.write('(a (q . (lognot ');
+
+        f.write('(q . 1)');
+
+        for i in range(n):
+            f.write(')) ())');
+
+    with open(folder + '/%s-%d.env' % (name, n), 'w+') as f:
+        f.write('()')
 
 def get_range(name):
     if name.split('-')[0].endswith('_empty'): return 3000,40,[1]
@@ -246,3 +261,5 @@ print_files(lambda n, vs: generate_list_empty(n))
 print_files(lambda n, vs: generate_list(n, 'r', 'rest'))
 
 print_files(lambda n, vs: generate_if(n))
+gen_apply(1000, 'apply')
+
