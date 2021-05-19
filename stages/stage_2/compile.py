@@ -7,8 +7,8 @@ from .helpers import brun, eval, quote
 from .mod import compile_mod
 
 QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
-APPLY_KW = KEYWORD_TO_ATOM["a"]
-CONS_KW = KEYWORD_TO_ATOM["c"]
+APPLY_ATOM = KEYWORD_TO_ATOM["a"]
+CONS_ATOM = KEYWORD_TO_ATOM["c"]
 
 PASS_THROUGH_OPERATORS = set(KEYWORD_TO_ATOM.values())
 
@@ -35,18 +35,18 @@ def compile_qq(args, macro_lookup, symbol_table, run_program, level=1):
         op = sexp.first().as_atom()
         if op == b"qq":
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level+1)
-            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, quote(0)]]))
+            return com(sexp.to([CONS_ATOM, op, [CONS_ATOM, subexp, quote(0)]]))
         if op == b"unquote":
             if level == 1:
                 # (qq (unquote X)) => X
                 return com(sexp.rest().first())
             subexp = compile_qq(sexp.rest(), macro_lookup, symbol_table, run_program, level-1)
-            return com(sexp.to([CONS_KW, op, [CONS_KW, subexp, quote(0)]]))
+            return com(sexp.to([CONS_ATOM, op, [CONS_ATOM, subexp, quote(0)]]))
 
     # (qq (a . B)) => (c (qq a) (qq B))
     A = com(sexp.to([b"qq", sexp.first()]))
     B = com(sexp.to([b"qq", sexp.rest()]))
-    return sexp.to([CONS_KW, A, B])
+    return sexp.to([CONS_ATOM, A, B])
 
 
 def compile_macros(args, macro_lookup, symbol_table, run_program):
@@ -157,7 +157,7 @@ def do_com_prog(prog, macro_lookup, symbol_table, run_program):
                                   quote([b"list"] + list(prog.rest().as_iter())),
                                   quote(macro_lookup),
                                   quote(symbol_table)]]), TOP.as_path())
-            r = prog.to([APPLY_KW, value, [CONS_KW, LEFT.as_path(), new_args]])
+            r = prog.to([APPLY_ATOM, value, [CONS_ATOM, LEFT.as_path(), new_args]])
             return r
 
     raise SyntaxError(

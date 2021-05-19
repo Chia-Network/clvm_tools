@@ -3,7 +3,7 @@ from clvm_tools.NodePath import TOP
 
 
 QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
-APPLY_KW = KEYWORD_TO_ATOM["a"]
+APPLY_ATOM = KEYWORD_TO_ATOM["a"]
 
 
 def quote(sexp):
@@ -12,7 +12,7 @@ def quote(sexp):
 
 
 def eval(prog, args):
-    return prog.to([APPLY_KW, prog, args])
+    return prog.to([APPLY_ATOM, prog, args])
 
 
 def run(prog, macro_lookup):

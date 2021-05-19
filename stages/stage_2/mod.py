@@ -9,7 +9,7 @@ from .optimize import optimize_sexp
 
 
 QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
-CONS_KW = KEYWORD_TO_ATOM["c"]
+CONS_ATOM = KEYWORD_TO_ATOM["c"]
 
 MAIN_NAME = b""
 
@@ -43,7 +43,7 @@ def build_tree_program(items):
     half_size = size >> 1
     left = build_tree_program(items[:half_size])
     right = build_tree_program(items[half_size:])
-    return [CONS_KW, left, right]
+    return [CONS_ATOM, left, right]
 
 
 def flatten(sexp):
@@ -179,7 +179,7 @@ def build_macro_lookup_program(macro_lookup, macros, run_program):
     macro_lookup_program = macro_lookup.to(quote(macro_lookup))
     for macro in macros:
         macro_lookup_program = eval(macro_lookup.to(
-            [b"opt", [b"com", quote([CONS_KW, macro, macro_lookup_program]), macro_lookup_program]]),
+            [b"opt", [b"com", quote([CONS_ATOM, macro, macro_lookup_program]), macro_lookup_program]]),
             TOP.as_path())
         macro_lookup_program = optimize_sexp(macro_lookup_program, run_program)
     return macro_lookup_program
