@@ -1,3 +1,10 @@
+"""
+These tests check that the `clvmc` utility methods
+continue to work with the `include` keyword, and produce
+the expected output. It's not intended to be a complete
+test of the compiler, just the `clvmc` api.
+"""
+
 from tempfile import TemporaryDirectory
 
 from clvm_tools import clvmc
@@ -6,6 +13,8 @@ from clvm_tools import clvmc
 INCLUDE_CODE = "((defconstant FOO 6001))"
 MAIN_CODE = """(mod (VALUE) (include "include.clvm") (+ VALUE FOO))"""
 EXPECTED_HEX_OUTPUT = "ff10ff02ffff0182177180"
+
+# `EXPECTED_HEX_OUTPUT` disassembles to "(+ 2 (q . 6001))"
 
 
 def test_compile_clvm_text():
@@ -29,5 +38,5 @@ def test_compile_clvm():
             output = clvmc.compile_clvm(
                 main_path, main_output, search_paths=[include_dir]
             )
-            t = open(main_output).read()
+            t = open(output).read()
             assert t == f"{EXPECTED_HEX_OUTPUT}\n"
