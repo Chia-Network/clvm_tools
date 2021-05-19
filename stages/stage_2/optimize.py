@@ -7,11 +7,11 @@ from clvm_tools.NodePath import NodePath, LEFT, RIGHT
 from .helpers import quote
 
 QUOTE_ATOM = KEYWORD_TO_ATOM["q"]
-APPLY_KW = KEYWORD_TO_ATOM["a"]
-FIRST_KW = KEYWORD_TO_ATOM["f"]
-REST_KW = KEYWORD_TO_ATOM["r"]
-CONS_KW = KEYWORD_TO_ATOM["c"]
-RAISE_KW = KEYWORD_TO_ATOM["x"]
+APPLY_ATOM = KEYWORD_TO_ATOM["a"]
+FIRST_ATOM = KEYWORD_TO_ATOM["f"]
+REST_ATOM = KEYWORD_TO_ATOM["r"]
+CONS_ATOM = KEYWORD_TO_ATOM["c"]
+RAISE_ATOM = KEYWORD_TO_ATOM["x"]
 
 DEBUG_OPTIMIZATIONS = 0
 
@@ -29,7 +29,7 @@ def seems_constant(sexp):
         as_atom = operator.as_atom()
         if as_atom == QUOTE_ATOM:
             return True
-        if as_atom == RAISE_KW:
+        if as_atom == RAISE_ATOM:
             return False
     elif not seems_constant(operator):
         return False
@@ -75,14 +75,14 @@ def cons_f(args):
     t = match(CONS_PATTERN, args)
     if t:
         return t["first"]
-    return args.to([FIRST_KW, args])
+    return args.to([FIRST_ATOM, args])
 
 
 def cons_r(args):
     t = match(CONS_PATTERN, args)
     if t:
         return t["rest"]
-    return args.to([REST_KW, args])
+    return args.to([REST_ATOM, args])
 
 
 def path_from_args(sexp, new_args):
