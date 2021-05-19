@@ -8,13 +8,13 @@ def test_pattern_match():
     assert r == {}
 
     r = match(assemble("($ . $)"), assemble("x"))
-    assert r == None
+    assert r is None
 
     r = match(assemble("(: . :)"), assemble(":"))
     assert r == {}
 
     r = match(assemble("(: . :)"), assemble("x"))
-    assert r == None
+    assert r is None
 
     r = match(assemble("$"), assemble("$"))
     assert r == {}
