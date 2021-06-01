@@ -101,11 +101,11 @@ def ir_iter(ir_sexp: SExp) -> typing.Iterable[SExp]:
 
 
 def is_ir(sexp) -> bool:
-    if sexp.atom is not None:
+    if sexp.as_atom() is not None:
         return False
 
-    type_sexp, val_sexp = sexp.pair
-    f = type_sexp.atom
+    type_sexp, val_sexp = sexp.as_pair()
+    f = type_sexp.as_atom()
     if f is None or len(f) > 1:
         return False
 
@@ -116,10 +116,10 @@ def is_ir(sexp) -> bool:
         return False
 
     if t == Type.CONS:
-        if val_sexp.atom == b"":
+        if val_sexp.as_atom() == b"":
             return True
-        if val_sexp.pair:
-            return all(is_ir(_) for _ in val_sexp.pair)
+        if val_sexp.as_pair():
+            return all(is_ir(_) for _ in val_sexp.as_pair())
         return False
 
-    return val_sexp.atom is not None
+    return val_sexp.as_atom() is not None
