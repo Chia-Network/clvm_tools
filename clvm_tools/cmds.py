@@ -6,7 +6,7 @@ import pathlib
 import sys
 import time
 
-from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
+from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp, dialect_factories
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.operators import OP_REWRITE
@@ -234,10 +234,8 @@ def launch_tool(args, tool_name, default_stage=0):
         use_rust = (
             (tool_name != "run")
             and not pre_eval_f
-            and (
-                args.backend == "rust"
-                or (deserialize_and_run_program and args.backend != "python")
-            )
+            and (args.backend != "python" and args.backend != "debug")
+            and deserialize_and_run_program
         )
         max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
         if use_rust:
@@ -271,8 +269,22 @@ def launch_tool(args, tool_name, default_stage=0):
                 input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
 
             time_parse_input = time.perf_counter()
-            cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
+            backend = args.backend if args.backend is not None else "python"
+            dialect = dialect_factories[backend](
+                KEYWORD_TO_ATOM["q"],
+                KEYWORD_TO_ATOM["a"],
+                args.strict,
+                to_sexp_f
+            )
+
+            def tracer(value,result):
+                print(f'sha256 with {result} came from {value}')
+
+            dialect.configure(sha256_tracer=tracer)
+
+            cost, result = dialect.run_program(
+                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f)
+
             time_done = time.perf_counter()
         if args.cost:
             cost += cost_offset if cost > 0 else 0
