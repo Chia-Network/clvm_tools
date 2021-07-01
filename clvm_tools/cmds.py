@@ -18,9 +18,9 @@ from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 from .sha256tree import sha256tree
 
 try:
-    from clvm_rs import deserialize_and_run_program, STRICT_MODE
+    from clvm_rs import deserialize_and_run_program2, STRICT_MODE
 except ImportError:
-    deserialize_and_run_program = None
+    deserialize_and_run_program2 = None
 
 
 def path_or_code(arg):
@@ -145,7 +145,7 @@ def launch_tool(args, tool_name, default_stage=0):
     parser.add_argument(
         "--time", action="store_true", help="Print execution time")
     parser.add_argument(
-        "-m", "--max-cost", type=int, default=10860254871, help="Maximum cost")
+        "-m", "--max-cost", type=int, default=11000000000, help="Maximum cost")
     parser.add_argument(
         "-d", "--dump", action="store_true",
         help="dump hex version of final output")
@@ -253,7 +253,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 for op, k in KEYWORD_FROM_ATOM.items()
                 if k not in "qa."
             )
-            cost, result = deserialize_and_run_program(
+            cost, result = deserialize_and_run_program2(
                 run_script,
                 input_serialized,
                 KEYWORD_TO_ATOM["q"][0],
@@ -263,7 +263,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 STRICT_MODE if args.strict else 0,
             )
             time_done = time.perf_counter()
-            result = sexp_from_stream(io.BytesIO(result), to_sexp_f)
+            result = SExp.to(result)
         else:
             if input_sexp is None:
                 input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
