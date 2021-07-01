@@ -278,7 +278,18 @@ def launch_tool(args, tool_name, default_stage=0):
             )
 
             def tracer(value,result):
-                print(f'sha256 with {result} came from {value}')
+                import json
+                try:
+                    with open('sha256.trace','a') as f:
+                        row_inputs = [x.hex() for x in value.as_python()]
+                        row = {
+                            'hash': str(result)[2:],
+                            'inputs': row_inputs
+                        }
+                        f.write(json.dumps(row))
+                        f.write('\n')
+                except:
+                    sys.stderr.write('warning: error writing sha256 trace\n')
 
             dialect.configure(sha256_tracer=tracer)
 
