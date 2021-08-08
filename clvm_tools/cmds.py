@@ -234,9 +234,11 @@ def launch_tool(args, tool_name, default_stage=0):
         use_rust = (
             (tool_name != "run")
             and not pre_eval_f
+            and deserialize_and_run_program2
             and (
                 args.backend == "rust"
-                or (deserialize_and_run_program2 and args.backend != "python")
+                or
+                args.backend != "python"
             )
         )
         max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
