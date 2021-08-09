@@ -135,7 +135,7 @@ def parse_mod_sexp(declaration_sexp, namespace, functions, constants, macros, ru
     elif op == b"defconstant":
         constants[name] = declaration_sexp.to(quote(declaration_sexp.rest().rest().first()))
     else:
-        raise SyntaxError("expected defun, defmacro, or defconstant")
+        raise SyntaxError("expected defun, defun-inline, defmacro, or defconstant")
 
 
 def compile_mod_stage_1(args, run_program):
