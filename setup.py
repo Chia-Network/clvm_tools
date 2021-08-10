@@ -26,6 +26,9 @@ setup(
             "brun = clvm_tools.cmds:brun",
         ],
     },
+    package_data={
+        "": ["py.typed"],
+    },
     author_email="kiss@chia.net",
     setup_requires=["setuptools_scm"],
     install_requires=dependencies,
