@@ -75,7 +75,7 @@ DEFAULT_MACROS_SRC = [
                (function (unquote B))
                (function (unquote C)))
             @)))""",
-
+    # Override / with divmod.
 ]
 
 
