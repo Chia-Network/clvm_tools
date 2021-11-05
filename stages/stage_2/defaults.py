@@ -75,7 +75,9 @@ DEFAULT_MACROS_SRC = [
                (function (unquote B))
                (function (unquote C)))
             @)))""",
-    # Override / with divmod.
+    # / operator at the clvm layer is becoming deprecated and
+    # will be implemented using divmod.
+    """(defmacro / (A B) (qq (f (divmod (unquote A) (unquote B)))))""",
 ]
 
 
