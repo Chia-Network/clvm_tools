@@ -6,7 +6,7 @@ import pathlib
 import sys
 import time
 
-from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
+from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp, dialect_factories
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.operators import OP_REWRITE
@@ -167,6 +167,10 @@ def launch_tool(args, tool_name, default_stage=0):
         default=[],
     )
     parser.add_argument(
+        "--sha256-trace", action="store_true",
+        help="Leave a sha256 trace behind, showing the sources of sha256 hashes"
+    )
+    parser.add_argument(
         "path_or_code", type=path_or_code,
         help="filepath to clvm script, or a literal script")
 
@@ -231,49 +235,41 @@ def launch_tool(args, tool_name, default_stage=0):
     try:
         output = "(didn't finish)"
 
-        use_rust = (
-            (tool_name != "run")
-            and not pre_eval_f
-            and (
-                args.backend == "rust"
-                or (deserialize_and_run_program2 and args.backend != "python")
-            )
-        )
         max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
-        if use_rust:
-            if input_serialized is None:
-                input_serialized = input_sexp.as_bin()
+        if input_sexp is None:
+            input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
 
-            run_script = run_script.as_bin()
-            time_parse_input = time.perf_counter()
+        time_parse_input = time.perf_counter()
+        backend = args.backend if args.backend is not None else "python"
+        dialect = dialect_factories[backend](
+            KEYWORD_TO_ATOM["q"],
+            KEYWORD_TO_ATOM["a"],
+            args.strict,
+            to_sexp_f
+        )
 
-            # build the opcode look-up table
-            # this should eventually be subsumed by "Dialect" api
+        if args.sha256_trace:
+            def tracer(value,result):
+                import json
+                try:
+                    with open('sha256.trace','a') as f:
+                        row_inputs = [x.hex() for x in value.as_python()]
+                        row = {
+                            'hash': str(result)[2:],
+                            'inputs': row_inputs
+                        }
+                        f.write(json.dumps(row))
+                        f.write('\n')
+                except:
+                    sys.stderr.write('warning: error writing sha256 trace\n')
 
-            native_opcode_names_by_opcode = dict(
-                ("op_%s" % OP_REWRITE.get(k, k), op)
-                for op, k in KEYWORD_FROM_ATOM.items()
-                if k not in "qa."
-            )
-            cost, result = deserialize_and_run_program2(
-                run_script,
-                input_serialized,
-                KEYWORD_TO_ATOM["q"][0],
-                KEYWORD_TO_ATOM["a"][0],
-                native_opcode_names_by_opcode,
-                max_cost,
-                STRICT_MODE if args.strict else 0,
-            )
-            time_done = time.perf_counter()
-            result = SExp.to(result)
-        else:
-            if input_sexp is None:
-                input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
+            dialect.configure(sha256_tracer=tracer)
 
-            time_parse_input = time.perf_counter()
-            cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
-            time_done = time.perf_counter()
+        cost, result = dialect.run_program(
+            run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f)
+
+        time_done = time.perf_counter()
+
         if args.cost:
             cost += cost_offset if cost > 0 else 0
             print("cost = %d" % cost)
