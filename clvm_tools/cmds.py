@@ -18,9 +18,9 @@ from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 from .sha256tree import sha256tree
 
 try:
-    from clvm_rs import deserialize_and_run_program2, STRICT_MODE
+    from clvm_rs import run_chia_program, MEMPOOL_MODE
 except ImportError:
-    deserialize_and_run_program2 = None
+    run_chia_program = None
 
 
 def path_or_code(arg):
@@ -127,7 +127,10 @@ def launch_tool(args, tool_name, default_stage=0):
     )
     parser.add_argument(
         "--strict", action="store_true",
-        help="Unknown opcodes are always fatal errors in strict mode")
+        help="deprecated alias for --mempool")
+    parser.add_argument(
+        "--mempool", action="store_true",
+        help="Unknown opcodes are always fatal errors in mempool mode")
     parser.add_argument(
         "-x", "--hex", action="store_true",
         help="Read program and environment as hexadecimal bytecode")
@@ -236,7 +239,7 @@ def launch_tool(args, tool_name, default_stage=0):
             and not pre_eval_f
             and (
                 args.backend == "rust"
-                or (deserialize_and_run_program2 and args.backend != "python")
+                or (run_chia_program and args.backend != "python")
             )
         )
         max_cost = max(0, args.max_cost - cost_offset if args.max_cost != 0 else 0)
@@ -247,22 +250,11 @@ def launch_tool(args, tool_name, default_stage=0):
             run_script = run_script.as_bin()
             time_parse_input = time.perf_counter()
 
-            # build the opcode look-up table
-            # this should eventually be subsumed by "Dialect" api
-
-            native_opcode_names_by_opcode = dict(
-                ("op_%s" % OP_REWRITE.get(k, k), op)
-                for op, k in KEYWORD_FROM_ATOM.items()
-                if k not in "qa."
-            )
-            cost, result = deserialize_and_run_program2(
+            cost, result = run_chia_program(
                 run_script,
                 input_serialized,
-                KEYWORD_TO_ATOM["q"][0],
-                KEYWORD_TO_ATOM["a"][0],
-                native_opcode_names_by_opcode,
                 max_cost,
-                STRICT_MODE if args.strict else 0,
+                MEMPOOL_MODE if (args.mempool or args.strict) else 0,
             )
             time_done = time.perf_counter()
             result = SExp.to(result)
@@ -272,7 +264,7 @@ def launch_tool(args, tool_name, default_stage=0):
 
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
+                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.mempool | args.strict)
             time_done = time.perf_counter()
         if args.cost:
             cost += cost_offset if cost > 0 else 0
