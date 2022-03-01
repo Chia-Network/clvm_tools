@@ -127,7 +127,10 @@ def launch_tool(args, tool_name, default_stage=0):
     )
     parser.add_argument(
         "--strict", action="store_true",
-        help="Unknown opcodes are always fatal errors in strict mode")
+        help="deprecated alias for --mempool")
+    parser.add_argument(
+        "--mempool", action="store_true",
+        help="Unknown opcodes are always fatal errors in mempool mode")
     parser.add_argument(
         "-x", "--hex", action="store_true",
         help="Read program and environment as hexadecimal bytecode")
@@ -251,7 +254,7 @@ def launch_tool(args, tool_name, default_stage=0):
                 run_script,
                 input_serialized,
                 max_cost,
-                MEMPOOL_MODE if args.strict else 0,
+                MEMPOOL_MODE if (args.mempool or args.strict) else 0,
             )
             time_done = time.perf_counter()
             result = SExp.to(result)
@@ -261,7 +264,7 @@ def launch_tool(args, tool_name, default_stage=0):
 
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.strict)
+                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.mempool | args.strict)
             time_done = time.perf_counter()
         if args.cost:
             cost += cost_offset if cost > 0 else 0
