@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q . (lambda (A B C) (list A B C (list C))))))'
+run -s0 -s2 '(opt (com (q . (lambda (A B C) (list A B C (list C))))))'
 (q 4 2 (c 5 (c 11 (c (c 11 ()) ()))))

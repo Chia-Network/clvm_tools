@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q . (+ 6 55))))'
+run -s0 -s2 '(opt (com (q . (+ 6 55))))'
 (q . 61)

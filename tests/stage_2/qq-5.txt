@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q . (qq ((unquote @) 200 300 400)))))'
+run -s0 -s2 '(opt (com (q . (qq ((unquote @) 200 300 400)))))'
 (c 1 (q 200 300 400))

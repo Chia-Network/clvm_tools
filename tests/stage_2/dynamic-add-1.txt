@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (a (com (q . (list + 15 20))) 1)))'
+run -s0 -s2 '(opt (com (a (com (q . (list + 15 20))) 1)))'
 (q . 35)

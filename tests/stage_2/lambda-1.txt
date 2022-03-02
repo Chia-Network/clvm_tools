@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q . (lambda (A B) (+ 100 B)))))'
+run -s0 -s2 '(opt (com (q . (lambda (A B) (+ 100 B)))))'
 (q 16 (q . 100) 5)

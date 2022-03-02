@@ -1,2 +1,2 @@
-brun -s2 '(opt (com (q . (list + 1 2 (+ 1 2)))))'
+run -s0 -s2 '(opt (com (q . (list + 1 2 (+ 1 2)))))'
 (q 16 1 2 3)

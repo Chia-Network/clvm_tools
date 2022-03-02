@@ -1,2 +1,2 @@
-brun -s2 '(com (q . goodbye) (q . ()) (q . ((hello 2000) (goodbye 3000))))'
+run -s0 -s2 '(com (q . goodbye) (q . ()) (q . ((hello 2000) (goodbye 3000))))'
 3000

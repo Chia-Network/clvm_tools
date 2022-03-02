@@ -1,2 +1,2 @@
-brun -s2 '(opt (q . (a (q . 1) 1)))'
+run -s0 -s2 '(opt (q . (a (q . 1) 1)))'
 1

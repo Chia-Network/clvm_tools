@@ -1,2 +1,2 @@
-brun '(sha256 (sha256 (f 1) (f (r 1))))' '("hel" "lo.there.my.dear.friend")'
+run -s0 '(sha256 (sha256 (f 1) (f (r 1))))' '("hel" "lo.there.my.dear.friend")'
 0x1f596aa79cc754cf3c587ea5f20319f5ad75d9167b494aa67e3a611ca781ecdd

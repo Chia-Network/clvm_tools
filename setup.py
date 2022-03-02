@@ -7,6 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "clvm>=0.9.2",
+    "clvm-rs>=0.1.20",
 ]
 
 dev_dependencies = [
@@ -23,7 +24,7 @@ setup(
             "opc = clvm_tools.cmds:opc",
             "opd = clvm_tools.cmds:opd",
             "run = clvm_tools.cmds:run",
-            "brun = clvm_tools.cmds:brun",
+            "brun = clvm_tools.brun:brun",
         ],
     },
     package_data={

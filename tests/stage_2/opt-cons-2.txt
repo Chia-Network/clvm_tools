@@ -1,2 +1,2 @@
-brun -s2 '(opt (q . (f (r (c (q . aaa) (c (q . bbb) (c (q . CCC) 1)))))))'
+run -s0 -s2 '(opt (q . (f (r (c (q . aaa) (c (q . bbb) (c (q . CCC) 1)))))))'
 (q . "bbb")

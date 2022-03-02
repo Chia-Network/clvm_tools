@@ -9,7 +9,6 @@ import time
 from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
-from clvm.operators import OP_REWRITE
 
 from ir import reader
 
@@ -98,10 +97,6 @@ def as_bin(streamer_f):
 
 def run(args=sys.argv):
     return launch_tool(args, "run", default_stage=2)
-
-
-def brun(args=sys.argv):
-    return launch_tool(args, "brun")
 
 
 def calculate_cost_offset(run_program, run_script: SExp):
