@@ -170,18 +170,17 @@ def launch_tool(args, tool_name, default_stage=0):
     else:
         run_program = args.stage.run_program
 
-    input_serialized = None
-    input_sexp = None
+    program_serialized = None
+    arg_serialized = None
 
     time_start = time.perf_counter()
     if args.hex:
-        assembled_serialized = bytes.fromhex(args.path_or_code)
+        program_serialized = bytes.fromhex(args.path_or_code)
         if not args.env:
             args.env = "80"
-        env_serialized = bytes.fromhex(args.env)
+        arg_serialized = bytes.fromhex(args.env)
         time_read_hex = time.perf_counter()
 
-        input_serialized = b"\xff" + assembled_serialized + env_serialized
     else:
 
         src_text = args.path_or_code
@@ -190,14 +189,13 @@ def launch_tool(args, tool_name, default_stage=0):
         except SyntaxError as ex:
             print("FAIL: %s" % (ex))
             return -1
-        assembled_sexp = binutils.assemble_from_ir(src_sexp)
+        program_serialized = binutils.assemble_from_ir(src_sexp).as_bin()
         if not args.env:
             args.env = "()"
         env_ir = reader.read_ir(args.env)
-        env = binutils.assemble_from_ir(env_ir)
-        time_assemble = time.perf_counter()
+        arg_serialized = binutils.assemble_from_ir(env_ir).as_bin()
 
-        input_sexp = to_sexp_f((assembled_sexp, env))
+        time_assemble = time.perf_counter()
 
     pre_eval_f = None
     symbol_table = None
@@ -211,7 +209,9 @@ def launch_tool(args, tool_name, default_stage=0):
     elif args.verbose or args.table:
         pre_eval_f = make_trace_pre_eval(log_entries)
 
-    run_script = getattr(args.stage, tool_name)
+    if hasattr(args.stage, tool_name):
+        arg_serialized = b"\xff" + program_serialized + arg_serialized
+        program_serialized = getattr(args.stage, tool_name).as_bin()
 
     cost = 0
     try:
@@ -224,30 +224,27 @@ def launch_tool(args, tool_name, default_stage=0):
                 args.backend == "rust"
                 or (run_chia_program and args.backend != "python")
             )
+            and args.stage == 0
         )
         max_cost = args.max_cost
         if use_rust:
-            if input_serialized is None:
-                input_serialized = input_sexp.as_bin()
-
-            run_script = run_script.as_bin()
             time_parse_input = time.perf_counter()
 
             cost, result = run_chia_program(
-                run_script,
-                input_serialized,
+                program_serialized,
+                arg_serialized,
                 max_cost,
                 MEMPOOL_MODE if (args.mempool or args.strict) else 0,
             )
             time_done = time.perf_counter()
             result = SExp.to(result)
         else:
-            if input_sexp is None:
-                input_sexp = sexp_from_stream(io.BytesIO(input_serialized), to_sexp_f)
+            program = sexp_from_stream(io.BytesIO(program_serialized), to_sexp_f)
+            arg = sexp_from_stream(io.BytesIO(arg_serialized), to_sexp_f)
 
             time_parse_input = time.perf_counter()
             cost, result = run_program(
-                run_script, input_sexp, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.mempool | args.strict)
+                program, arg, max_cost=max_cost, pre_eval_f=pre_eval_f, strict=args.mempool | args.strict)
             time_done = time.perf_counter()
         if args.cost:
             print("cost = %d" % cost)

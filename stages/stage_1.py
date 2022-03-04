@@ -53,9 +53,6 @@ BINDINGS = {
 }
 
 
-brun = run = binutils.assemble("(a 2 3)")
-
-
 class RunProgram:
     def __init__(self):
         operator_lookup = OperatorDict(OPERATOR_LOOKUP)
