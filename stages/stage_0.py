@@ -4,9 +4,6 @@ from clvm.EvalError import EvalError
 
 from clvm_tools import binutils
 
-brun = run = binutils.assemble("(a 2 3)")
-
-
 def run_program(
     program,
     args,

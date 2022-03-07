@@ -1,29 +1,5 @@
 brun -t '(+ 1 (q . 3))' '2'
 5
-exp: 2
-arg: (a 3)
-env: ((+ 1 (q . 3)) . 2)
-val: 5
-bexp: b'\x02'
-barg: b'\xff\x02\xff\x03\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
-exp: 3
-arg: ()
-env: ((+ 1 (q . 3)) . 2)
-val: 2
-bexp: b'\x03'
-barg: b'\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
-exp: 2
-arg: ()
-env: ((+ 1 (q . 3)) . 2)
-val: (+ 1 (q . 3))
-bexp: b'\x02'
-barg: b'\x80'
-benv: b'\xff\xff\x10\xff\x01\xff\xff\x01\x03\x80\x02'
---
 exp: 16
 arg: (q (q . 3))
 env: 2
