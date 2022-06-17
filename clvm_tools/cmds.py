@@ -98,7 +98,7 @@ def as_bin(streamer_f):
 
 
 def run(args=sys.argv):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("-s", "--stage", type=int, default=2)
     known, unk = parser.parse_known_args(args)
     if known.stage == 2:
