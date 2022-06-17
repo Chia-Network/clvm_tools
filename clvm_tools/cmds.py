@@ -7,6 +7,7 @@ import sys
 import time
 
 from clvm import to_sexp_f, KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
+import clvm_tools_rs
 from clvm.EvalError import EvalError
 from clvm.serialize import sexp_from_stream, sexp_to_stream
 from clvm.operators import OP_REWRITE
@@ -97,8 +98,13 @@ def as_bin(streamer_f):
 
 
 def run(args=sys.argv):
-    return launch_tool(args, "run", default_stage=2)
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--stage", type=int, default=2)
+    known, unk = parser.parse_known_args(args)
+    if known.stage == 2:
+        sys.stdout.write(bytes(clvm_tools_rs.launch_tool("run", args, 2)).decode('utf8'))
+    else:
+        return launch_tool(args, "run")
 
 def brun(args=sys.argv):
     return launch_tool(args, "brun")
