@@ -1,4 +1,5 @@
 import string
+from typing import Dict
 
 from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
 from clvm.casts import int_from_bytes, int_to_bytes
