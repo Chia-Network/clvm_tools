@@ -98,13 +98,7 @@ def as_bin(streamer_f):
 
 
 def run(args=sys.argv):
-    parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument("-s", "--stage", type=int, default=2)
-    known, unk = parser.parse_known_args(args)
-    if known.stage == 2:
-        sys.stdout.write(bytes(clvm_tools_rs.launch_tool("run", args, 2)).decode('utf8'))
-    else:
-        return launch_tool(args, "run")
+    sys.stdout.write(bytes(clvm_tools_rs.launch_tool("run", args, 2)).decode('utf8'))
 
 def brun(args=sys.argv):
     return launch_tool(args, "brun")
