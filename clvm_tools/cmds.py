@@ -100,6 +100,7 @@ def as_bin(streamer_f):
 def run(args=sys.argv):
     sys.stdout.write(bytes(clvm_tools_rs.launch_tool("run", args, 2)).decode('utf8'))
 
+
 def brun(args=sys.argv):
     return launch_tool(args, "brun")
 
