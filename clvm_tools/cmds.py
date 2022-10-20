@@ -218,15 +218,18 @@ def launch_tool(args, tool_name, default_stage=0):
     try:
         output = "(didn't finish)"
 
-        use_rust = (
-            (tool_name != "run")
-            and not pre_eval_f
-            and (
-                args.backend == "rust"
-                or (run_chia_program and args.backend != "python")
+        if args.backend == "rust":
+            use_rust = True
+        elif args.backend == "python":
+            use_rust = False
+        else:
+            use_rust = (
+                tool_name != "run"
+                and not pre_eval_f
+                and run_chia_program
+                and args.stage.__name__ == "stages.stage_0"
             )
-            and args.stage == 0
-        )
+
         max_cost = args.max_cost
         if use_rust:
             time_parse_input = time.perf_counter()
