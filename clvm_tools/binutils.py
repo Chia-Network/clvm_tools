@@ -1,6 +1,7 @@
 import string
+from typing import Dict
 
-from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
+from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM, SExp
 from clvm.casts import int_from_bytes, int_to_bytes
 
 from ir.reader import read_ir
@@ -80,11 +81,11 @@ def disassemble_to_ir(sexp, keyword_from_atom, allow_keyword=None):
     return sexp.to((type_for_atom(as_atom), as_atom))
 
 
-def disassemble(sexp, keyword_from_atom=KEYWORD_FROM_ATOM):
+def disassemble(sexp: SExp, keyword_from_atom: Dict[bytes, str] = KEYWORD_FROM_ATOM) -> str:
     symbols = disassemble_to_ir(sexp, keyword_from_atom=keyword_from_atom)
     return write_ir(symbols)
 
 
-def assemble(s):
+def assemble(s: str) -> SExp:
     symbols = read_ir(s)
     return assemble_from_ir(symbols)
