@@ -1,4 +1,3 @@
-import string
 from typing import Dict
 
 from clvm import KEYWORD_FROM_ATOM, KEYWORD_TO_ATOM
@@ -45,11 +44,15 @@ def assemble_from_ir(ir_sexp):
     return sexp_1.cons(sexp_2)
 
 
+printable_chars = ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~ ")
+
+
 def type_for_atom(atom) -> Type:
     if len(atom) > 2:
         try:
             v = bytes(atom).decode("utf8")
-            if all(c in string.printable for c in v):
+            if all(c in printable_chars for c in v):
                 return Type.QUOTES
         except UnicodeDecodeError:
             pass
