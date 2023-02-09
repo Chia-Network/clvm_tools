@@ -19,9 +19,9 @@ from .debug import make_trace_pre_eval, trace_to_text, trace_to_table
 from .sha256tree import sha256tree
 
 try:
-    from clvm_rs import run_chia_program, MEMPOOL_MODE
+    from clvm_rs import run_serialized_chia_program, MEMPOOL_MODE
 except ImportError:
-    run_chia_program = None
+    run_serialized_chia_program = None
 
 
 def path_or_code(arg):
@@ -226,7 +226,7 @@ def launch_tool(args, tool_name, default_stage=0):
             use_rust = (
                 tool_name != "run"
                 and not pre_eval_f
-                and run_chia_program
+                and run_serialized_chia_program
                 and args.stage.__name__ == "stages.stage_0"
             )
 
@@ -234,7 +234,7 @@ def launch_tool(args, tool_name, default_stage=0):
         if use_rust:
             time_parse_input = time.perf_counter()
 
-            cost, result = run_chia_program(
+            cost, result = run_serialized_chia_program(
                 program_serialized,
                 arg_serialized,
                 max_cost,
