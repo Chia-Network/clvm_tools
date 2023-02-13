@@ -234,12 +234,16 @@ def launch_tool(args, tool_name, default_stage=0):
         if use_rust:
             time_parse_input = time.perf_counter()
 
-            cost, result = run_serialized_chia_program(
-                program_serialized,
-                arg_serialized,
-                max_cost,
-                MEMPOOL_MODE if (args.mempool or args.strict) else 0,
-            )
+            try:
+                cost, result = run_serialized_chia_program(
+                    program_serialized,
+                    arg_serialized,
+                    max_cost,
+                    MEMPOOL_MODE if (args.mempool or args.strict) else 0,
+                )
+            except ValueError as ve:
+                err = EvalError(ve.args[0], ve.args[1])
+                raise err
             time_done = time.perf_counter()
             result = SExp.to(result)
         else:
