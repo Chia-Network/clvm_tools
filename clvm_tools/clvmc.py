@@ -1,7 +1,6 @@
 # clvm_tools setuptools integration
 
 from distutils import log
-from distutils.errors import DistutilsFileError
 
 import os
 import pathlib
@@ -26,7 +25,7 @@ def compile_clvm(input_path, output_path, search_paths=[]):
     output_path = pathlib.Path(output_path)
     try:
         output_time = output_path.stat().st_mtime
-    except DistutilsFileError:
+    except FileNotFoundError:
         output_time = None
     if output_time is None or input_path.stat().st_mtime > output_time:
         log.info("clvmcc %s -o %s" % (input_path, output_path))
