@@ -23,7 +23,11 @@ def compile_clvm_text(text, search_paths):
 def compile_clvm(input_path, output_path, search_paths=[]):
     input_path = pathlib.Path(input_path)
     output_path = pathlib.Path(output_path)
-    if input_path.stat().st_mtime > output_path.stat().st_mtime:
+    try:
+        output_time = output_path.stat().st_mtime
+    except distutils.errors.DistutilsFileError:
+        output_time = None
+    if output_time is None or input_path.stat().st_mtime > output_time:
         log.info("clvmcc %s -o %s" % (input_path, output_path))
         with open(input_path) as f:
             text = f.read()
