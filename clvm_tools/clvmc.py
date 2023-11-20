@@ -1,7 +1,6 @@
 # clvm_tools setuptools integration
 
 from distutils import log
-from distutils.dep_util import newer
 
 import os
 import pathlib
@@ -22,7 +21,9 @@ def compile_clvm_text(text, search_paths):
 
 
 def compile_clvm(input_path, output_path, search_paths=[]):
-    if newer(input_path, output_path):
+    input_path = pathlib.Path(input_path)
+    output_path = pathlib.Path(output_path)
+    if input_path.stat().st_mtime > output_path.stat().st_mtime:
         log.info("clvmcc %s -o %s" % (input_path, output_path))
         with open(input_path) as f:
             text = f.read()
