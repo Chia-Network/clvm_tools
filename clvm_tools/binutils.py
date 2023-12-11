@@ -44,8 +44,13 @@ def assemble_from_ir(ir_sexp):
     return sexp_1.cons(sexp_2)
 
 
-printable_chars = ("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "!#$%&'()*+,-./:;<=>?@[\]^_`{|}~ ")
+printable_chars = (
+    "0123456789"
+    + "abcdefghijklmnopqrstuvwxyz"
+    + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    + "!#$%&'()*+,-./:;<=>?@[]^_`{|}~ "
+    + "\\"
+)
 
 
 def type_for_atom(atom) -> Type:
