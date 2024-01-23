@@ -7,7 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "clvm @ git+https://github.com/chia-network/clvm@replace_pkg_resources",
-    "clvm_tools_rs @ git+https://github.com/chia-network/clvm_tools_rs@main"
+    "clvm_tools_rs @ git+https://github.com/chia-network/clvm_tools_rs@base"
 ]
 
 dev_dependencies = [
