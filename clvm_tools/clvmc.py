@@ -35,7 +35,7 @@ def compile_clvm(input_path, output_path, search_paths=[]):
         hex = result.as_bin().hex()
 
         with open(output_path, "w") as f:
-            f.write(hex)
+            f.write(insert_newlines(hex))
             f.write("\n")
     else:
         log.info("skipping %s, compiled recently" % input_path)
@@ -53,3 +53,9 @@ def find_files(path=""):
                 compile_clvm(full_path, target)
                 r.append(target)
     return r
+
+def insert_newlines(string, every=80):
+    lines = []
+    for i in range(0, len(string), every):
+        lines.append(string[i:i+every])
+    return '\n'.join(lines)
