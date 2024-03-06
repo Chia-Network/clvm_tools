@@ -7,7 +7,9 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "clvm>=0.9.2",
-    "clvm_tools_rs>=0.1.37"
+    "clvm_tools_rs>=0.1.37",
+    "importlib_metadata",
+    "setuptools",
 ]
 
 dev_dependencies = [
@@ -16,7 +18,13 @@ dev_dependencies = [
 
 setup(
     name="clvm_tools",
-    packages=["ir", "clvm_tools", "clvm_tools.setuptools", "stages", "stages.stage_2",],
+    packages=[
+        "ir",
+        "clvm_tools",
+        "clvm_tools.setuptools",
+        "stages",
+        "stages.stage_2",
+    ],
     author="Chia Network, Inc.",
     entry_points={
         "console_scripts": [
@@ -45,7 +53,9 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Topic :: Security :: Cryptography",
     ],
-    extras_require=dict(dev=dev_dependencies,),
+    extras_require=dict(
+        dev=dev_dependencies,
+    ),
     project_urls={
         "Bug Reports": "https://github.com/Chia-Network/clvm_tools",
         "Source": "https://github.com/Chia-Network/clvm_tools",
