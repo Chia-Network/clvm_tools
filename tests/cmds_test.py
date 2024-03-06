@@ -1,10 +1,9 @@
+import importlib
 import io
 import os
-import pkg_resources
 import shlex
 import sys
 import unittest
-
 
 # If the REPAIR environment variable is set, any tests failing due to
 # wrong output will be corrected. Be sure to do a "git diff" to validate that
@@ -57,9 +56,8 @@ class TestCmds(unittest.TestCase):
         sys.stderr = stderr_buffer
 
         args = shlex.split(cmd_line)
-        v = pkg_resources.load_entry_point("clvm_tools", "console_scripts", args[0])(
-            args
-        )
+        [entry_point] = importlib.metadata.entry_points(group="console_scripts", name=args[0])
+        v = entry_point.load()(args)
 
         sys.stdout = old_stdout
         sys.stderr = old_stderr
