@@ -38,7 +38,7 @@ setup(
     package_data={
         "": ["py.typed"],
     },
-    author_email="kiss@chia.net",
+    author_email="hello@chia.net",
     install_requires=dependencies,
     url="https://github.com/Chia-Network",
     license="Apache-2.0",
