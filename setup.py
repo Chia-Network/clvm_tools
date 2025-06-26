@@ -6,7 +6,7 @@ with open("README.md", "rt") as fh:
     long_description = fh.read()
 
 dependencies = [
-    "clvm>=0.9.2",
+    "clvm>=0.9.13",
     "clvm_tools_rs>=0.1.37",
     "importlib_metadata",
     "setuptools",
