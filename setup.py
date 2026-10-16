@@ -7,7 +7,7 @@ with open("README.md", "rt") as fh:
 
 dependencies = [
     "clvm>=0.9.14",
-    "clvm_tools_rs>=0.1.37",
+    "chialisp>=0.1.37",
     "importlib_metadata",
     "setuptools",
 ]
